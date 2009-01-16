@@ -26,16 +26,12 @@ SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
 UNICODE_FORMAT  = 0x08
 
-from random import randint
+from random import shuffle
 
 class PDU :
     def __init__(self):
-        self.random_id_list = range(0,255)
-
-        i = randint(0,255)
-        for x in range(0,i):
-            item = self.random_id_list.pop()
-            self.random_id_list.insert(0, item)
+        self.random_id_list = range(0, 255)
+        shuffle(self.random_id_list)
 
     #Public methods
 
