@@ -1,0 +1,17 @@
+What is python-messaging?
+=========================
+
+A SMS encoder/decoder written 100% in Python.
+
+History
+=======
+
+Originally written by Paul Hardwick with some bits from Dave Berkeley's
+pysms. It was imported in the Wader and MobileManager projects and quickly
+became clear that a joint effort would be more benefitial for everyone.
+
+Features
+========
+
+ * Supports 7bit, 8bit and UCS2 encodings
+ * Multipart encoding and decoding
