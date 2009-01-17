@@ -23,26 +23,26 @@ import codecs
 ### Codec APIs
 
 class Codec(codecs.Codec):
-    def encode(self,input,errors='strict'):
-        print "encode input : %s" % input
-        return codecs.charmap_encode(input,errors,encoding_map)
+    def encode(self, _input, errors='strict'):
+        print "encode input: %s" % _input
+        return codecs.charmap_encode(_input, errors, encoding_map)
 
-    def decode(self,input,errors='strict'):
-        return codecs.charmap_decode(input,errors,decoding_table)
+    def decode(self, _input, errors='strict'):
+        return codecs.charmap_decode(_input, errors, decoding_table)
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
-    def encode(self, input, final=False):
-        print "increment encode input : %s" % input
-        return codecs.charmap_encode(input,self.errors,encoding_map)[0]
+    def encode(self, _input, final=False):
+        print "increment encode input: %s" % _input
+        return codecs.charmap_encode(_input, self.errors, encoding_map)[0]
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
-    def decode(self, input, final=False):
-        return codecs.charmap_decode(input,self.errors,decoding_table)[0]
+    def decode(self, _input, final=False):
+        return codecs.charmap_decode(_input, self.errors, decoding_table)[0]
 
-class StreamWriter(Codec,codecs.StreamWriter):
+class StreamWriter(Codec, codecs.StreamWriter):
     pass
 
-class StreamReader(Codec,codecs.StreamReader):
+class StreamReader(Codec, codecs.StreamReader):
     pass
 
 ### encodings module API
@@ -202,7 +202,7 @@ decoding_table = {
 }
 
 ### Encoding table
-encoding_map=codecs.make_encoding_map(decoding_table)
+encoding_map = codecs.make_encoding_map(decoding_table)
 
 encoding_map.update({
     0x00C0 : 0x41,
