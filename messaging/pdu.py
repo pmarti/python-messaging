@@ -20,19 +20,21 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import random
+random.seed()
+
 import gsm0338
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
 UNICODE_FORMAT  = 0x08
 
-from random import shuffle
+
 
 class PDU(object):
 
     def __init__(self):
-        self.random_id_list = range(0, 255)
-        shuffle(self.random_id_list)
+        self.id_list = range(0, 255)
 
     #Public methods
 
@@ -456,7 +458,5 @@ class PDU(object):
         return ''.join(result)
 
     def _get_rand_id(self):
-        rid = self.random_id_list.pop()
-        self.random_id_list.insert(0, rid)
-        return rid
+        return random.choice(self.id_list)
 
