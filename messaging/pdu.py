@@ -29,6 +29,11 @@ SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
 UNICODE_FORMAT  = 0x08
 
+SEVENBIT_SIZE = 160
+UCS2_SIZE = 70
+
+UNKNOWN_NUMBER = 129
+INTERNATIONAL_NUMBER = 145
 
 
 class PDU(object):
@@ -225,10 +230,10 @@ class PDU(object):
             return chr(0)
 
         number = self._clean_number(number)
-        ptype = 129
+        ptype = UNKNOWN_NUMBER
         if number[0] == '+':
             number = number[1:]
-            ptype = 145
+            ptype = INTERNATIONAL_NUMBER
 
         if len(number) % 2:
             number = number + 'F'
@@ -251,10 +256,10 @@ class PDU(object):
 
     def _get_phone_pdu(self, number):
         number = self._clean_number(number)
-        ptype = 129
+        ptype = UNKNOWN_NUMBER
         if number[0] == '+':
             number = number[1:]
-            ptype = 145
+            ptype = INTERNATIONAL_NUMBER
 
         pl = len(number)
         if len(number) % 2:
@@ -310,20 +315,21 @@ class PDU(object):
         message_pdu = ""
 
         if text_format == SEVENBIT_FORMAT:
-            if len(text) <= 160:
+            if len(text) <= SEVENBIT_SIZE:
                 print "GSM0338 (len %s)" % len(text)
                 message_pdu = [self._pack_8bits_to_7bits(text)]
             else:
                 print "GSM0338 (len %s multipart)" % len(text)
-                message_pdu = self._split_sms_message(text, limit=160,
+                message_pdu = self._split_sms_message(text,
+                                                      limit=SEVENBIT_SIZE,
                                                       encoding=SEVENBIT_FORMAT)
         else:
-            if len(text) <= 70:
+            if len(text) <= UCS2_SIZE:
                 print "UNICODE (len %s)" % len(text)
                 message_pdu = [self._pack_8bits_to_ucs2(text)]
             else:
                 print "UNICODE (len %s)" % len(text)
-                message_pdu = self._split_sms_message(text, limit=70,
+                message_pdu = self._split_sms_message(text, limit=UCS2_SIZE,
                                                       encoding=UNICODE_FORMAT)
 
         ret_msgs_list = []
@@ -397,7 +403,8 @@ class PDU(object):
         ret_pdu = ''.join(["%02x" % ord(n) for n in pdu])
         return ret_pdu
 
-    def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT, limit=160):
+    def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT,
+                           limit=SEVENBIT_SIZE):
         len_without_udh = limit - 7
         msgs = []
         total_len = len(text)
@@ -431,7 +438,7 @@ class PDU(object):
 
         return pdu_msgs
 
-    def _unpack_msg(self, pdu, limit=160):
+    def _unpack_msg(self, pdu, limit=SEVENBIT_SIZE):
         """
         Unpacks C{pdu} into 7-bit characters and returns the decoded string
         """
