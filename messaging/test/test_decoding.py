@@ -19,6 +19,17 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(csca, _csca)
         self.assertEqual(number, sender)
 
+    def test_decoding_7bit_stored_pdu(self):
+        pdu = "0591438967450100089143214365000009E8721E444797E565"
+        expected = "hey there"
+        _csca = "+34987654"
+        number = "+34123456"
+
+        sender, datestr, text, csca, ref, cnt, seq, fmt = self.pdu.decode_pdu(pdu)
+        self.assertEqual(text, expected)
+        self.assertEqual(csca, _csca)
+        self.assertEqual(number, sender)
+
     def test_decoding_ucs2_pdu(self):
         expected = u"中兴通讯"
         pdu = "07914306073011F0040B914316709807F2000880604290224080084E2D5174901A8BAF"
