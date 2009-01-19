@@ -6,6 +6,7 @@ setup(name="python-messaging",
       description='SMS encoder/decoder',
       license='GPL',
       packages=find_packages(),
+      install_requires=['nose >= 0.8.3',],
       zip_safe=True,
       test_suite='messaging.test',
       classifiers = [
