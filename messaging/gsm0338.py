@@ -24,7 +24,6 @@ import codecs
 
 class Codec(codecs.Codec):
     def encode(self, _input, errors='strict'):
-        print "encode input: %s" % _input
         return codecs.charmap_encode(_input, errors, encoding_map)
 
     def decode(self, _input, errors='strict'):
@@ -32,7 +31,6 @@ class Codec(codecs.Codec):
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
     def encode(self, _input, final=False):
-        print "increment encode input: %s" % _input
         return codecs.charmap_encode(_input, self.errors, encoding_map)[0]
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
