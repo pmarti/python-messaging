@@ -26,9 +26,9 @@ class TestDecodingFunctions(unittest.TestCase):
         number = "+34123456"
 
         sender, datestr, text, csca, ref, cnt, seq, fmt = self.pdu.decode_pdu(pdu)
-        self.assertEqual(text, expected)
         self.assertEqual(csca, _csca)
         self.assertEqual(number, sender)
+        self.assertEqual(text, expected)
 
     def test_decoding_ucs2_pdu(self):
         expected = u"中兴通讯"

@@ -37,6 +37,10 @@ UCS2_MP_SIZE = UCS2_SIZE - 3
 UNKNOWN_NUMBER = 129
 INTERNATIONAL_NUMBER = 145
 
+SMS_DELIVER = 0x00
+SMS_SUBMIT = 0x01
+SMS_CONCAT = 0x40
+
 
 class PDU(object):
 
@@ -44,7 +48,6 @@ class PDU(object):
         self.id_list = range(0, 255)
 
     #Public methods
-
     def encode_pdu(self, number, text, csca='', request_status=False,
                    msgref=0, msgvp=0xaa):
         """
@@ -137,22 +140,31 @@ class PDU(object):
         csca = smscer
 
         ptr = ptr + 2 + smscl
-        #1 byte(octet) == 2 char
-        #Message type TP-MTI bits 0,1
-        #More messages to send/deliver bit 2
-        #Status report request indicated bit 5
-        #User Data Header Indicator bit 6
-        #Reply path set bit 7
-        #1st octet position == smscerlen+4
+        # 1 byte(octet) == 2 char
+        # Message type TP-MTI bits 0,1
+        # More messages to send/deliver bit 2
+        # Status report request indicated bit 5
+        # User Data Header Indicator bit 6
+        # Reply path set bit 7
+        # 1st octet position == smscerlen+4
 
         FO = int(pdu[ptr:ptr+2], 16)
-        #is this a concatenated msg?
-        if (FO & 0x40):
+        # is this a SMS_DELIVER or SMS_SUBMIT type?
+        sms_type = SMS_DELIVER
+        if FO & SMS_SUBMIT:
+            sms_type = SMS_SUBMIT
+
+        # is this a concatenated msg?
+        if FO & SMS_CONCAT:
             testheader = True
         else:
             testheader = False
 
         ptr = ptr + 2
+        if sms_type == SMS_SUBMIT:
+            # skip the message reference
+            ptr = ptr + 2
+
         sndlen = int(pdu[ptr:ptr+2], 16)
         if sndlen % 2:
             sndlen += 1
@@ -184,15 +196,18 @@ class PDU(object):
         elif DCS & UNICODE_FORMAT:
             fmt = UNICODE_FORMAT
 
-        # Get date stamp
+        datestr = ''
         ptr = ptr + 2
-        date = list(pdu[ptr:ptr+14])
-        for n in range(1, len(date), 2):
-            date[n-1], date[n] = date[n], date[n-1]
-            datestr = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+        if sms_type == SMS_DELIVER:
+            # Get date stamp
+            date = list(pdu[ptr:ptr+14])
+            for n in range(1, len(date), 2):
+                date[n-1], date[n] = date[n], date[n-1]
+                datestr = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+
+            ptr = ptr + 14
 
         # Now get message body
-        ptr = ptr + 14
         msgl = int(pdu[ptr:ptr+2], 16)
         msg = pdu[ptr+2:]
         # check for header
@@ -226,7 +241,6 @@ class PDU(object):
         return sender, datestr, msg.strip(), csca, ref, cnt, seq, fmt
 
     #Private methods
-
     def _get_smsc_pdu(self, number):
         if not len(number.strip()):
             return chr(0)
