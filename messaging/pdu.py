@@ -139,7 +139,7 @@ class PDU(object):
             smscer = '+' + smscer
         csca = smscer
 
-        ptr = ptr + 2 + smscl
+        ptr += 2 + smscl
         # 1 byte(octet) == 2 char
         # Message type TP-MTI bits 0,1
         # More messages to send/deliver bit 2
@@ -160,10 +160,10 @@ class PDU(object):
         else:
             testheader = False
 
-        ptr = ptr + 2
+        ptr += 2
         if sms_type == SMS_SUBMIT:
             # skip the message reference
-            ptr = ptr + 2
+            ptr += 2
 
         sndlen = int(pdu[ptr:ptr+2], 16)
         if sndlen % 2:
@@ -181,11 +181,11 @@ class PDU(object):
         if sndtype == '91':
             sender = '+' + sender
 
-        ptr = ptr + 4 + sndlen
+        ptr += 4 + sndlen
         # 1byte (octet) = 2 char
         # 1 byte TP-PID (Protocol Identtifier
         PID = int(pdu[ptr:ptr+2], 16)
-        ptr = ptr + 2
+        ptr += 2
         # 1 byte TP-DCS (Data Coding Scheme)
         DCS = int(pdu[ptr:ptr+2], 16)
         fmt = SEVENBIT_FORMAT
@@ -196,8 +196,9 @@ class PDU(object):
         elif DCS & UNICODE_FORMAT:
             fmt = UNICODE_FORMAT
 
+        ptr += 2
+
         datestr = ''
-        ptr = ptr + 2
         if sms_type == SMS_DELIVER:
             # Get date stamp
             date = list(pdu[ptr:ptr+14])
@@ -205,7 +206,7 @@ class PDU(object):
                 date[n-1], date[n] = date[n], date[n-1]
                 datestr = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
 
-            ptr = ptr + 14
+            ptr += 14
 
         # Now get message body
         msgl = int(pdu[ptr:ptr+2], 16)
@@ -223,7 +224,7 @@ class PDU(object):
                 if fmt == SEVENBIT_FORMAT:
                     while headlen % 7:
                         headlen += 1
-                    headlen = headlen / 7
+                    headlen /= 7
 
         if fmt == SEVENBIT_FORMAT:
             msg = self._unpack_msg(msg)[headlen:msgl]
@@ -257,7 +258,7 @@ class PDU(object):
         ps = chr(ptype)
         for n in range(0, len(number), 2):
             num = number[n+1] + number[n]
-            ps = ps + chr(int(num, 16))
+            ps += chr(int(num, 16))
 
         pl = len(ps)
         ps = chr(pl) + ps
@@ -284,7 +285,7 @@ class PDU(object):
         ps = chr(ptype)
         for n in range(0, len(number), 2):
             num = number[n+1] + number[n]
-            ps = ps + chr(int(num, 16))
+            ps += chr(int(num, 16))
 
         ps = chr(pl) + ps
 
