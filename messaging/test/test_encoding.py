@@ -17,6 +17,15 @@ class TestEncodingFunctions(unittest.TestCase):
         pdu = self.pdu.encode_pdu(number, text, csca=csca)[0]
         self.assertEqual(pdu[1], expected)
 
+    def test_encoding_7bit_to_store_message(self):
+        number = "+34123456"
+        csca = "+34987654"
+        text = "hey there"
+        expected = "0591438967450100089143214365000009E8721E444797E565"
+
+        pdu = self.pdu.encode_pdu(number, text, csca=csca, msgvp=0x00)[0]
+        self.assertEqual(pdu[1], expected)
+
     def test_encoding_ucs2_message(self):
         number = "+34616585119"
         text = u'あ叶葉'
