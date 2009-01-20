@@ -329,8 +329,6 @@ class PDU(object):
         if not store:
             msgvp = validity_period & 0xFF
             msgvp_pdu = ''.join(["%02x" % ord(n) for n in chr(msgvp)])
-            print "MSGVP", msgvp
-            print "MSGVP_PDU", msgvp_pdu
 
         # UDL + UD
         message_pdu = ""
