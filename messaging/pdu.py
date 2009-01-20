@@ -49,7 +49,7 @@ class PDU(object):
 
     #Public methods
     def encode_pdu(self, number, text, csca='', request_status=False,
-                   msgref=0, msgvp=0xaa):
+                   msgref=0, msgvp=0xaa, store=False):
         """
         Returns a list of messages in PDU format
 
@@ -62,11 +62,11 @@ class PDU(object):
         """
 
         smsc_pdu = self._get_smsc_pdu(csca)
-        sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp)
+        sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp, store)
         tpmessref_pdu = self._get_tpmessref_pdu(msgref)
         sms_phone_pdu = self._get_phone_pdu(number)
         tppid_pdu = self._get_tppid_pdu()
-        sms_msg_pdu = self._get_msg_pdu(text, msgvp)
+        sms_msg_pdu = self._get_msg_pdu(text, msgvp, store)
 
         if len(sms_msg_pdu) == 1:
             print "smsc_pdu: %s" % smsc_pdu
@@ -88,7 +88,7 @@ class PDU(object):
             return [((len(pdu) / 2) - len_smsc, pdu.upper())]
         else:
             sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp,
-                                                      udh=True)
+                                                      store, udh=True)
             pdu_list = []
             for sms_msg_pdu_item in sms_msg_pdu:
                 print "smsc_pdu: %s" % smsc_pdu
@@ -300,18 +300,19 @@ class PDU(object):
         ret_tppid = ''.join(["%02x" % ord(n) for n in chr(tppid)])
         return ret_tppid
 
-    def _get_sms_submit_pdu(self, request_status, msgvp, udh=False):
+    def _get_sms_submit_pdu(self, request_status, msgvp, store, udh=False):
         sms_submit = 0x01 if not request_status else 0x21
 
-        if msgvp != 0xFF:
-            sms_submit = sms_submit | 0x10
+        if not store:
+            if msgvp != 0xFF:
+                sms_submit = sms_submit | 0x10
         if udh:
             sms_submit = sms_submit | 0x40
 
         ret_sms_submit = ''.join(["%02x" % ord(n) for n in chr(sms_submit)])
         return ret_sms_submit
 
-    def _get_msg_pdu(self, text, validity_period):
+    def _get_msg_pdu(self, text, validity_period, store):
         # Data coding scheme
         dcs = ""
         if gsm0338.is_valid_gsm_text(text):
@@ -323,11 +324,14 @@ class PDU(object):
 
         dcs_pdu = ''.join(["%02x" % ord(n) for n in chr(dcs)])
 
-        #Validity period
-        msgvp = validity_period & 0xFF
-        msgvp_pdu = ''.join(["%02x" % ord(n) for n in chr(msgvp)])
+        # Validity period
+        if not store:
+            msgvp = validity_period & 0xFF
+            msgvp_pdu = ''.join(["%02x" % ord(n) for n in chr(msgvp)])
+            print "MSGVP", msgvp
+            print "MSGVP_PDU", msgvp_pdu
 
-        #UDL + UD
+        # UDL + UD
         message_pdu = ""
 
         if text_format == SEVENBIT_FORMAT:
@@ -348,12 +352,14 @@ class PDU(object):
                 message_pdu = self._split_sms_message(text, limit=UCS2_SIZE,
                                                       encoding=UNICODE_FORMAT)
 
-        ret_msgs_list = []
-
+        ret = []
         for msg in message_pdu:
-            ret_msgs_list.append(dcs_pdu + msgvp_pdu + msg)
+            if store:
+                ret.append(dcs_pdu + msg)
+            else:
+                ret.append(dcs_pdu + msgvp_pdu + msg)
 
-        return ret_msgs_list
+        return ret
 
     def _pack_8bits_to_ucs2(self, message, udh=None):
         # FIXME: ESTO NO CONTROLA EN TAMAÑO EN BASE AL UDH

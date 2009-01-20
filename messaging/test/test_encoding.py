@@ -23,7 +23,7 @@ class TestEncodingFunctions(unittest.TestCase):
         text = "hey there"
         expected = "0591438967450100089143214365000009E8721E444797E565"
 
-        pdu = self.pdu.encode_pdu(number, text, csca=csca, msgvp=0x00)[0]
+        pdu = self.pdu.encode_pdu(number, text, csca=csca, store=True)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_ucs2_message(self):
