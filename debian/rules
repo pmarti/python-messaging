@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+export DH_VERBOSE=1
+
+build:
+        dh_testdir
+
+clean:
+        dh_testdir
+        dh_testroot
+        rm -f build-stamp
+        rm -rf build dist
+        find . -name "*.pyc" | xargs rm -f
+        dh_clean
+
+install: build
+        dh_testdir
+        dh_testroot
+        dh_clean -k
+        dh_installdirs
+        python setup.py install --root $(PWD)/debian/python-messaging
+        dh_install
+
+binary-arch:  build install
+        dh_testdir
+        dh_testroot
+        dh_installdebconf
+        DH_PYCENTRAL=nomove dh_pycentral
+        dh_installchangelogs
+        dh_installdirs
+        dh_link
+        dh_compress
+        dh_fixperms
+        dh_installdeb
+        dh_gencontrol
+        dh_builddeb
+
+binary: binary-indep binary-arch
+
+.PHONY: build clean install binary binary-indep binary-arch

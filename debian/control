@@ -1,0 +1,11 @@
+Source: python-messaging
+Section: net
+Priority: extra
+Maintainer: Pablo Martí Gamboa <pmarti@warp.es>
+Build-Depends: debhelper (>= 7), python-setuptools
+Standards-Version: 3.7.3
+
+Package: python-messaging
+Architecture: any
+Depends: python
+Description: A SMS encoding/decoding library

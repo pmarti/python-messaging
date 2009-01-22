@@ -1,0 +1,6 @@
+python-messaging (0.1-1) intrepid; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Pablo Martí Gamboa <pablo@unknown>  Thu, 22 Jan 2009 13:45:38 +0100
+

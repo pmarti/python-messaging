@@ -1,0 +1,17 @@
+This package was debianized by Pablo Martí Gamboa <pmarti@warp.es> on
+Thu, 22 Jan 2009 13:45:38 +0100.
+
+Upstream Author(s):
+
+    <Pablo Marti pmarti@warp.es>
+    <Roberto Majadas roberto.majadas@gmail.com>
+
+License:
+
+    GPLv2
+
+The Debian packaging is (C) 2009, Pablo Martí Gamboa <pablo@unknown> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+
+# Please also look if there are files or directories which have a
+# different copyright/license attached and list them here.
