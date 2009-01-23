@@ -41,6 +41,8 @@ SMS_DELIVER = 0x00
 SMS_SUBMIT = 0x01
 SMS_CONCAT = 0x40
 
+# set this to True if you want to poke at PDU encoding/decoding
+DEBUG = False
 
 class PDU(object):
 
@@ -69,13 +71,6 @@ class PDU(object):
         sms_msg_pdu = self._get_msg_pdu(text, msgvp, store)
 
         if len(sms_msg_pdu) == 1:
-            print "smsc_pdu: %s" % smsc_pdu
-            print "sms_submit_pdu: %s" % sms_submit_pdu
-            print "tpmessref_pdu: %s" % tpmessref_pdu
-            print "sms_phone_pdu: %s" % sms_phone_pdu
-            print "tppid_pdu: %s" % tppid_pdu
-            print "sms_msg_pdu: %s" % sms_msg_pdu
-            print "--------------------------------------------"
             pdu = smsc_pdu
             len_smsc = len(smsc_pdu) / 2
             pdu += sms_submit_pdu
@@ -83,14 +78,31 @@ class PDU(object):
             pdu += sms_phone_pdu
             pdu += tppid_pdu
             pdu += sms_msg_pdu[0]
-            print pdu
-            print "--------------------------------------------"
+            if DEBUG:
+                print "smsc_pdu: %s" % smsc_pdu
+                print "sms_submit_pdu: %s" % sms_submit_pdu
+                print "tpmessref_pdu: %s" % tpmessref_pdu
+                print "sms_phone_pdu: %s" % sms_phone_pdu
+                print "tppid_pdu: %s" % tppid_pdu
+                print "sms_msg_pdu: %s" % sms_msg_pdu
+                print "--------------------------------------------"
+                print pdu
+                print "--------------------------------------------"
             return [((len(pdu) / 2) - len_smsc, pdu.upper())]
-        else:
-            sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp,
-                                                      store, udh=True)
-            pdu_list = []
-            for sms_msg_pdu_item in sms_msg_pdu:
+
+        # multipart SMS
+        sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp,
+                                                  store, udh=True)
+        pdu_list = []
+        for sms_msg_pdu_item in sms_msg_pdu:
+            pdu = smsc_pdu
+            len_smsc = len(smsc_pdu) / 2
+            pdu += sms_submit_pdu
+            pdu += tpmessref_pdu
+            pdu += sms_phone_pdu
+            pdu += tppid_pdu
+            pdu += sms_msg_pdu_item
+            if DEBUG:
                 print "smsc_pdu: %s" % smsc_pdu
                 print "sms_submit_pdu: %s" % sms_submit_pdu
                 print "tpmessref_pdu: %s" % tpmessref_pdu
@@ -98,18 +110,11 @@ class PDU(object):
                 print "tppid_pdu: %s" % tppid_pdu
                 print "sms_msg_pdu: %s" % sms_msg_pdu_item
                 print "--------------------------------------------"
-                pdu = smsc_pdu
-                len_smsc = len(smsc_pdu) / 2
-                pdu += sms_submit_pdu
-                pdu += tpmessref_pdu
-                pdu += sms_phone_pdu
-                pdu += tppid_pdu
-                pdu += sms_msg_pdu_item
                 print pdu
                 print "--------------------------------------------"
-                pdu_list.append(((len(pdu) / 2) - len_smsc, pdu.upper()))
+            pdu_list.append(((len(pdu) / 2) - len_smsc, pdu.upper()))
 
-            return pdu_list
+        return pdu_list
 
     def decode_pdu(self, pdu):
         """
@@ -335,19 +340,15 @@ class PDU(object):
 
         if text_format == SEVENBIT_FORMAT:
             if len(text) <= SEVENBIT_SIZE:
-                print "GSM0338 (len %s)" % len(text)
                 message_pdu = [self._pack_8bits_to_7bits(text)]
             else:
-                print "GSM0338 (len %s multipart)" % len(text)
                 message_pdu = self._split_sms_message(text,
                                                       limit=SEVENBIT_SIZE,
                                                       encoding=SEVENBIT_FORMAT)
         else:
             if len(text) <= UCS2_SIZE:
-                print "UNICODE (len %s)" % len(text)
                 message_pdu = [self._pack_8bits_to_ucs2(text)]
             else:
-                print "UNICODE (len %s)" % len(text)
                 message_pdu = self._split_sms_message(text, limit=UCS2_SIZE,
                                                       encoding=UNICODE_FORMAT)
 
