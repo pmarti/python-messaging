@@ -2,7 +2,7 @@ Source: python-messaging
 Section: net
 Priority: extra
 Maintainer: Pablo Martí Gamboa <pmarti@warp.es>
-Build-Depends: debhelper (>= 7), python-setuptools
+Build-Depends: debhelper (>= 5), python-setuptools
 Standards-Version: 3.7.3
 
 Package: python-messaging
