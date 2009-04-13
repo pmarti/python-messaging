@@ -4,6 +4,8 @@ Priority: extra
 Maintainer: Pablo Martí Gamboa <pmarti@warp.es>
 Build-Depends: debhelper (>= 5), python-setuptools
 Standards-Version: 3.7.3
+XS-Python-Version: current
+XB-Python-Version: ${python:Versions}
 
 Package: python-messaging
 Architecture: any
