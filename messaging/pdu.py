@@ -249,7 +249,7 @@ class PDU(object):
     #Private methods
     def _get_smsc_pdu(self, number):
         if not len(number.strip()):
-            return chr(0)
+            return "00"
 
         number = self._clean_number(number)
         ptype = UNKNOWN_NUMBER
