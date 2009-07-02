@@ -237,7 +237,7 @@ class PDU(object):
 
         elif fmt == EIGHTBIT_FORMAT:
             msg = ''.join([chr(int(msg[x:x+2], 16))
-                                    for x in range(0, len(msg), 2)])
+                            for x in range(0, len(msg), 2)])
             msg = unicode(msg[headlen:], 'latin-1')
 
         elif fmt == UNICODE_FORMAT:
@@ -365,23 +365,26 @@ class PDU(object):
         # FIXME: ESTO NO CONTROLA EN TAMAÑO EN BASE AL UDH
         text = message
         nmesg = ''
+
+        if udh is not None:
+            text = udh + text
+
         for n in text:
             nmesg += chr(ord(n) >> 8) + chr(ord(n) & 0xFF)
 
         mlen = len(text) * 2
-        if udh is None:
-            message = chr(mlen) + nmesg
-        else:
-            message = chr(mlen) + udh + nmesg
+
+        message = chr(mlen) + nmesg
 
         message_pdu = ''.join(["%02x" % ord(n) for n in message])
+
         return message_pdu
 
     def _pack_8bits_to_7bits(self, message, udh=None):
         pdu = ""
         txt = message.encode("gsm0338")
 
-        if udh == None:
+        if udh is None:
             tl = len(txt)
             txt += '\x00'
             msgl = len(txt) * 7 / 8
@@ -427,7 +430,11 @@ class PDU(object):
 
     def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT,
                            limit=SEVENBIT_SIZE):
-        len_without_udh = limit - 7
+        if limit == SEVENBIT_SIZE:
+            len_without_udh = limit - 7
+        else:
+            len_without_udh = limit - 3
+
         msgs = []
         total_len = len(text)
         pi = 0
@@ -453,9 +460,16 @@ class PDU(object):
 
         for msg in msgs:
             total_parts = len(msgs)
-            udh = (chr(udh_len) + chr(mid) + chr(data_len) + chr(csms_ref) +
-                    chr(total_parts) + chr(i))
-            pdu_msgs.append(packing_func(" " + msg, udh))
+            if limit == SEVENBIT_SIZE :
+                udh = (chr(udh_len) + chr(mid) + chr(data_len) + chr(csms_ref) +
+                       chr(total_parts) + chr(i))
+                pdu_msgs.append(packing_func(" " + msg, udh))
+            else:
+                udh = (unichr(int("%04x" % ((udh_len << 8) | mid), 16)) +
+                       unichr(int("%04x" % ((data_len << 8) | csms_ref), 16)) +
+                       unichr(int("%04x" % ((total_parts << 8) | i ), 16))
+                       )
+                pdu_msgs.append(packing_func("" + msg, udh))
             i += 1
 
         return pdu_msgs
