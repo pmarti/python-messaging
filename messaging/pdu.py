@@ -49,7 +49,7 @@ class PDU(object):
     def __init__(self):
         self.id_list = range(0, 255)
 
-    #Public methods
+    # public methods
     def encode_pdu(self, number, text, csca='', request_status=False,
                    msgref=0, msgvp=0xaa, store=False):
         """
@@ -130,7 +130,7 @@ class PDU(object):
         """
         pdu = pdu.upper()
         ptr = 0
-        #Service centre address
+        # Service centre address
         smscl = int(pdu[ptr:ptr+2], 16) * 2 # number of digits
         smscertype = pdu[ptr+2:ptr+4]
         smscer = pdu[ptr+4:ptr+smscl+2]
@@ -155,15 +155,10 @@ class PDU(object):
 
         FO = int(pdu[ptr:ptr+2], 16)
         # is this a SMS_DELIVER or SMS_SUBMIT type?
-        sms_type = SMS_DELIVER
-        if FO & SMS_SUBMIT:
-            sms_type = SMS_SUBMIT
+        sms_type = SMS_SUBMIT if FO & SMS_SUBMIT else SMS_DELIVER
 
         # is this a concatenated msg?
-        if FO & SMS_CONCAT:
-            testheader = True
-        else:
-            testheader = False
+        testheader = True if FO & SMS_CONCAT else False
 
         ptr += 2
         if sms_type == SMS_SUBMIT:
@@ -175,7 +170,7 @@ class PDU(object):
             sndlen += 1
         sndtype = pdu[ptr+2:ptr+4]
 
-        # Extract Phone number of sender
+        # Extract phone number of sender
         sender = pdu[ptr+4:ptr+4+sndlen]
         sender = sender.replace('F', '')
         sender = list(sender)
@@ -188,7 +183,7 @@ class PDU(object):
 
         ptr += 4 + sndlen
         # 1byte (octet) = 2 char
-        # 1 byte TP-PID (Protocol Identtifier
+        # 1 byte TP-PID (Protocol IDentifier)
         PID = int(pdu[ptr:ptr+2], 16)
         ptr += 2
         # 1 byte TP-DCS (Data Coding Scheme)
@@ -258,7 +253,7 @@ class PDU(object):
             ptype = INTERNATIONAL_NUMBER
 
         if len(number) % 2:
-            number = number + 'F'
+            number += 'F'
 
         ps = chr(ptype)
         for n in range(0, len(number), 2):
@@ -268,13 +263,11 @@ class PDU(object):
         pl = len(ps)
         ps = chr(pl) + ps
 
-        ret_ps = ''.join(["%02x" % ord(n) for n in ps])
-        return ret_ps
+        return ''.join(["%02x" % ord(n) for n in ps])
 
     def _get_tpmessref_pdu(self, msgref):
         tpmessref = msgref & 0xFF
-        ret_tpmessref = ''.join(["%02x" % ord(n) for n in chr(tpmessref)])
-        return ret_tpmessref
+        return ''.join(["%02x" % ord(n) for n in chr(tpmessref)])
 
     def _get_phone_pdu(self, number):
         number = self._clean_number(number)
@@ -285,7 +278,7 @@ class PDU(object):
 
         pl = len(number)
         if len(number) % 2:
-            number = number + 'F'
+            number += 'F'
 
         ps = chr(ptype)
         for n in range(0, len(number), 2):
@@ -294,17 +287,14 @@ class PDU(object):
 
         ps = chr(pl) + ps
 
-        ret_ps = ''.join(["%02x" % ord(n) for n in ps])
-        return ret_ps
+        return ''.join(["%02x" % ord(n) for n in ps])
 
     def _clean_number(self, number):
-        number = number.strip()
-        return number.replace(' ', '')
+        return number.strip().replace(' ', '')
 
     def _get_tppid_pdu(self):
         tppid = 0x00
-        ret_tppid = ''.join(["%02x" % ord(n) for n in chr(tppid)])
-        return ret_tppid
+        return ''.join(["%02x" % ord(n) for n in chr(tppid)])
 
     def _get_sms_submit_pdu(self, request_status, msgvp, store, udh=False):
         sms_submit = 0x01 if not request_status else 0x21
@@ -315,18 +305,16 @@ class PDU(object):
         if udh:
             sms_submit = sms_submit | 0x40
 
-        ret_sms_submit = ''.join(["%02x" % ord(n) for n in chr(sms_submit)])
-        return ret_sms_submit
+        return ''.join(["%02x" % ord(n) for n in chr(sms_submit)])
 
     def _get_msg_pdu(self, text, validity_period, store):
         # Data coding scheme
-        dcs = ""
         if gsm0338.is_valid_gsm_text(text):
             text_format = SEVENBIT_FORMAT
-            dcs = 0x00 | SEVENBIT_FORMAT
         else:
             text_format = UNICODE_FORMAT
-            dcs = 0x00 | UNICODE_FORMAT
+
+        dcs = 0x00 | text_format
 
         dcs_pdu = ''.join(["%02x" % ord(n) for n in chr(dcs)])
 
@@ -373,12 +361,9 @@ class PDU(object):
             nmesg += chr(ord(n) >> 8) + chr(ord(n) & 0xFF)
 
         mlen = len(text) * 2
-
         message = chr(mlen) + nmesg
 
-        message_pdu = ''.join(["%02x" % ord(n) for n in message])
-
-        return message_pdu
+        return ''.join(["%02x" % ord(n) for n in message])
 
     def _pack_8bits_to_7bits(self, message, udh=None):
         pdu = ""
@@ -425,8 +410,7 @@ class PDU(object):
 
             pdu = chr(tl) + ''.join([chr(x) for x in op])
 
-        ret_pdu = ''.join(["%02x" % ord(n) for n in pdu])
-        return ret_pdu
+        return ''.join(["%02x" % ord(n) for n in pdu])
 
     def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT,
                            limit=SEVENBIT_SIZE):
@@ -470,6 +454,7 @@ class PDU(object):
                        unichr(int("%04x" % ((total_parts << 8) | i ), 16))
                        )
                 pdu_msgs.append(packing_func("" + msg, udh))
+
             i += 1
 
         return pdu_msgs
