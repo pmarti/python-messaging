@@ -51,24 +51,30 @@ class PDU(object):
 
     # public methods
     def encode_pdu(self, number, text, csca='', request_status=False,
-                   msgref=0, msgvp=0xaa, store=False):
+                   msgref=0x0, msgvp=0xaa, store=False, rand_id=None):
         """
         Returns a list of messages in PDU format
 
-        csca = SMSC number
-        request_status = True, False
-        msgref = currently ignored integer 0-255
-        msgvp = relative validity period as per ETSI (0xff == no validity)
-        Message Encoding format defined by pduformat attribute
-        SMSC can be ommited if phone can use internal defaults
-        """
+        The SMSC can be omitted
 
+        :param csca: The SMSC number
+        :type request_status: bool
+        :param msgref: SMS reference number
+        :type msgref: int
+        :param msgvp: relative validity period as per ETSI
+        :type msgvp: int
+        :param store: Whether the SMS will be stored or not
+        :type store: bool
+        :param rand_id: Specify a random id to use in multipart SMS, only
+                        use it for testing
+        :type rand_id: int
+        """
         smsc_pdu = self._get_smsc_pdu(csca)
         sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp, store)
         tpmessref_pdu = self._get_tpmessref_pdu(msgref)
         sms_phone_pdu = self._get_phone_pdu(number)
         tppid_pdu = self._get_tppid_pdu()
-        sms_msg_pdu = self._get_msg_pdu(text, msgvp, store)
+        sms_msg_pdu = self._get_msg_pdu(text, msgvp, store, rand_id)
 
         if len(sms_msg_pdu) == 1:
             pdu = smsc_pdu
@@ -85,9 +91,9 @@ class PDU(object):
                 print "sms_phone_pdu: %s" % sms_phone_pdu
                 print "tppid_pdu: %s" % tppid_pdu
                 print "sms_msg_pdu: %s" % sms_msg_pdu
-                print "--------------------------------------------"
-                print pdu
-                print "--------------------------------------------"
+                print "-" * 20
+                print "full_pdu: %s" % pdu
+                print "-" * 20
             return [((len(pdu) / 2) - len_smsc, pdu.upper())]
 
         # multipart SMS
@@ -109,9 +115,9 @@ class PDU(object):
                 print "sms_phone_pdu: %s" % sms_phone_pdu
                 print "tppid_pdu: %s" % tppid_pdu
                 print "sms_msg_pdu: %s" % sms_msg_pdu_item
-                print "--------------------------------------------"
-                print pdu
-                print "--------------------------------------------"
+                print "-" * 20
+                print "full_pdu: %s" % pdu
+                print "-" * 20
             pdu_list.append(((len(pdu) / 2) - len_smsc, pdu.upper()))
 
         return pdu_list
@@ -307,7 +313,7 @@ class PDU(object):
 
         return ''.join(["%02x" % ord(n) for n in chr(sms_submit)])
 
-    def _get_msg_pdu(self, text, validity_period, store):
+    def _get_msg_pdu(self, text, validity_period, store, rand_id):
         # Data coding scheme
         if gsm0338.is_valid_gsm_text(text):
             text_format = SEVENBIT_FORMAT
@@ -332,13 +338,15 @@ class PDU(object):
             else:
                 message_pdu = self._split_sms_message(text,
                                                       limit=SEVENBIT_SIZE,
-                                                      encoding=SEVENBIT_FORMAT)
+                                                      encoding=SEVENBIT_FORMAT,
+                                                      rand_id=rand_id)
         else:
             if len(text) <= UCS2_SIZE:
                 message_pdu = [self._pack_8bits_to_ucs2(text)]
             else:
                 message_pdu = self._split_sms_message(text, limit=UCS2_SIZE,
-                                                      encoding=UNICODE_FORMAT)
+                                                      encoding=UNICODE_FORMAT,
+                                                      rand_id=randid)
 
         ret = []
         for msg in message_pdu:
@@ -413,7 +421,7 @@ class PDU(object):
         return ''.join(["%02x" % ord(n) for n in pdu])
 
     def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT,
-                           limit=SEVENBIT_SIZE):
+                           limit=SEVENBIT_SIZE, rand_id=None):
         if limit == SEVENBIT_SIZE:
             len_without_udh = limit - 7
         else:
@@ -436,13 +444,16 @@ class PDU(object):
 
         pdu_msgs = []
 
-        i = 1
         udh_len = 0x05
         mid = 0x00
         data_len = 0x03
-        csms_ref = self._get_rand_id()
+        if rand_id is not None:
+            csms_ref = rand_id
+        else:
+            csms_ref = self._get_rand_id()
 
-        for msg in msgs:
+        for i, msg in enumerate(msgs):
+            i += 1
             total_parts = len(msgs)
             if limit == SEVENBIT_SIZE :
                 udh = (chr(udh_len) + chr(mid) + chr(data_len) + chr(csms_ref) +
@@ -454,8 +465,6 @@ class PDU(object):
                        unichr(int("%04x" % ((total_parts << 8) | i ), 16))
                        )
                 pdu_msgs.append(packing_func("" + msg, udh))
-
-            i += 1
 
         return pdu_msgs
 
