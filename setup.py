@@ -2,7 +2,7 @@ from ez_setup import use_setuptools; use_setuptools()
 from setuptools import setup, find_packages
 
 setup(name="python-messaging",
-      version="0.1",
+      version="0.2",
       description='SMS encoder/decoder',
       license='GPL',
       packages=find_packages(),
