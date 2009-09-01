@@ -1,3 +1,9 @@
+python-messaging (0.2-1) karmic; urgency=low
+
+  * New upstream version
+
+ -- Pablo Martí Gamboa <pmarti@warp.es>  Tue, 01 Sep 2009 12:52:23 +0200
+
 python-messaging (0.1-1) intrepid; urgency=low
 
   * New upstream version

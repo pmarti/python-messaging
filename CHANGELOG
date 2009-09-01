@@ -1,0 +1,18 @@
+++++++++++++++++++++++++++++++++++++++++++++++
+python-messaging-0.2
+Overview of changes since python-messaging-0.1
+++++++++++++++++++++++++++++++++++++++++++++++
+
+This is a new major stable release of python-messaging. List of changes:
+
+ * Fix the case where there is no SMSC
+ * Some multi-part fixes pulled from mobile-manager
+ * Test coverage increased
+ * Docstrings updated to rst
+ * Some packaging fixes
+ * Some small code simplifications
+
+python-messaging-0.1
+++++++++++++++++++++
+
+ * Initial release

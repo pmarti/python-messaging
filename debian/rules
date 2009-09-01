@@ -3,7 +3,7 @@
 export DH_VERBOSE=1
 
 build:
-		dh_testdir
+	dh_testdir
 
 clean:
 	dh_testdir
@@ -26,7 +26,7 @@ binary-arch:  build install
 	dh_testroot
 	dh_installdebconf
 	DH_PYCENTRAL=nomove dh_pycentral
-	dh_installchangelogs
+	dh_installchangelogs CHANGELOG
 	dh_installdirs
 	dh_link
 	dh_compress
