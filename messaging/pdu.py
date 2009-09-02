@@ -20,6 +20,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from datetime import datetime, timedelta
 import random
 random.seed()
 
@@ -206,11 +207,29 @@ class PDU(object):
 
         datestr = ''
         if sms_type == SMS_DELIVER:
-            # Get date stamp
-            date = list(pdu[ptr:ptr+14])
+            # Get date stamp (sender's local time)
+            date = list(pdu[ptr:ptr+12])
             for n in range(1, len(date), 2):
                 date[n-1], date[n] = date[n], date[n-1]
-                datestr = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+
+            # Get sender's offset from GMT (TS 23.040 TP-SCTS)
+            lo, hi = map(int, pdu[ptr+12:ptr+14])
+
+            loval = lo
+            hival = (hi & 0x07) << 4
+            direction = -1 if (hi & 0x08) else 1
+
+            offset = (hival | loval) * 15 * direction
+
+            #  02/08/26 19:37:41
+            _datestr = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date)
+            outputfmt = '%y/%m/%d %H:%M:%S'
+
+            sndlocaltime = datetime.strptime(_datestr, outputfmt)
+            sndoffset = timedelta(minutes=offset)
+            gmttime = sndlocaltime - sndoffset
+
+            datestr = gmttime.strftime(outputfmt)
 
             ptr += 14
 

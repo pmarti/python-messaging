@@ -41,4 +41,17 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(number, sender)
         self.assertEqual(text, expected)
 
+    def test_decoding_datetime_gmtplusone(self):
+        expected = "1741 bst"
+        pdu = "0791447758100650040C914497716247010000909010711423400A2050EC468B81C4733A"
+        number = "+447917267410"
+        _datestr = "09/09/01 16:41:32" # UTC
+
+        sender, datestr, text, csca, ref, cnt, seq, fmt = self.pdu.decode_pdu(pdu)
+
+        self.assertEqual(datestr, _datestr)
+        self.assertEqual(number, sender)
+        self.assertEqual(text, expected)
+
+
 
