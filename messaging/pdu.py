@@ -365,7 +365,7 @@ class PDU(object):
             else:
                 message_pdu = self._split_sms_message(text, limit=UCS2_SIZE,
                                                       encoding=UNICODE_FORMAT,
-                                                      rand_id=randid)
+                                                      rand_id=rand_id)
 
         ret = []
         for msg in message_pdu:
