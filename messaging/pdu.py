@@ -94,6 +94,7 @@ class PDU(object):
                 print "sms_msg_pdu: %s" % sms_msg_pdu
                 print "-" * 20
                 print "full_pdu: %s" % pdu
+                print "full_text: %s" % text
                 print "-" * 20
             return [((len(pdu) / 2) - len_smsc, pdu.upper())]
 
@@ -118,6 +119,7 @@ class PDU(object):
                 print "sms_msg_pdu: %s" % sms_msg_pdu_item
                 print "-" * 20
                 print "full_pdu: %s" % pdu
+                print "full_text: %s" % text
                 print "-" * 20
             pdu_list.append(((len(pdu) / 2) - len_smsc, pdu.upper()))
 
@@ -125,7 +127,7 @@ class PDU(object):
 
     def decode_pdu(self, pdu):
         """
-        Decodes a complete SMS pdu and returns a tuple strings
+        Decodes a complete SMS pdu and returns a tuple of strings
 
         sender,  # Senders number
         datestr, # GSM format date string
@@ -165,7 +167,7 @@ class PDU(object):
         sms_type = SMS_SUBMIT if FO & SMS_SUBMIT else SMS_DELIVER
 
         # is this a concatenated msg?
-        testheader = True if FO & SMS_CONCAT else False
+        testheader = bool(FO & SMS_CONCAT)
 
         ptr += 2
         if sms_type == SMS_SUBMIT:
@@ -412,7 +414,8 @@ class PDU(object):
                 hb = (ord(txt[c+1]) << (7-shift) & 255)
                 op[n] = lb + hb
                 c += 1
-            pdu = chr(tl) + ''.join([chr(x) for x in op])
+
+            pdu = chr(tl) + ''.join(map(chr, op))
         else:
             txt = "\x00\x00\x00\x00\x00\x00" + txt
             tl = len(txt)
@@ -448,8 +451,8 @@ class PDU(object):
 
         msgs = []
         total_len = len(text)
-        pi = 0
-        pe = len_without_udh
+        pi, pe = 0, len_without_udh
+
         while pi < total_len:
             msgs.append(text[pi:pe])
             pi = pe
@@ -489,7 +492,7 @@ class PDU(object):
 
     def _unpack_msg(self, pdu, limit=SEVENBIT_SIZE):
         """
-        Unpacks C{pdu} into 7-bit characters and returns the decoded string
+        Unpacks ``pdu`` into 7-bit characters and returns the decoded string
         """
         # Taken/modified from Dave Berkeley's pysms package
         count = last = 0
@@ -502,7 +505,7 @@ class PDU(object):
             last = byte >> (7 - count)
             result.append(chr(out))
 
-            if limit and (len(result) >= limit):
+            if limit and len(result) >= limit:
                 break
 
             if count == 6:
