@@ -42,6 +42,15 @@ SMS_DELIVER = 0x00
 SMS_SUBMIT = 0x01
 SMS_CONCAT = 0x40
 
+UNKNOWN = 0
+INTERNATIONAL = 1
+NATIONAL = 2
+NETWORK_SPECIFIC = 3
+SUBSCRIBER = 4
+ALPHANUMERIC = 5
+ABBREVIATED = 6
+RESERVED = 7
+
 # set this to True if you want to poke at PDU encoding/decoding
 DEBUG = False
 
@@ -129,7 +138,7 @@ class PDU(object):
         """
         Decodes a complete SMS pdu and returns a tuple of strings
 
-        sender,  # Senders number
+        sender,  # Sender's number or string(Operator originated message)
         datestr, # GSM format date string
         msg,     # The actual msg less any header in UCS2 format
         ref,     # Msg reference  (from SMSC)
@@ -177,20 +186,27 @@ class PDU(object):
         sndlen = int(pdu[ptr:ptr+2], 16)
         if sndlen % 2:
             sndlen += 1
-        sndtype = pdu[ptr+2:ptr+4]
 
-        # Extract phone number of sender
-        sender = pdu[ptr+4:ptr+4+sndlen]
-        sender = sender.replace('F', '')
-        sender = list(sender)
-        for n in range(1, len(sender), 2):
-            sender[n-1], sender[n] = sender[n], sender[n-1]
-        sender = ''.join(sender)
-        sender = sender.strip()
-        if sndtype == '91':
-            sender = '+' + sender
+        sndtype = (int(pdu[ptr+2:ptr+4], 16) >> 4) & 0x07 # bits 654
+        if sndtype == ALPHANUMERIC:
+            # (coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet)
+            sender = pdu[ptr+4:ptr+4+sndlen]
+            sender = self._unpack_msg(sender)
+            sender = sender.decode("gsm0338")
+        else:
+            # Extract phone number of sender
+            sender = pdu[ptr+4:ptr+4+sndlen]
+            sender = sender.replace('F', '')
+            sender = list(sender)
+            for n in range(1, len(sender), 2):
+                sender[n-1], sender[n] = sender[n], sender[n-1]
+            sender = ''.join(sender)
+            sender = sender.strip()
+            if sndtype == INTERNATIONAL:
+                sender = '+' + sender
 
         ptr += 4 + sndlen
+
         # 1byte (octet) = 2 char
         # 1 byte TP-PID (Protocol IDentifier)
         PID = int(pdu[ptr:ptr+2], 16)

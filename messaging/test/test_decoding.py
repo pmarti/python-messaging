@@ -53,5 +53,19 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(number, sender)
         self.assertEqual(text, expected)
 
+    def test_decoding_sender_alpha1(self): # Odd length test
+        expected = "FONIC"
+        pdu = "07919471060040340409D0C6A733390400009060920173018093CC74595C96838C4F6772085AD6DDE4320B444E9741D4B03C6D7EC3E9E9B71B9474D3CB727799DEA286CFE5B9991DA6CBC3F432E85E9793CBA0F09A9EB6A7CB72BA0B9474D3CB727799DE72D6E9FABAFB0CBAA7E56490BA4CD7D34170F91BE4ACD3F575F7794E0F9F4161F1B92C2F8FD1EE32DD054AA2E520E3D3991C82A8E5701B"
 
+        sender, datestr, text, csca, ref, cnt, seq, fmt = self.pdu.decode_pdu(pdu)
+
+        self.assertEqual(sender, expected)
+
+    def test_decoding_sender_alpha2(self): # Even length test
+        expected = "www.tim.it"
+        pdu = "07919333852804000412D0F7FBDD454FB75D693A0000903002801153402BCD301E9F0605D9E971191483C140412A35690D52832063D2F9040599A058EE05A3BD6430580E"
+
+        sender, datestr, text, csca, ref, cnt, seq, fmt = self.pdu.decode_pdu(pdu)
+
+        self.assertEqual(sender, expected)
 
