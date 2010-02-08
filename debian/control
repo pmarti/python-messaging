@@ -2,12 +2,13 @@ Source: python-messaging
 Section: net
 Priority: extra
 Maintainer: Pablo Martí Gamboa <pmarti@warp.es>
-Build-Depends: debhelper (>= 5), python-setuptools
-Standards-Version: 3.7.3
-XS-Python-Version: current
-XB-Python-Version: ${python:Versions}
+Build-Depends: cdbs (>= 0.4.49), debhelper (>= 5.0.38), python-central (>= 0.5.6)
+Standards-Version: 3.8.3
+XS-Python-Version: all
 
 Package: python-messaging
 Architecture: any
-Depends: python
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
 Description: A SMS encoding/decoding library
