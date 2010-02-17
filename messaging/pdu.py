@@ -54,20 +54,28 @@ RESERVED = 7
 # set this to True if you want to poke at PDU encoding/decoding
 DEBUG = False
 
+
+def swap(address):
+    """Swaps ``address`` according to GSM 23.040"""
+    address = list(address.replace('F', ''))
+    for n in range(1, len(address), 2):
+        address[n-1], address[n] = address[n], address[n-1]
+
+    return ''.join(address).strip()
+
+
 class PDU(object):
 
     def __init__(self):
         self.id_list = range(0, 255)
 
-    # public methods
     def encode_pdu(self, number, text, csca='', request_status=False,
                    msgref=0x0, msgvp=0xaa, store=False, rand_id=None):
         """
         Returns a list of messages in PDU format
 
-        The SMSC can be omitted
-
         :param csca: The SMSC number
+        :param request_status: Receive a confirmation SMS when readed
         :type request_status: bool
         :param msgref: SMS reference number
         :type msgref: int
@@ -150,15 +158,9 @@ class PDU(object):
         ptr = 0
         # Service centre address
         smscl = int(pdu[ptr:ptr+2], 16) * 2 # number of digits
-        smscertype = pdu[ptr+2:ptr+4]
-        smscer = pdu[ptr+4:ptr+smscl+2]
-        smscer = smscer.replace('F', '')
-        smscer = list(smscer)
-        for n in range(1, len(smscer), 2):
-            smscer[n-1], smscer[n] = smscer[n], smscer[n-1]
-
-        smscer = ''.join(smscer)
-        if smscertype == '91':
+        smscertype = int(pdu[ptr+2:ptr+4], 16)
+        smscer = swap(pdu[ptr+4:ptr+smscl+2])
+        if smscertype == INTERNATIONAL_NUMBER:
             smscer = '+' + smscer
         csca = smscer
 
@@ -195,13 +197,7 @@ class PDU(object):
             sender = sender.decode("gsm0338")
         else:
             # Extract phone number of sender
-            sender = pdu[ptr+4:ptr+4+sndlen]
-            sender = sender.replace('F', '')
-            sender = list(sender)
-            for n in range(1, len(sender), 2):
-                sender[n-1], sender[n] = sender[n], sender[n-1]
-            sender = ''.join(sender)
-            sender = sender.strip()
+            sender = swap(pdu[ptr+4:ptr+4+sndlen])
             if sndtype == INTERNATIONAL:
                 sender = '+' + sender
 
@@ -209,7 +205,7 @@ class PDU(object):
 
         # 1byte (octet) = 2 char
         # 1 byte TP-PID (Protocol IDentifier)
-        PID = int(pdu[ptr:ptr+2], 16)
+        # PID = int(pdu[ptr:ptr+2], 16)
         ptr += 2
         # 1 byte TP-DCS (Data Coding Scheme)
         DCS = int(pdu[ptr:ptr+2], 16)
@@ -260,7 +256,7 @@ class PDU(object):
         if testheader:
             if msg[2:4] == "00": # found header for concat message
                 headlen = (int(msg[0:2], 16) + 1) * 8
-                subheadlen = int(msg[4:6], 16)
+                # subheadlen = int(msg[4:6], 16)
                 ref = int(msg[6:8], 16)
                 cnt = int(msg[8:10], 16)
                 seq = int(msg[10:12], 16)
@@ -284,7 +280,6 @@ class PDU(object):
 
         return sender, datestr, msg.strip(), csca, ref, cnt, seq, fmt
 
-    #Private methods
     def _get_smsc_pdu(self, number):
         if not len(number.strip()):
             return "00"
@@ -395,7 +390,7 @@ class PDU(object):
         return ret
 
     def _pack_8bits_to_ucs2(self, message, udh=None):
-        # FIXME: ESTO NO CONTROLA EN TAMAÑO EN BASE AL UDH
+        # XXX: This does not control the size respect to UDH
         text = message
         nmesg = ''
 
@@ -443,7 +438,7 @@ class PDU(object):
 
             for n in range(msgl):
                 if shift == 6:
-                    c = c + 1
+                    c += 1
 
                 shift = n % 7
                 lb = ord(txt[c]) >> shift
@@ -454,7 +449,7 @@ class PDU(object):
             for i, char in enumerate(udh):
                 op[i] = ord(char)
 
-            pdu = chr(tl) + ''.join([chr(x) for x in op])
+            pdu = chr(tl) + ''.join(map(chr, op))
 
         return ''.join(["%02x" % ord(n) for n in pdu])
 
@@ -534,4 +529,3 @@ class PDU(object):
 
     def _get_rand_id(self):
         return random.choice(self.id_list)
-
