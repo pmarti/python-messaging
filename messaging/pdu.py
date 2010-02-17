@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 import random
 random.seed()
 
-import gsm0338
+from messaging import gsm0338
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
@@ -281,7 +281,7 @@ class PDU(object):
         return sender, datestr, msg.strip(), csca, ref, cnt, seq, fmt
 
     def _get_smsc_pdu(self, number):
-        if not len(number.strip()):
+        if not number.strip():
             return "00"
 
         number = self._clean_number(number)
@@ -335,13 +335,14 @@ class PDU(object):
         return ''.join(["%02x" % ord(n) for n in chr(tppid)])
 
     def _get_sms_submit_pdu(self, request_status, msgvp, store, udh=False):
-        sms_submit = 0x01 if not request_status else 0x21
+        sms_submit = 0x1
+        if request_status:
+            sms_submit |= 0x20
+        if not store and msgvp != 0xFF:
+            sms_submit |= 0x10
 
-        if not store:
-            if msgvp != 0xFF:
-                sms_submit = sms_submit | 0x10
         if udh:
-            sms_submit = sms_submit | 0x40
+            sms_submit |= 0x40
 
         return ''.join(["%02x" % ord(n) for n in chr(sms_submit)])
 
@@ -488,7 +489,7 @@ class PDU(object):
         for i, msg in enumerate(msgs):
             i += 1
             total_parts = len(msgs)
-            if limit == SEVENBIT_SIZE :
+            if limit == SEVENBIT_SIZE:
                 udh = (chr(udh_len) + chr(mid) + chr(data_len) + chr(csms_ref) +
                        chr(total_parts) + chr(i))
                 pdu_msgs.append(packing_func(" " + msg, udh))

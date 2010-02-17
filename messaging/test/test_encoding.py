@@ -34,6 +34,14 @@ class TestEncodingFunctions(unittest.TestCase):
         pdu = self.pdu.encode_pdu(number, text, csca=csca, store=True)[0]
         self.assertEqual(pdu[1], expected)
 
+    def test_encoding_7bit_with_request_status(self):
+        # tested with pduspy.exe and http://www.rednaxela.net/pdu.php
+        number = "+34654123456"
+        text = "hey yo"
+        expected = "0031000B914356143254F60000AA06E8721E947F03"
+        pdu = self.pdu.encode_pdu(number, text, request_status=True)[0]
+        self.assertEqual(pdu[1], expected)
+
     def test_encoding_ucs2_message_with_smsc(self):
         number = "+34616585119"
         text = u'あ叶葉'
