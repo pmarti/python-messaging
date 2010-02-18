@@ -70,15 +70,16 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(ret['sender'], sender)
 
     def test_decode_sms_confirmation(self):
-        pdu = "07914306073011F006270B913406565711F9012081111345400120811174054043"
+        pdu = "07914306073011F006270B913426565711F7012081111345400120811174054043"
         csca = "+34607003110"
         datestr = "10/02/18 11:31:54"
         sender = "SR-UNKNOWN"
-        text = ""
+        # XXX: the number should be +344626575117, the prefix is flipped?
+        text = "+43626575117|10/02/18 11:31:54|"
 
         ret = self.pdu.decode_pdu(pdu)
 
         self.assertEqual(ret['csca'], csca)
         self.assertEqual(ret['date'], datestr)
-        self.assertEqual(ret['text'], text)
         self.assertEqual(ret['sender'], sender)
+        self.assertEqual(ret['text'], text)

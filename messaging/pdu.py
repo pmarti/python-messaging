@@ -20,6 +20,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from cStringIO import StringIO
+from binascii import hexlify, unhexlify
 from datetime import datetime, timedelta
 import random
 random.seed()
@@ -56,9 +58,9 @@ RESERVED = 7
 DEBUG = False
 
 
-def swap(address):
+def swap(s):
     """Swaps ``address`` according to GSM 23.040"""
-    address = list(address.replace('F', ''))
+    address = list(hexlify(s).replace('f', ''))
     for n in range(1, len(address), 2):
         address[n-1], address[n] = address[n], address[n-1]
 
@@ -156,16 +158,16 @@ class PDU(object):
         fmt      # Format of recieved msg
         """
         pdu = pdu.upper()
-        ptr = 0
+        d = StringIO(unhexlify(pdu))
         # Service centre address
-        smscl = int(pdu[ptr:ptr+2], 16) * 2 # number of digits
-        smscertype = int(pdu[ptr+2:ptr+4], 16)
-        smscer = swap(pdu[ptr+4:ptr+smscl+2])
+        smscl = ord(d.read(1)) * 2
+        smscertype = ord(d.read(1))
+        smscer = swap(d.read((smscl/2)-1))
         if smscertype == INTERNATIONAL_NUMBER:
             smscer = '+' + smscer
+
         csca = smscer
 
-        ptr += 2 + smscl
         # 1 byte(octet) == 2 char
         # Message type TP-MTI bits 0,1
         # More messages to send/deliver bit 2
@@ -174,9 +176,9 @@ class PDU(object):
         # Reply path set bit 7
         # 1st octet position == smscerlen+4
 
-        mtype = int(pdu[ptr:ptr+2], 16)
+        mtype = ord(d.read(1))
         if mtype & SMS_STATUS_REPORT:
-            return self._decode_status_report_pdu(pdu, ptr, csca)
+            return self._decode_status_report_pdu(pdu, d, csca)
 
         # is this a SMS_DELIVER or SMS_SUBMIT type?
         sms_type = SMS_SUBMIT if mtype & SMS_SUBMIT else SMS_DELIVER
@@ -184,54 +186,49 @@ class PDU(object):
         # is this a concatenated msg?
         testheader = bool(mtype & SMS_CONCAT)
 
-        ptr += 2
         if sms_type == SMS_SUBMIT:
             # skip the message reference
-            ptr += 2
+            d.read(1)
 
-        sndlen = int(pdu[ptr:ptr+2], 16)
+        sndlen = ord(d.read(1))
         if sndlen % 2:
             sndlen += 1
 
-        sndtype = (int(pdu[ptr+2:ptr+4], 16) >> 4) & 0x07 # bits 654
+        sndtype = (ord(d.read(1)) >> 4) & 0x07 # bits 654
         if sndtype == ALPHANUMERIC:
-            # (coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet)
-            sender = pdu[ptr+4:ptr+4+sndlen]
+            # coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet
+            sender = hexlify(d.read(int(sndlen/2.0)))
             sender = self._unpack_msg(sender)
             sender = sender.decode("gsm0338")
         else:
             # Extract phone number of sender
-            sender = swap(pdu[ptr+4:ptr+4+sndlen])
+            sender = swap(d.read(int(sndlen/2.0)))
             if sndtype == INTERNATIONAL:
                 sender = '+' + sender
 
-        ptr += 4 + sndlen
-
-        # 1byte (octet) = 2 char
         # 1 byte TP-PID (Protocol IDentifier)
-        # PID = int(pdu[ptr:ptr+2], 16)
-        ptr += 2
+        pid = d.read(1)
         # 1 byte TP-DCS (Data Coding Scheme)
-        DCS = int(pdu[ptr:ptr+2], 16)
+        dcs = ord(d.read(1))
         fmt = SEVENBIT_FORMAT
-        if DCS & (EIGHTBIT_FORMAT | UNICODE_FORMAT) == 0:
+        if dcs & (EIGHTBIT_FORMAT | UNICODE_FORMAT) == 0:
             fmt = SEVENBIT_FORMAT
-        elif DCS & EIGHTBIT_FORMAT:
+        elif dcs & EIGHTBIT_FORMAT:
             fmt = EIGHTBIT_FORMAT
-        elif DCS & UNICODE_FORMAT:
+        elif dcs & UNICODE_FORMAT:
             fmt = UNICODE_FORMAT
-
-        ptr += 2
 
         datestr = ''
         if sms_type == SMS_DELIVER:
             # Get date stamp (sender's local time)
-            date = list(pdu[ptr:ptr+12])
+            date = list(hexlify(d.read(6)))
             for n in range(1, len(date), 2):
                 date[n-1], date[n] = date[n], date[n-1]
 
             # Get sender's offset from GMT (TS 23.040 TP-SCTS)
-            lo, hi = map(int, pdu[ptr+12:ptr+14])
+            lo_hi = ord(d.read(1))
+            lo = lo_hi >> 4
+            hi = lo_hi & 0xF
 
             loval = lo
             hival = (hi & 0x07) << 4
@@ -249,11 +246,9 @@ class PDU(object):
 
             datestr = gmttime.strftime(outputfmt)
 
-            ptr += 14
-
         # Now get message body
-        msgl = int(pdu[ptr:ptr+2], 16)
-        msg = pdu[ptr+2:]
+        msgl = ord(d.read(1))
+        msg = hexlify(d.read(msgl))
         # check for header
         cnt = seq = ref = headlen = 0
 
@@ -285,35 +280,30 @@ class PDU(object):
         return dict(sender=sender, date=datestr, text=msg.strip(),
                     csca=csca, ref=ref, cnt=cnt, seq=seq, fmt=fmt)
 
-    def _decode_status_report_pdu(self, pdu, ptr_st, csca):
-        ptr = ptr_st + 4
+    def _decode_status_report_pdu(self, pdu, d, csca):
+        d.read(1)
 
-        sndlen = int(pdu[ptr:ptr+2], 16)
+        sndlen = ord(d.read(1))
         if sndlen % 2:
             sndlen += 1
-        sndtype = int(pdu[ptr+2:ptr+4], 16)
-        recipient = swap(pdu[ptr+4:ptr+4+sndlen])
+        sndtype = ord(d.read(1))
+        recipient = swap(d.read(int(sndlen/2.0)))
         if sndtype == INTERNATIONAL_NUMBER:
             recipient = '+%s' % recipient
-        ptr += 4 + sndlen
 
         scts_str = ''
-        date = list(pdu[ptr:ptr+14])
+        date = list(hexlify(d.read(7)))
         for n in range(1, len(date), 2):
             date[n-1], date[n] = date[n], date[n-1]
             scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
 
-        ptr += 14
-
         dt_str = ''
-        date = list(pdu[ptr:ptr+14])
+        date = list(hexlify(d.read(7)))
         for n in range(1, len(date), 2):
             date[n-1], date[n] = date[n], date[n-1]
             dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
 
-        ptr += 14
-
-        status = int(pdu[ptr:ptr+2], 16)
+        status = ord(d.read(1))
         msg = recipient + "|" + scts_str + "|" + dt_str
         sender = ""
         if status == 0x0:
