@@ -41,6 +41,7 @@ INTERNATIONAL_NUMBER = 145
 SMS_DELIVER = 0x00
 SMS_SUBMIT = 0x01
 SMS_CONCAT = 0x40
+SMS_STATUS_REPORT = 0x03
 
 UNKNOWN = 0
 INTERNATIONAL = 1
@@ -173,12 +174,15 @@ class PDU(object):
         # Reply path set bit 7
         # 1st octet position == smscerlen+4
 
-        FO = int(pdu[ptr:ptr+2], 16)
+        mtype = int(pdu[ptr:ptr+2], 16)
+        if mtype & SMS_STATUS_REPORT:
+            return self._decode_status_report_pdu(pdu, ptr, csca)
+
         # is this a SMS_DELIVER or SMS_SUBMIT type?
-        sms_type = SMS_SUBMIT if FO & SMS_SUBMIT else SMS_DELIVER
+        sms_type = SMS_SUBMIT if mtype & SMS_SUBMIT else SMS_DELIVER
 
         # is this a concatenated msg?
-        testheader = bool(FO & SMS_CONCAT)
+        testheader = bool(mtype & SMS_CONCAT)
 
         ptr += 2
         if sms_type == SMS_SUBMIT:
@@ -278,7 +282,56 @@ class PDU(object):
             msg = u''.join([unichr(int(msg[x:x+4], 16))
                             for x in range(0, len(msg), 4)])
 
-        return sender, datestr, msg.strip(), csca, ref, cnt, seq, fmt
+        return dict(sender=sender, date=datestr, text=msg.strip(),
+                    csca=csca, ref=ref, cnt=cnt, seq=seq, fmt=fmt)
+
+    def _decode_status_report_pdu(self, pdu, ptr_st, csca):
+        ptr = ptr_st + 4
+
+        sndlen = int(pdu[ptr:ptr+2], 16)
+        if sndlen % 2:
+            sndlen += 1
+        sndtype = int(pdu[ptr+2:ptr+4], 16)
+        recipient = swap(pdu[ptr+4:ptr+4+sndlen])
+        if sndtype == INTERNATIONAL_NUMBER:
+            recipient = '+%s' % recipient
+        ptr += 4 + sndlen
+
+        scts_str = ''
+        date = list(pdu[ptr:ptr+14])
+        for n in range(1, len(date), 2):
+            date[n-1], date[n] = date[n], date[n-1]
+            scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+
+        ptr += 14
+
+        dt_str = ''
+        date = list(pdu[ptr:ptr+14])
+        for n in range(1, len(date), 2):
+            date[n-1], date[n] = date[n], date[n-1]
+            dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+
+        ptr += 14
+
+        status = int(pdu[ptr:ptr+2], 16)
+        msg = recipient + "|" + scts_str + "|" + dt_str
+        sender = ""
+        if status == 0x0:
+            sender = "SR-OK"
+        elif status == 0x1:
+            sender = "SR-UNKNOWN"
+            msg = recipient + "|" + scts_str + "|"
+        elif status == 0x30:
+            sender = "SR-STORED"
+            msg = recipient + "|" + scts_str + "|"
+        else:
+            sender = "SR-UNKNOWN"
+            msg = recipient + "|" + scts_str + "|"
+
+        cnt = seq = ref = 0
+        return dict(sender=sender, date=scts_str, text=msg.strip(),
+                    csca=csca, ref=ref, cnt=cnt, seq=seq,
+                    fmt=UNICODE_FORMAT, type=SMS_STATUS_REPORT)
 
     def _get_smsc_pdu(self, number):
         if not number.strip():
