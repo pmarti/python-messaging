@@ -277,11 +277,12 @@ class PDU(object):
             msg = u''.join([unichr(int(msg[x:x+4], 16))
                             for x in range(0, len(msg), 4)])
 
-        return dict(sender=sender, date=datestr, text=msg.strip(),
-                    csca=csca, ref=ref, cnt=cnt, seq=seq, fmt=fmt)
+        return dict(number=sender, date=datestr, text=msg.strip(),
+                    csca=csca, ref=ref, cnt=cnt, seq=seq, fmt=fmt,
+                    type=sms_type, pid=pid)
 
     def _decode_status_report_pdu(self, pdu, d, csca):
-        d.read(1)
+        ref = ord(d.read(1))
 
         sndlen = ord(d.read(1))
         if sndlen % 2:
@@ -318,8 +319,8 @@ class PDU(object):
             sender = "SR-UNKNOWN"
             msg = recipient + "|" + scts_str + "|"
 
-        cnt = seq = ref = 0
-        return dict(sender=sender, date=scts_str, text=msg.strip(),
+        cnt = seq = 0
+        return dict(number=sender, date=scts_str, text=msg.strip(),
                     csca=csca, ref=ref, cnt=cnt, seq=seq,
                     fmt=UNICODE_FORMAT, type=SMS_STATUS_REPORT)
 
