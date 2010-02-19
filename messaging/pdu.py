@@ -576,4 +576,7 @@ class PDU(object):
         return ''.join(result)
 
     def _get_rand_id(self):
-        return random.choice(self.id_list)
+        if not self.id_list:
+            self.id_list = range(0, 255)
+
+        return self.id_list.pop(0)
