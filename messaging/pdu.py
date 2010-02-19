@@ -160,9 +160,9 @@ class PDU(object):
         pdu = pdu.upper()
         d = StringIO(unhexlify(pdu))
         # Service centre address
-        smscl = ord(d.read(1)) * 2
+        smscl = ord(d.read(1))
         smscertype = ord(d.read(1))
-        smscer = swap(d.read((smscl/2)-1))
+        smscer = swap(d.read(smscl-1))
         if smscertype == INTERNATIONAL_NUMBER:
             smscer = '+' + smscer
 
