@@ -73,15 +73,15 @@ class PDU(object):
         self.id_list = range(0, 255)
 
     def encode_pdu(self, number, text, csca='', request_status=False,
-                   msgref=0x0, msgvp=0xaa, store=False, rand_id=None):
+                   msgref=None, msgvp=0xaa, store=False, rand_id=None):
         """
         Returns a list of messages in PDU format
 
         :param csca: The SMSC number
         :param request_status: Receive a confirmation SMS when readed
         :type request_status: bool
-        :param msgref: SMS reference number
-        :type msgref: int
+        :param msgref: SMS reference number, if None it'll be auto generated
+        :type msgref: int or None
         :param msgvp: relative validity period as per ETSI
         :type msgvp: int
         :param store: Whether the SMS will be stored or not
@@ -348,6 +348,9 @@ class PDU(object):
         return ''.join(["%02x" % ord(n) for n in ps])
 
     def _get_tpmessref_pdu(self, msgref):
+        if msgref is None:
+            msgref = self._get_rand_id()
+
         tpmessref = msgref & 0xFF
         return ''.join(["%02x" % ord(n) for n in chr(tpmessref)])
 

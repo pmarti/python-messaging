@@ -14,7 +14,7 @@ class TestEncodingFunctions(unittest.TestCase):
         csca = "+34646456456"
         expected = "07914346466554F611000B914316565811F90000AA04E8373B0C"
 
-        pdu = self.pdu.encode_pdu(number, text, csca=csca)[0]
+        pdu = self.pdu.encode_pdu(number, text, csca=csca, msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_7bit_message_without_msmc(self):
@@ -22,7 +22,7 @@ class TestEncodingFunctions(unittest.TestCase):
         text = "hola"
         expected = "0011000B914316565811F90000AA04E8373B0C"
 
-        pdu = self.pdu.encode_pdu(number, text)[0]
+        pdu = self.pdu.encode_pdu(number, text, msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_7bit_to_store_message(self):
@@ -31,7 +31,8 @@ class TestEncodingFunctions(unittest.TestCase):
         text = "hey there"
         expected = "0591438967450100089143214365000009E8721E444797E565"
 
-        pdu = self.pdu.encode_pdu(number, text, csca=csca, store=True)[0]
+        pdu = self.pdu.encode_pdu(number, text, csca=csca, store=True,
+                                  msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_7bit_with_request_status(self):
@@ -39,7 +40,8 @@ class TestEncodingFunctions(unittest.TestCase):
         number = "+34654123456"
         text = "hey yo"
         expected = "0031000B914356143254F60000AA06E8721E947F03"
-        pdu = self.pdu.encode_pdu(number, text, request_status=True)[0]
+        pdu = self.pdu.encode_pdu(number, text, request_status=True,
+                                  msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_ucs2_message_with_smsc(self):
@@ -48,7 +50,7 @@ class TestEncodingFunctions(unittest.TestCase):
         csca = '+34646456456'
         expected = "07914346466554F611000B914316565811F90008AA06304253F68449"
 
-        pdu = self.pdu.encode_pdu(number, text, csca=csca)[0]
+        pdu = self.pdu.encode_pdu(number, text, csca=csca, msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_ucs2_message_without_smsc(self):
@@ -56,7 +58,7 @@ class TestEncodingFunctions(unittest.TestCase):
         text = u'あ叶葉'
         expected = "0011000B914316565811F90008AA06304253F68449"
 
-        pdu = self.pdu.encode_pdu(number, text)[0]
+        pdu = self.pdu.encode_pdu(number, text, msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_ucs2_message_without_smsc_2(self):
@@ -64,7 +66,7 @@ class TestEncodingFunctions(unittest.TestCase):
         number = "655345678"
         expected = "001100098156355476F80008AA1C00D000A000D1008300D1008100D1008100D000BA00D000B800D000B9"
 
-        pdu = self.pdu.encode_pdu(number, text)[0]
+        pdu = self.pdu.encode_pdu(number, text, msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_multipart_7bit(self):
@@ -76,7 +78,8 @@ class TestEncodingFunctions(unittest.TestCase):
             "005100098156355476F80000AAA005000388030240E6349B0DA2A3CBA0BADBFC969FD3F6B4FB0C6AA7DD757A19744DD3D1A0791A4FCF83E6E5F1DB4D9E9F40F7B79C8E06BDCD20727A4E0FBBC76590BCEE6681B2EFBA7C0E4ACF41747419540CCBE96850D84D0695ED65799E8E4EBBCF203A3A4C9F83D26E509ACE0205DD64500B7447A7C768507A0E6ABFE565500B947FD741F7349B0D129741",
             "005100098156355476F80000AA14050003880303C2A066D8CD02B5F3A0F9DB0D",
         ]
-        for i, (pdu_len, pdu) in enumerate(self.pdu.encode_pdu(number, text, rand_id=136)):
+        messages = self.pdu.encode_pdu(number, text, msgref=0x0, rand_id=136)
+        for i, (pdu_len, pdu) in enumerate(messages):
             self.assertEqual(expected[i], pdu)
 
 
