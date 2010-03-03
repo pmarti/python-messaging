@@ -54,8 +54,11 @@ ALPHANUMERIC = 5
 ABBREVIATED = 6
 RESERVED = 7
 
-# set this to True if you want to poke at PDU encoding/decoding
-DEBUG = False
+
+def debug(s):
+    # set this to True if you want to poke at PDU encoding/decoding
+    if False:
+        print s
 
 
 def swap(s):
@@ -105,17 +108,16 @@ class PDU(object):
             pdu += sms_phone_pdu
             pdu += tppid_pdu
             pdu += sms_msg_pdu[0]
-            if DEBUG:
-                print "smsc_pdu: %s" % smsc_pdu
-                print "sms_submit_pdu: %s" % sms_submit_pdu
-                print "tpmessref_pdu: %s" % tpmessref_pdu
-                print "sms_phone_pdu: %s" % sms_phone_pdu
-                print "tppid_pdu: %s" % tppid_pdu
-                print "sms_msg_pdu: %s" % sms_msg_pdu
-                print "-" * 20
-                print "full_pdu: %s" % pdu
-                print "full_text: %s" % text
-                print "-" * 20
+            debug("smsc_pdu: %s" % smsc_pdu)
+            debug("sms_submit_pdu: %s" % sms_submit_pdu)
+            debug("tpmessref_pdu: %s" % tpmessref_pdu)
+            debug("sms_phone_pdu: %s" % sms_phone_pdu)
+            debug("tppid_pdu: %s" % tppid_pdu)
+            debug("sms_msg_pdu: %s" % sms_msg_pdu)
+            debug("-" * 20)
+            debug("full_pdu: %s" % pdu)
+            debug("full_text: %s" % text)
+            debug("-" * 20)
             return [((len(pdu) / 2) - len_smsc, pdu.upper())]
 
         # multipart SMS
@@ -130,17 +132,16 @@ class PDU(object):
             pdu += sms_phone_pdu
             pdu += tppid_pdu
             pdu += sms_msg_pdu_item
-            if DEBUG:
-                print "smsc_pdu: %s" % smsc_pdu
-                print "sms_submit_pdu: %s" % sms_submit_pdu
-                print "tpmessref_pdu: %s" % tpmessref_pdu
-                print "sms_phone_pdu: %s" % sms_phone_pdu
-                print "tppid_pdu: %s" % tppid_pdu
-                print "sms_msg_pdu: %s" % sms_msg_pdu_item
-                print "-" * 20
-                print "full_pdu: %s" % pdu
-                print "full_text: %s" % text
-                print "-" * 20
+            debug("smsc_pdu: %s" % smsc_pdu)
+            debug("sms_submit_pdu: %s" % sms_submit_pdu)
+            debug("tpmessref_pdu: %s" % tpmessref_pdu)
+            debug("sms_phone_pdu: %s" % sms_phone_pdu)
+            debug("tppid_pdu: %s" % tppid_pdu)
+            debug("sms_msg_pdu: %s" % sms_msg_pdu_item)
+            debug("-" * 20)
+            debug("full_pdu: %s" % pdu)
+            debug("full_text: %s" % text)
+            debug("-" * 20)
             pdu_list.append(((len(pdu) / 2) - len_smsc, pdu.upper()))
 
         return pdu_list
