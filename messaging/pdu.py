@@ -148,15 +148,38 @@ class PDU(object):
 
     def decode_pdu(self, pdu):
         """
-        Decodes a complete SMS pdu and returns a tuple of strings
+        Decodes ``pdu`` and returns a dict with:
 
-        sender,  # Sender's number or string(Operator originated message)
-        datestr, # GSM format date string
-        msg,     # The actual msg less any header in UCS2 format
-        ref,     # Msg reference  (from SMSC)
-        cnt,     # Number of msg in the sequence (concat msgs)
-        seq      # Sequence number of the msg (concat msgs)
-        fmt      # Format of recieved msg
+        sender
+          SMS Sender. It can be either a number or string if
+          it is an operator originated SMS.
+
+        csca
+          SMSC number
+
+        date
+          GSM format date string
+
+        text
+          The SMS text
+
+        pid
+          SMS PID
+
+        type
+          SMS type
+
+        ref
+          SMS reference number
+
+        cnt
+          Number of SMS in the sequence (concat msgs)
+
+        seq
+          Sequence number of the SMS (concat msgs)
+
+        fmt
+          Format of received SMS
         """
         pdu = pdu.upper()
         d = StringIO(unhexlify(pdu))
@@ -283,6 +306,7 @@ class PDU(object):
                     type=sms_type, pid=pid)
 
     def _decode_status_report_pdu(self, pdu, d, csca):
+        # XXX: We are not returning the pid here
         ref = ord(d.read(1))
 
         sndlen = ord(d.read(1))
