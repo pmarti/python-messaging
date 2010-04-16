@@ -91,3 +91,13 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(ret['date'], datestr)
         self.assertEqual(ret['number'], number)
         self.assertEqual(ret['text'], text)
+
+    def test_decode_sms_confirmation_weird(self):
+        pdu = "07914306073011F001000B914306565711F9000007F0B2FC0DCABF01"
+        csca = "+34607003110"
+        number = "SR-UNKNOWN"
+
+        ret = self.pdu.decode_pdu(pdu)
+
+        self.assertEqual(ret['csca'], csca)
+        self.assertEqual(ret['number'], number)

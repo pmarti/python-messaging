@@ -324,7 +324,7 @@ class PDU(object):
                 date[n-1], date[n] = date[n], date[n-1]
                 scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
         except TypeError:
-            scts_str = 'Could not decode scts'
+            debug('Could not decode scts: %s' % scts_str)
 
         dt_str = ''
         try:
@@ -333,22 +333,31 @@ class PDU(object):
                 date[n-1], date[n] = date[n], date[n-1]
                 dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
         except TypeError:
-            dt_str = 'Could not decode date'
+            debug('Could not decode date: %s' % dt_str)
 
-        status = ord(d.read(1))
-        msg = recipient + "|" + scts_str + "|" + dt_str
-        sender = ""
-        if status == 0x0:
-            sender = "SR-OK"
-        elif status == 0x1:
-            sender = "SR-UNKNOWN"
-            msg = recipient + "|" + scts_str + "|"
-        elif status == 0x30:
-            sender = "SR-STORED"
-            msg = recipient + "|" + scts_str + "|"
+        try:
+            status = ord(d.read(1))
+        except TypeError:
+            # Yes it is entirely possible that a status report comes
+            # with no status at all! I'm faking for now the values and
+            # set it to SR-UNKNOWN as that's all we can do
+            status = 0x1
+            sender = 'SR-UNKNOWN'
+            msg = recipient + "|" + scts_str + "|" + dt_str
         else:
-            sender = "SR-UNKNOWN"
-            msg = recipient + "|" + scts_str + "|"
+            msg = recipient + "|" + scts_str + "|" + dt_str
+            sender = ""
+            if status == 0x0:
+                sender = "SR-OK"
+            elif status == 0x1:
+                sender = "SR-UNKNOWN"
+                msg = recipient + "|" + scts_str + "|"
+            elif status == 0x30:
+                sender = "SR-STORED"
+                msg = recipient + "|" + scts_str + "|"
+            else:
+                sender = "SR-UNKNOWN"
+                msg = recipient + "|" + scts_str + "|"
 
         cnt = seq = 0
         return dict(number=sender, date=scts_str, text=msg.strip(),
