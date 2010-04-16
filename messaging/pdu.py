@@ -318,16 +318,22 @@ class PDU(object):
             recipient = '+%s' % recipient
 
         scts_str = ''
-        date = list(hexlify(d.read(7)))
-        for n in range(1, len(date), 2):
-            date[n-1], date[n] = date[n], date[n-1]
-            scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+        try:
+            date = list(hexlify(d.read(7)))
+            for n in range(1, len(date), 2):
+                date[n-1], date[n] = date[n], date[n-1]
+                scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+        except TypeError:
+            scts_str = 'Could not decode scts'
 
         dt_str = ''
-        date = list(hexlify(d.read(7)))
-        for n in range(1, len(date), 2):
-            date[n-1], date[n] = date[n], date[n-1]
-            dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+        try:
+            date = list(hexlify(d.read(7)))
+            for n in range(1, len(date), 2):
+                date[n-1], date[n] = date[n], date[n-1]
+                dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
+        except TypeError:
+            dt_str = 'Could not decode date'
 
         status = ord(d.read(1))
         msg = recipient + "|" + scts_str + "|" + dt_str
