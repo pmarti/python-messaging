@@ -2,8 +2,10 @@ from distribute_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
 
+import messaging
+
 setup(name="python-messaging",
-      version="0.2",
+      version='.'.join(map(str, messaging.VERSION)),
       description='SMS encoder/decoder',
       license='GPL',
       packages=find_packages(),
