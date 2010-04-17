@@ -1,4 +1,21 @@
 ++++++++++++++++++++++++++++++++++++++++++++++
+python-messaging-0.3
+Overview of changes since python-messaging-0.2
+++++++++++++++++++++++++++++++++++++++++++++++
+
+This is a new major stable release of python-messaging. List of changes:
+
+ * API has changed, decode_pdu returns a dictionary now
+ * SMS status report encoding
+ * SMS status report decoding by the MobileManager project
+ * Decoder completely revamped (code way cleaner)
+ * Support for alphanumeric addresses contributed by Andrew Bird
+ * Time offset fix by Andrew Bird
+ * Debian package migrated to pycentral
+ * Switched to distribute
+
+
+++++++++++++++++++++++++++++++++++++++++++++++
 python-messaging-0.2
 Overview of changes since python-messaging-0.1
 ++++++++++++++++++++++++++++++++++++++++++++++
