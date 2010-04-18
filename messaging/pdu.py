@@ -231,7 +231,7 @@ class PDU(object):
                 sender = '+' + sender
 
         # 1 byte TP-PID (Protocol IDentifier)
-        pid = d.read(1)
+        pid = ord(d.read(1))
         # 1 byte TP-DCS (Data Coding Scheme)
         dcs = ord(d.read(1))
         fmt = SEVENBIT_FORMAT
