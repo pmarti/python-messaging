@@ -70,6 +70,10 @@ def swap(s):
     return ''.join(address).strip()
 
 
+def encode_byte(i):
+    return hexlify(chr(i))
+
+
 class PDU(object):
 
     def __init__(self):
@@ -384,14 +388,14 @@ class PDU(object):
         pl = len(ps)
         ps = chr(pl) + ps
 
-        return ''.join(["%02x" % ord(n) for n in ps])
+        return hexlify(ps)
 
     def _get_tpmessref_pdu(self, msgref):
         if msgref is None:
             msgref = self._get_rand_id()
 
         tpmessref = msgref & 0xFF
-        return ''.join(["%02x" % ord(n) for n in chr(tpmessref)])
+        return encode_byte(tpmessref)
 
     def _get_phone_pdu(self, number):
         number = self._clean_number(number)
@@ -410,15 +414,14 @@ class PDU(object):
             ps += chr(int(num, 16))
 
         ps = chr(pl) + ps
-
-        return ''.join(["%02x" % ord(n) for n in ps])
+        return hexlify(ps)
 
     def _clean_number(self, number):
         return number.strip().replace(' ', '')
 
     def _get_tppid_pdu(self):
         tppid = 0x00
-        return ''.join(["%02x" % ord(n) for n in chr(tppid)])
+        return encode_byte(tppid)
 
     def _get_sms_submit_pdu(self, request_status, msgvp, store, udh=False):
         sms_submit = 0x1
@@ -430,28 +433,27 @@ class PDU(object):
         if udh:
             sms_submit |= 0x40
 
-        return ''.join(["%02x" % ord(n) for n in chr(sms_submit)])
+        return encode_byte(sms_submit)
 
     def _get_msg_pdu(self, text, validity_period, store, rand_id):
         # Data coding scheme
         if gsm0338.is_valid_gsm_text(text):
-            text_format = SEVENBIT_FORMAT
+            dcs = SEVENBIT_FORMAT
         else:
-            text_format = UNICODE_FORMAT
+            dcs = UNICODE_FORMAT
 
-        dcs = 0x00 | text_format
-
-        dcs_pdu = ''.join(["%02x" % ord(n) for n in chr(dcs)])
+        dcs_pdu = encode_byte(dcs)
 
         # Validity period
+        msgvp_pdu = None
         if not store:
             msgvp = validity_period & 0xFF
-            msgvp_pdu = ''.join(["%02x" % ord(n) for n in chr(msgvp)])
+            msgvp_pdu = encode_byte(msgvp)
 
         # UDL + UD
         message_pdu = ""
 
-        if text_format == SEVENBIT_FORMAT:
+        if dcs == SEVENBIT_FORMAT:
             if len(text) <= SEVENBIT_SIZE:
                 message_pdu = [self._pack_8bits_to_7bits(text)]
             else:
@@ -459,20 +461,22 @@ class PDU(object):
                                                       limit=SEVENBIT_SIZE,
                                                       encoding=SEVENBIT_FORMAT,
                                                       rand_id=rand_id)
-        else:
+        elif dcs == UNICODE_FORMAT:
             if len(text) <= UCS2_SIZE:
                 message_pdu = [self._pack_8bits_to_ucs2(text)]
             else:
                 message_pdu = self._split_sms_message(text, limit=UCS2_SIZE,
                                                       encoding=UNICODE_FORMAT,
                                                       rand_id=rand_id)
+        else:
+            raise ValueError("Unknown data coding scheme")
 
         ret = []
         for msg in message_pdu:
-            if store:
-                ret.append(dcs_pdu + msg)
-            else:
+            if not store:
                 ret.append(dcs_pdu + msgvp_pdu + msg)
+            else:
+                ret.append(dcs_pdu + msg)
 
         return ret
 
@@ -490,7 +494,7 @@ class PDU(object):
         mlen = len(text) * 2
         message = chr(mlen) + nmesg
 
-        return ''.join(["%02x" % ord(n) for n in message])
+        return hexlify(message)
 
     def _pack_8bits_to_7bits(self, message, udh=None):
         pdu = ""
@@ -538,7 +542,7 @@ class PDU(object):
 
             pdu = chr(tl) + ''.join(map(chr, op))
 
-        return ''.join(["%02x" % ord(n) for n in pdu])
+        return hexlify(pdu)
 
     def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT,
                            limit=SEVENBIT_SIZE, rand_id=None):
