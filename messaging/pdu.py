@@ -23,8 +23,6 @@
 from cStringIO import StringIO
 from binascii import hexlify, unhexlify
 from datetime import datetime, timedelta
-import random
-random.seed()
 
 from messaging import gsm0338
 
