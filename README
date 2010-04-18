@@ -14,4 +14,6 @@ Features
 ========
 
  * Supports 7bit, 8bit and UCS2 encodings
- * Multipart encoding and decoding
+ * Multipart encoding/decoding
+ * Status report encoding/decoding
+ * Tests
