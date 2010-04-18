@@ -1,3 +1,9 @@
+python-messaging (0.3-1) lucid; urgency=low
+
+  * New upstream version
+
+ -- Pablo Martí Gamboa <pmarti@warp.es>  Sun, 18 Apr 2010 10:02:45 +0200
+
 python-messaging (0.2-1) lucid; urgency=low
 
   * New upstream version
