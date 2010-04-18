@@ -306,7 +306,6 @@ class PDU(object):
                     type=sms_type, pid=pid)
 
     def _decode_status_report_pdu(self, pdu, d, csca):
-        # XXX: We are not returning the pid here
         ref = ord(d.read(1))
 
         sndlen = ord(d.read(1))
@@ -361,7 +360,7 @@ class PDU(object):
 
         cnt = seq = 0
         return dict(number=sender, date=scts_str, text=msg.strip(),
-                    csca=csca, ref=ref, cnt=cnt, seq=seq,
+                    csca=csca, ref=ref, cnt=cnt, seq=seq, pid=None,
                     fmt=UNICODE_FORMAT, type=SMS_STATUS_REPORT)
 
     def _get_smsc_pdu(self, number):
