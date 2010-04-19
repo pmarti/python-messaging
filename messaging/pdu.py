@@ -21,10 +21,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from cStringIO import StringIO
-from binascii import hexlify, unhexlify
+from binascii import unhexlify
 from datetime import datetime, timedelta
 
-from messaging import gsm0338
+from messaging.gsm0338 import is_valid_gsm_text
+from messaging.utils import (bytes_to_str, swap, encode_byte,
+                             encode_seq, debug)
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
@@ -51,25 +53,6 @@ SUBSCRIBER = 4
 ALPHANUMERIC = 5
 ABBREVIATED = 6
 RESERVED = 7
-
-
-def debug(s):
-    # set this to True if you want to poke at PDU encoding/decoding
-    if False:
-        print s
-
-
-def swap(s):
-    """Swaps ``address`` according to GSM 23.040"""
-    address = list(hexlify(s).replace('f', ''))
-    for n in range(1, len(address), 2):
-        address[n-1], address[n] = address[n], address[n-1]
-
-    return ''.join(address).strip()
-
-
-def encode_byte(i):
-    return hexlify(chr(i))
 
 
 class PDU(object):
@@ -184,7 +167,7 @@ class PDU(object):
           Format of received SMS
         """
         pdu = pdu.upper()
-        d = StringIO(unhexlify(pdu))
+        d = StringIO(bytes_to_str(unhexlify(pdu)))
         # Service centre address
         smscl = ord(d.read(1))
         smscertype = ord(d.read(1))
@@ -223,9 +206,12 @@ class PDU(object):
         sndtype = (ord(d.read(1)) >> 4) & 0x07 # bits 654
         if sndtype == ALPHANUMERIC:
             # coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet
-            sender = hexlify(d.read(int(sndlen/2.0)))
+            sender = encode_seq(d.read(int(sndlen/2.0)))
             sender = self._unpack_msg(sender)
-            sender = sender.decode("gsm0338")
+            try:
+                sender = sender.decode("gsm0338")
+            except AttributeError:
+                pass
         else:
             # Extract phone number of sender
             sender = swap(d.read(int(sndlen/2.0)))
@@ -247,7 +233,8 @@ class PDU(object):
         datestr = ''
         if sms_type == SMS_DELIVER:
             # Get date stamp (sender's local time)
-            date = list(hexlify(d.read(6)))
+            date = list(encode_seq(d.read(6)))
+            debug("DATE: %s" % date)
             for n in range(1, len(date), 2):
                 date[n-1], date[n] = date[n], date[n-1]
 
@@ -274,7 +261,7 @@ class PDU(object):
 
         # Now get message body
         msgl = ord(d.read(1))
-        msg = hexlify(d.read(msgl))
+        msg = encode_seq(d.read(msgl))
         # check for header
         cnt = seq = ref = headlen = 0
 
@@ -292,7 +279,7 @@ class PDU(object):
 
         if fmt == SEVENBIT_FORMAT:
             msg = self._unpack_msg(msg)[headlen:msgl]
-            msg = msg.decode("gsm0338")
+            # msg = msg.decode("gsm0338")
 
         elif fmt == EIGHTBIT_FORMAT:
             msg = ''.join([chr(int(msg[x:x+2], 16))
@@ -320,7 +307,7 @@ class PDU(object):
 
         scts_str = ''
         try:
-            date = list(hexlify(d.read(7)))
+            date = list(encode_seq(d.read(7)))
             for n in range(1, len(date), 2):
                 date[n-1], date[n] = date[n], date[n-1]
                 scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
@@ -329,7 +316,7 @@ class PDU(object):
 
         dt_str = ''
         try:
-            date = list(hexlify(d.read(7)))
+            date = list(encode_seq(d.read(7)))
             for n in range(1, len(date), 2):
                 date[n-1], date[n] = date[n], date[n-1]
                 dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
@@ -386,7 +373,7 @@ class PDU(object):
         pl = len(ps)
         ps = chr(pl) + ps
 
-        return hexlify(ps)
+        return encode_seq(ps)
 
     def _get_tpmessref_pdu(self, msgref):
         if msgref is None:
@@ -412,7 +399,7 @@ class PDU(object):
             ps += chr(int(num, 16))
 
         ps = chr(pl) + ps
-        return hexlify(ps)
+        return encode_seq(ps)
 
     def _clean_number(self, number):
         return number.strip().replace(' ', '')
@@ -435,7 +422,7 @@ class PDU(object):
 
     def _get_msg_pdu(self, text, validity_period, store, rand_id):
         # Data coding scheme
-        if gsm0338.is_valid_gsm_text(text):
+        if is_valid_gsm_text(text):
             dcs = SEVENBIT_FORMAT
         else:
             dcs = UNICODE_FORMAT
@@ -492,16 +479,16 @@ class PDU(object):
         mlen = len(text) * 2
         message = chr(mlen) + nmesg
 
-        return hexlify(message)
+        return encode_seq(message)
 
     def _pack_8bits_to_7bits(self, message, udh=None):
         pdu = ""
-        txt = message.encode("gsm0338")
+        txt = bytes_to_str(message.encode("gsm0338"))
 
         if udh is None:
             tl = len(txt)
             txt += '\x00'
-            msgl = len(txt) * 7 / 8
+            msgl = int(len(txt) * 7 / 8)
             op = [-1] * msgl
             c = shift = 0
 
@@ -521,7 +508,7 @@ class PDU(object):
             tl = len(txt)
 
             txt += '\x00'
-            msgl = len(txt) * 7 / 8
+            msgl = int(len(txt) * 7 / 8)
             op = [-1] * msgl
             c = shift = 0
 
@@ -540,7 +527,7 @@ class PDU(object):
 
             pdu = chr(tl) + ''.join(map(chr, op))
 
-        return hexlify(pdu)
+        return encode_seq(pdu)
 
     def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT,
                            limit=SEVENBIT_SIZE, rand_id=None):
