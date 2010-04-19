@@ -62,9 +62,9 @@ class TestEncodingFunctions(unittest.TestCase):
         self.assertEqual(pdu[1], expected)
 
     def test_encoding_ucs2_message_without_smsc_2(self):
-        text = "Русский"
+        text = u"Русский"
         number = "655345678"
-        expected = "001100098156355476F80008AA1C00D000A000D1008300D1008100D1008100D000BA00D000B800D000B9"
+        expected = "001100098156355476F80008AA0E0420044304410441043A04380439"
 
         pdu = self.pdu.encode_pdu(number, text, msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
