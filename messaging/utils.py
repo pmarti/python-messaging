@@ -18,7 +18,7 @@ def swap(s):
     """Swaps ``address`` according to GSM 23.040"""
     address = list(encode_seq(s).replace('f', ''))
     for n in range(1, len(address), 2):
-        address[n-1], address[n] = address[n], address[n-1]
+        address[n - 1], address[n] = address[n], address[n - 1]
 
     return ''.join(address).strip()
 

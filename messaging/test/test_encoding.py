@@ -3,6 +3,7 @@ import unittest
 
 from messaging.pdu import PDU
 
+
 class TestEncodingFunctions(unittest.TestCase):
 
     def setUp(self):
@@ -81,5 +82,3 @@ class TestEncodingFunctions(unittest.TestCase):
         messages = self.pdu.encode_pdu(number, text, msgref=0x0, rand_id=136)
         for i, (pdu_len, pdu) in enumerate(messages):
             self.assertEqual(expected[i], pdu)
-
-

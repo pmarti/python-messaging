@@ -30,7 +30,7 @@ from messaging.utils import (bytes_to_str, swap, encode_byte,
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
-UNICODE_FORMAT  = 0x08
+UNICODE_FORMAT = 0x08
 
 SEVENBIT_SIZE = 160
 UCS2_SIZE = 70
@@ -171,7 +171,7 @@ class PDU(object):
         # Service centre address
         smscl = ord(d.read(1))
         smscertype = ord(d.read(1))
-        smscer = swap(d.read(smscl-1))
+        smscer = swap(d.read(smscl - 1))
         if smscertype == INTERNATIONAL_NUMBER:
             smscer = '+' + smscer
 
@@ -203,10 +203,10 @@ class PDU(object):
         if sndlen % 2:
             sndlen += 1
 
-        sndtype = (ord(d.read(1)) >> 4) & 0x07 # bits 654
+        sndtype = (ord(d.read(1)) >> 4) & 0x07  # bits 654
         if sndtype == ALPHANUMERIC:
             # coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet
-            sender = encode_seq(d.read(int(sndlen/2.0)))
+            sender = encode_seq(d.read(int(sndlen / 2.0)))
             sender = self._unpack_msg(sender)
             try:
                 sender = sender.decode("gsm0338")
@@ -214,7 +214,7 @@ class PDU(object):
                 pass
         else:
             # Extract phone number of sender
-            sender = swap(d.read(int(sndlen/2.0)))
+            sender = swap(d.read(int(sndlen / 2.0)))
             if sndtype == INTERNATIONAL:
                 sender = '+' + sender
 
@@ -236,7 +236,7 @@ class PDU(object):
             date = list(encode_seq(d.read(6)))
             debug("DATE: %s" % date)
             for n in range(1, len(date), 2):
-                date[n-1], date[n] = date[n], date[n-1]
+                date[n - 1], date[n] = date[n], date[n - 1]
 
             # Get sender's offset from GMT (TS 23.040 TP-SCTS)
             lo_hi = ord(d.read(1))
@@ -266,7 +266,7 @@ class PDU(object):
         cnt = seq = ref = headlen = 0
 
         if testheader:
-            if msg[2:4] == "00": # found header for concat message
+            if msg[2:4] == "00":  # found header for concat message
                 headlen = (int(msg[0:2], 16) + 1) * 8
                 # subheadlen = int(msg[4:6], 16)
                 ref = int(msg[6:8], 16)
@@ -282,12 +282,12 @@ class PDU(object):
             # msg = msg.decode("gsm0338")
 
         elif fmt == EIGHTBIT_FORMAT:
-            msg = ''.join([chr(int(msg[x:x+2], 16))
+            msg = ''.join([chr(int(msg[x:x + 2], 16))
                             for x in range(0, len(msg), 2)])
             msg = unicode(msg[headlen:], 'latin-1')
 
         elif fmt == UNICODE_FORMAT:
-            msg = u''.join([unichr(int(msg[x:x+4], 16))
+            msg = u''.join([unichr(int(msg[x:x + 4], 16))
                             for x in range(0, len(msg), 4)])
 
         return dict(number=sender, date=datestr, text=msg.strip(),
@@ -301,7 +301,7 @@ class PDU(object):
         if sndlen % 2:
             sndlen += 1
         sndtype = ord(d.read(1))
-        recipient = swap(d.read(int(sndlen/2.0)))
+        recipient = swap(d.read(int(sndlen / 2.0)))
         if sndtype == INTERNATIONAL_NUMBER:
             recipient = '+%s' % recipient
 
@@ -309,7 +309,7 @@ class PDU(object):
         try:
             date = list(encode_seq(d.read(7)))
             for n in range(1, len(date), 2):
-                date[n-1], date[n] = date[n], date[n-1]
+                date[n - 1], date[n] = date[n], date[n - 1]
                 scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
         except TypeError:
             debug('Could not decode scts: %s' % scts_str)
@@ -318,7 +318,7 @@ class PDU(object):
         try:
             date = list(encode_seq(d.read(7)))
             for n in range(1, len(date), 2):
-                date[n-1], date[n] = date[n], date[n-1]
+                date[n - 1], date[n] = date[n], date[n - 1]
                 dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
         except TypeError:
             debug('Could not decode date: %s' % dt_str)
@@ -367,7 +367,7 @@ class PDU(object):
 
         ps = chr(ptype)
         for n in range(0, len(number), 2):
-            num = number[n+1] + number[n]
+            num = number[n + 1] + number[n]
             ps += chr(int(num, 16))
 
         pl = len(ps)
@@ -395,7 +395,7 @@ class PDU(object):
 
         ps = chr(ptype)
         for n in range(0, len(number), 2):
-            num = number[n+1] + number[n]
+            num = number[n + 1] + number[n]
             ps += chr(int(num, 16))
 
         ps = chr(pl) + ps
@@ -498,7 +498,7 @@ class PDU(object):
 
                 shift = n % 7
                 lb = ord(txt[c]) >> shift
-                hb = (ord(txt[c+1]) << (7-shift) & 255)
+                hb = (ord(txt[c + 1]) << (7 - shift) & 255)
                 op[n] = lb + hb
                 c += 1
 
@@ -518,7 +518,7 @@ class PDU(object):
 
                 shift = n % 7
                 lb = ord(txt[c]) >> shift
-                hb = (ord(txt[c+1]) << (7-shift) & 255)
+                hb = (ord(txt[c + 1]) << (7 - shift) & 255)
                 op[n] = lb + hb
                 c += 1
 
@@ -565,14 +565,13 @@ class PDU(object):
             i += 1
             total_parts = len(msgs)
             if limit == SEVENBIT_SIZE:
-                udh = (chr(udh_len) + chr(mid) + chr(data_len) + chr(csms_ref) +
-                       chr(total_parts) + chr(i))
+                udh = (chr(udh_len) + chr(mid) + chr(data_len) +
+                       chr(csms_ref) + chr(total_parts) + chr(i))
                 pdu_msgs.append(packing_func(" " + msg, udh))
             else:
                 udh = (unichr(int("%04x" % ((udh_len << 8) | mid), 16)) +
                        unichr(int("%04x" % ((data_len << 8) | csms_ref), 16)) +
-                       unichr(int("%04x" % ((total_parts << 8) | i ), 16))
-                       )
+                       unichr(int("%04x" % ((total_parts << 8) | i), 16)))
                 pdu_msgs.append(packing_func("" + msg, udh))
 
         return pdu_msgs
@@ -586,7 +585,7 @@ class PDU(object):
         result = []
 
         for i in range(0, len(pdu), 2):
-            byte = int(pdu[i:i+2], 16)
+            byte = int(pdu[i:i + 2], 16)
             mask = 0x7F >> count
             out = ((byte & mask) << count) + last
             last = byte >> (7 - count)

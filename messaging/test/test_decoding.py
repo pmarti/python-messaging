@@ -3,6 +3,7 @@ import unittest
 
 from messaging.pdu import PDU
 
+
 class TestDecodingFunctions(unittest.TestCase):
 
     def setUp(self):
@@ -45,7 +46,7 @@ class TestDecodingFunctions(unittest.TestCase):
         pdu = "0791447758100650040C914497716247010000909010711423400A2050EC468B81C4733A"
         text = "1741 bst"
         number = "+447917267410"
-        datestr = "09/09/01 16:41:32" # UTC
+        datestr = "09/09/01 16:41:32"  # UTC
 
         ret = self.pdu.decode_pdu(pdu)
 
@@ -53,7 +54,7 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(ret['text'], text)
         self.assertEqual(ret['number'], number)
 
-    def test_decoding_number_alpha1(self): # Odd length test
+    def test_decoding_number_alpha1(self):  # Odd length test
         pdu = "07919471060040340409D0C6A733390400009060920173018093CC74595C96838C4F6772085AD6DDE4320B444E9741D4B03C6D7EC3E9E9B71B9474D3CB727799DEA286CFE5B9991DA6CBC3F432E85E9793CBA0F09A9EB6A7CB72BA0B9474D3CB727799DE72D6E9FABAFB0CBAA7E56490BA4CD7D34170F91BE4ACD3F575F7794E0F9F4161F1B92C2F8FD1EE32DD054AA2E520E3D3991C82A8E5701B"
         number = "FONIC"
         text = "Lieber FONIC Kunde, die Tarifoption Internet-Tagesflatrate wurde aktiviert. Internet-Nutzung wird jetzt pro Nutzungstag abgerechnet. Ihr FONIC Team"
@@ -65,7 +66,7 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(ret['number'], number)
         self.assertEqual(ret['text'], text)
 
-    def test_decoding_number_alpha2(self): # Even length test
+    def test_decoding_number_alpha2(self):  # Even length test
         pdu = "07919333852804000412D0F7FBDD454FB75D693A0000903002801153402BCD301E9F0605D9E971191483C140412A35690D52832063D2F9040599A058EE05A3BD6430580E"
         number = "www.tim.it"
         text = 'Maxxi Alice 100 ATTIVATA FINO AL 19/04/2009'
