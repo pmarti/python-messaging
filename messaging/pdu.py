@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 
 from messaging.gsm0338 import is_valid_gsm_text
 from messaging.utils import (bytes_to_str, swap, encode_byte,
-                             encode_seq, debug)
+                             encode_str, debug)
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
@@ -206,7 +206,7 @@ class PDU(object):
         sndtype = (ord(d.read(1)) >> 4) & 0x07  # bits 654
         if sndtype == ALPHANUMERIC:
             # coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet
-            sender = encode_seq(d.read(int(sndlen / 2.0)))
+            sender = encode_str(d.read(int(sndlen / 2.0)))
             sender = self._unpack_msg(sender)
             try:
                 sender = sender.decode("gsm0338")
@@ -233,7 +233,7 @@ class PDU(object):
         datestr = ''
         if sms_type == SMS_DELIVER:
             # Get date stamp (sender's local time)
-            date = list(encode_seq(d.read(6)))
+            date = list(encode_str(d.read(6)))
             debug("DATE: %s" % date)
             for n in range(1, len(date), 2):
                 date[n - 1], date[n] = date[n], date[n - 1]
@@ -261,7 +261,7 @@ class PDU(object):
 
         # Now get message body
         msgl = ord(d.read(1))
-        msg = encode_seq(d.read(msgl))
+        msg = encode_str(d.read(msgl))
         # check for header
         cnt = seq = ref = headlen = 0
 
@@ -307,7 +307,7 @@ class PDU(object):
 
         scts_str = ''
         try:
-            date = list(encode_seq(d.read(7)))
+            date = list(encode_str(d.read(7)))
             for n in range(1, len(date), 2):
                 date[n - 1], date[n] = date[n], date[n - 1]
                 scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
@@ -316,7 +316,7 @@ class PDU(object):
 
         dt_str = ''
         try:
-            date = list(encode_seq(d.read(7)))
+            date = list(encode_str(d.read(7)))
             for n in range(1, len(date), 2):
                 date[n - 1], date[n] = date[n], date[n - 1]
                 dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
@@ -373,7 +373,7 @@ class PDU(object):
         pl = len(ps)
         ps = chr(pl) + ps
 
-        return encode_seq(ps)
+        return encode_str(ps)
 
     def _get_tpmessref_pdu(self, msgref):
         if msgref is None:
@@ -399,7 +399,7 @@ class PDU(object):
             ps += chr(int(num, 16))
 
         ps = chr(pl) + ps
-        return encode_seq(ps)
+        return encode_str(ps)
 
     def _clean_number(self, number):
         return number.strip().replace(' ', '')
@@ -479,7 +479,7 @@ class PDU(object):
         mlen = len(text) * 2
         message = chr(mlen) + nmesg
 
-        return encode_seq(message)
+        return encode_str(message)
 
     def _pack_8bits_to_7bits(self, message, udh=None):
         pdu = ""
@@ -527,7 +527,7 @@ class PDU(object):
 
             pdu = chr(tl) + ''.join(map(chr, op))
 
-        return encode_seq(pdu)
+        return encode_str(pdu)
 
     def _split_sms_message(self, text, encoding=SEVENBIT_FORMAT,
                            limit=SEVENBIT_SIZE, rand_id=None):
