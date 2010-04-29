@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 
 from messaging.gsm0338 import is_valid_gsm_text
 from messaging.utils import (bytes_to_str, swap, encode_byte,
-                             encode_str, debug)
+                             encode_str, debug, clean_number)
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
@@ -356,7 +356,7 @@ class PDU(object):
         if not number.strip():
             return "00"
 
-        number = self._clean_number(number)
+        number = clean_number(number)
         ptype = UNKNOWN_NUMBER
         if number[0] == '+':
             number = number[1:]
@@ -383,7 +383,7 @@ class PDU(object):
         return encode_byte(tpmessref)
 
     def _get_phone_pdu(self, number):
-        number = self._clean_number(number)
+        number = clean_number(number)
         ptype = UNKNOWN_NUMBER
         if number[0] == '+':
             number = number[1:]
@@ -400,9 +400,6 @@ class PDU(object):
 
         ps = chr(pl) + ps
         return encode_str(ps)
-
-    def _clean_number(self, number):
-        return number.strip().replace(' ', '')
 
     def _get_tppid_pdu(self):
         tppid = 0x00

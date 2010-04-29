@@ -23,6 +23,10 @@ def swap(s):
     return ''.join(address).strip()
 
 
+def clean_number(n):
+    return n.strip().replace(' ', '')
+
+
 def encode_str(s):
     """Returns the hexadecimal representation of ``s``"""
     return ''.join(["%02x" % ord(n) for n in s])
