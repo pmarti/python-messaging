@@ -7,7 +7,7 @@ Standards-Version: 3.8.3
 XS-Python-Version: all
 
 Package: python-messaging
-Architecture: any
+Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
