@@ -166,25 +166,21 @@ class PDU(object):
         fmt
           Format of received SMS
         """
-        pdu = pdu.upper()
         d = StringIO(bytes_to_str(unhexlify(pdu)))
         # Service centre address
         smscl = ord(d.read(1))
         smscertype = ord(d.read(1))
         smscer = swap(d.read(smscl - 1))
         if smscertype == INTERNATIONAL_NUMBER:
-            smscer = '+' + smscer
+            smscer = '+%s' % smscer
 
         csca = smscer
-
         # 1 byte(octet) == 2 char
         # Message type TP-MTI bits 0,1
         # More messages to send/deliver bit 2
         # Status report request indicated bit 5
         # User Data Header Indicator bit 6
         # Reply path set bit 7
-        # 1st octet position == smscerlen+4
-
         mtype = ord(d.read(1))
         if mtype & SMS_STATUS_REPORT:
             return self._decode_status_report_pdu(pdu, d, csca)
@@ -216,7 +212,7 @@ class PDU(object):
             # Extract phone number of sender
             sender = swap(d.read(int(sndlen / 2.0)))
             if sndtype == INTERNATIONAL:
-                sender = '+' + sender
+                sender = '+%s' % sender
 
         # 1 byte TP-PID (Protocol IDentifier)
         pid = ord(d.read(1))
@@ -234,7 +230,6 @@ class PDU(object):
         if sms_type == SMS_DELIVER:
             # Get date stamp (sender's local time)
             date = list(encode_str(d.read(6)))
-            debug("DATE: %s" % date)
             for n in range(1, len(date), 2):
                 date[n - 1], date[n] = date[n], date[n - 1]
 
@@ -279,7 +274,6 @@ class PDU(object):
 
         if fmt == SEVENBIT_FORMAT:
             msg = self._unpack_msg(msg)[headlen:msgl]
-            # msg = msg.decode("gsm0338")
 
         elif fmt == EIGHTBIT_FORMAT:
             msg = ''.join([chr(int(msg[x:x + 2], 16))
@@ -553,10 +547,7 @@ class PDU(object):
         udh_len = 0x05
         mid = 0x00
         data_len = 0x03
-        if rand_id is not None:
-            csms_ref = rand_id
-        else:
-            csms_ref = self._get_rand_id()
+        csms_ref = self._get_rand_id() if rand_id is None else rand_id
 
         for i, msg in enumerate(msgs):
             i += 1
