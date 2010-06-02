@@ -83,7 +83,7 @@ class TestDecodingFunctions(unittest.TestCase):
         csca = "+34607003110"
         datestr = "10/02/18 11:31:54"
         number = "SR-UNKNOWN"
-        # XXX: the number should be +344626575117, the prefix is flipped?
+        # XXX: the number should be +344626575117, is the prefix flipped ?
         text = "+43626575117|10/02/18 11:31:54|"
 
         ret = self.pdu.decode_pdu(pdu)
@@ -93,7 +93,7 @@ class TestDecodingFunctions(unittest.TestCase):
         self.assertEqual(ret['number'], number)
         self.assertEqual(ret['text'], text)
 
-    def test_decode_sms_confirmation_weird(self):
+    def test_decode_weird_sms_confirmation(self):
         pdu = "07914306073011F001000B914306565711F9000007F0B2FC0DCABF01"
         csca = "+34607003110"
         number = "SR-UNKNOWN"
@@ -102,3 +102,17 @@ class TestDecodingFunctions(unittest.TestCase):
 
         self.assertEqual(ret['csca'], csca)
         self.assertEqual(ret['number'], number)
+
+    def test_decode_weird_multipart_german_pdu(self):
+        pdus = [
+            "07919471227210244405852122F039F101506271217180A005000319020198E9B2B82C0759DFE4B0F9ED2EB7967537B9CC02B5D37450122D2FCB41EE303DFD7687D96537881A96A7CD6F383DFD7683F46134BBEC064DD36550DA0D22A7CBF3721BE42CD3F5A0198B56036DCA20B8FC0D6A0A4170767D0EAAE540433A082E7F83A6E5F93CFD76BB40D7B2DB0D9AA6CB2072BA3C2F83926EF31BE44E8FD17450BB8C9683CA",
+            "07919471227210244405852122F039F1015062712181804F050003190202E4E8309B5E7683DAFC319A5E76B340F73D9A5D7683A6E93268FD9ED3CB6EF67B0E5AD172B19B2C2693C9602E90355D6683A6F0B007946E8382F5393BEC26BB00",
+        ]
+        texts = [
+            u"Lieber Vodafone-Kunde, mit Ihrer nationalen Tarifoption zahlen Sie in diesem Netz 3,45 € pro MB plus 59 Ct pro Session. Wenn Sie diese Info nicht mehr e",
+            u"rhalten möchten, wählen Sie kostenlos +4917212220. Viel Spaß im Ausland.",
+        ]
+
+        for pdu, text in reversed(zip(pdus, texts)):
+            ret = self.pdu.decode_pdu(pdu)
+            self.assertEqual(ret['text'], text)

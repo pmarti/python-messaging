@@ -274,6 +274,7 @@ class PDU(object):
 
         if fmt == SEVENBIT_FORMAT:
             msg = self._unpack_msg(msg)[headlen:msgl]
+            msg = msg.decode("gsm0338")
 
         elif fmt == EIGHTBIT_FORMAT:
             msg = ''.join([chr(int(msg[x:x + 2], 16))
