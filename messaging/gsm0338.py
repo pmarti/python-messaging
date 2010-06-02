@@ -48,14 +48,6 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
         return codecs.charmap_decode(_input, self.errors, decoding_table)[0]
 
 
-class StreamWriter(Codec, codecs.StreamWriter):
-    pass
-
-
-class StreamReader(Codec, codecs.StreamReader):
-    pass
-
-
 # encodings module API
 def getregentry(encoding):
     if not encoding == 'gsm0338':
@@ -64,12 +56,7 @@ def getregentry(encoding):
     return codecs.CodecInfo(
         name='gsm0338',
         encode=Codec().encode,
-        decode=Codec().decode,
-        incrementalencoder=IncrementalEncoder,
-        incrementaldecoder=IncrementalDecoder,
-        streamreader=StreamReader,
-        streamwriter=StreamWriter)
-
+        decode=Codec().decode)
 
 decoding_table = codecs.make_identity_dict(range(256))
 
