@@ -113,6 +113,6 @@ class TestDecodingFunctions(unittest.TestCase):
             u"rhalten möchten, wählen Sie kostenlos +4917212220. Viel Spaß im Ausland.",
         ]
 
-        for pdu, text in reversed(zip(pdus, texts)):
+        for pdu, text in zip(pdus, texts):
             ret = self.pdu.decode_pdu(pdu)
             self.assertEqual(ret['text'], text)
