@@ -38,16 +38,6 @@ class Codec(codecs.Codec):
         return u''.join(result), len(result)
 
 
-class IncrementalEncoder(codecs.IncrementalEncoder):
-    def encode(self, _input, final=False):
-        return codecs.charmap_encode(_input, self.errors, encoding_map)[0]
-
-
-class IncrementalDecoder(codecs.IncrementalDecoder):
-    def decode(self, _input, final=False):
-        return codecs.charmap_decode(_input, self.errors, decoding_table)[0]
-
-
 # encodings module API
 def getregentry(encoding):
     if not encoding == 'gsm0338':
