@@ -166,7 +166,11 @@ class PDU(object):
         fmt
           Format of received SMS
         """
-        d = StringIO(bytes_to_str(unhexlify(pdu)))
+        try:
+            d = StringIO(bytes_to_str(unhexlify(pdu)))
+        except TypeError:
+            raise ValueError("Can not decode an odd-length pdu")
+
         # Service centre address
         smscl = ord(d.read(1))
         smscertype = ord(d.read(1))

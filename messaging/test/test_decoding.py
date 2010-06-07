@@ -116,3 +116,7 @@ class TestDecodingFunctions(unittest.TestCase):
         for pdu, text in zip(pdus, texts):
             ret = self.pdu.decode_pdu(pdu)
             self.assertEqual(ret['text'], text)
+
+    def test_decoding_odd_length_string_raises_valueerror(self):
+        pdu = "1313131"
+        self.assertRaises(ValueError, self.pdu.decode_pdu, pdu)
