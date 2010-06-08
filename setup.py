@@ -8,7 +8,7 @@ if sys.version_info >= (3,):
     extra['use_2to3'] = True
 
 setup(name="python-messaging",
-      version='0.3.0',
+      version='0.4.0',
       description='SMS encoder/decoder',
       license='GPL',
       packages=find_packages(),

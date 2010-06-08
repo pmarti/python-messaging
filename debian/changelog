@@ -1,3 +1,9 @@
+python-messaging (0.4-1) lucid; urgency=low
+
+  * New upstream version
+
+ -- Andrew Bird <ajb@spheresystems.co.uk>  Mon, 07 Jun 2010 18:25:48 +0100
+
 python-messaging (0.3-1) lucid; urgency=low
 
   * New upstream version
