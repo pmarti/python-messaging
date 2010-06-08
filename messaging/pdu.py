@@ -23,6 +23,7 @@
 from cStringIO import StringIO
 from binascii import unhexlify
 from datetime import datetime, timedelta
+import re
 
 from messaging.gsm0338 import is_valid_gsm_text
 from messaging.utils import (bytes_to_str, swap, encode_byte,
@@ -54,6 +55,8 @@ ALPHANUMERIC = 5
 ABBREVIATED = 6
 RESERVED = 7
 
+VALID_NUMBER = re.compile("^\+?\d{3,20}$")
+
 
 class PDU(object):
 
@@ -78,6 +81,12 @@ class PDU(object):
                         use it for testing
         :type rand_id: int
         """
+        if not VALID_NUMBER.match(number):
+            raise ValueError("Invalid number format: %s" % number)
+
+        if csca and not VALID_NUMBER.match(csca):
+            raise ValueError("Invalid csca format: %s" % csca)
+
         smsc_pdu = self._get_smsc_pdu(csca)
         sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp, store)
         tpmessref_pdu = self._get_tpmessref_pdu(msgref)
@@ -552,7 +561,7 @@ class PDU(object):
         udh_len = 0x05
         mid = 0x00
         data_len = 0x03
-        csms_ref = self._get_rand_id() if rand_id is None else rand_id
+        csms_ref = self._get_rand_id() if rand_id is None else rand_id & 0xFF
 
         for i, msg in enumerate(msgs):
             i += 1
