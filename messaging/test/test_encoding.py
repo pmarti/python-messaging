@@ -45,6 +45,22 @@ class TestEncodingFunctions(unittest.TestCase):
                                   msgref=0x0)[0]
         self.assertEqual(pdu[1], expected)
 
+    def test_encoding_7bit_message_with_latin1_chars(self):
+        # tested with pduspy.exe
+        number = "+34654123456"
+        text = u"Hölä"
+        expected = "0011000B914356143254F60000AA04483E7B0F"
+        pdu = self.pdu.encode_pdu(number, text, msgref=0x0)[0]
+        self.assertEqual(pdu[1], expected)
+
+    def test_encoding_7bit_message_with_latin1_chars2(self):
+        # tested with pduspy.exe
+        number = "+34654123456"
+        text = u"BÄRÇA äñ@"
+        expected = "0011000B914356143254F60000AA09C2AD341104EDFB00"
+        pdu = self.pdu.encode_pdu(number, text, msgref=0x0)[0]
+        self.assertEqual(pdu[1], expected)
+
     def test_encoding_ucs2_message_with_smsc(self):
         number = "+34616585119"
         text = u'あ叶葉'
