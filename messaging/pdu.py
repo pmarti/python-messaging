@@ -152,7 +152,7 @@ class PDU(object):
           SMSC number
 
         date
-          GSM format date string
+          GSM format date string (UTC)
 
         text
           The SMS text
@@ -265,7 +265,7 @@ class PDU(object):
             sndlocaltime = datetime.strptime(_datestr, outputfmt)
             sndoffset = timedelta(minutes=offset)
             gmttime = sndlocaltime - sndoffset
-
+            # return the date as UTC
             datestr = gmttime.strftime(outputfmt)
 
         # Now get message body
