@@ -194,7 +194,11 @@ class PDU(object):
         # Status report request indicated bit 5
         # User Data Header Indicator bit 6
         # Reply path set bit 7
-        mtype = ord(d.read(1))
+        try:
+            mtype = ord(d.read(1))
+        except TypeError:
+            raise ValueError("Decoding this type of SMS is not supported yet")
+
         if mtype & SMS_STATUS_REPORT:
             return self._decode_status_report_pdu(pdu, d, csca)
 
