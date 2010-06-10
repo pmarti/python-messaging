@@ -289,7 +289,7 @@ class PDU(object):
             msg = u''.join([unichr(int(msg[x:x + 4], 16))
                             for x in range(0, len(msg), 4)])
 
-        return dict(number=sender, date=datestr, text=msg.strip(),
+        return dict(number=sender, date=datestr, text=msg,
                     csca=csca, ref=ref, cnt=cnt, seq=seq, fmt=fmt,
                     type=sms_type, pid=pid)
 

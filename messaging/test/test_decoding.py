@@ -44,7 +44,7 @@ class TestDecodingFunctions(unittest.TestCase):
 
     def test_decoding_datetime_gmtplusone(self):
         pdu = "0791447758100650040C914497716247010000909010711423400A2050EC468B81C4733A"
-        text = "1741 bst"
+        text = "  1741 bst"
         number = "+447917267410"
         datestr = "09/09/01 16:41:32"  # UTC
 
