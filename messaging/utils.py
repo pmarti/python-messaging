@@ -8,6 +8,13 @@ def bytes_to_str(b):
     return b
 
 
+def to_bytes(s):
+    if sys.version_info >= (3,):
+        return bytes(s)
+
+    return ''.join(map(unichr, s))
+
+
 def debug(s):
     # set this to True if you want to poke at PDU encoding/decoding
     if False:

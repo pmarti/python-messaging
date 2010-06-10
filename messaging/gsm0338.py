@@ -21,7 +21,9 @@ import codecs
 import sys
 import traceback
 
-QUESTION_MARK = unichr(0x3f)
+from messaging.utils import to_bytes
+
+QUESTION_MARK = 0x3f
 
 
 class Codec(codecs.Codec):
@@ -31,11 +33,11 @@ class Codec(codecs.Codec):
         for c in _input:
             c = ord(c)
             try:
-                result.append(unichr(encoding_table[c]))
+                result.append(encoding_table[c])
             except KeyError:
                 try:
-                    result.append('\x1b')
-                    result.append(unichr(encoding_table_escape[c]))
+                    result.append(0x1b)
+                    result.append(encoding_table_escape[c])
                 except KeyError:
                     if errors == 'strict':
                         raise UnicodeError("Invalid SMS character: %d" % c)
@@ -46,7 +48,8 @@ class Codec(codecs.Codec):
                     else:
                         raise ValueError("Unknown error parameter: " + errors)
 
-        return (''.join(result), len(result))
+        ret = to_bytes(result)
+        return ret, len(ret)
 
     def decode(self, _input, errors='strict'):
         result, index = [], 0
@@ -64,13 +67,13 @@ class Codec(codecs.Codec):
                     if errors == 'strict':
                         raise UnicodeError("Invalid SMS character: %d" % c)
                     elif errors == 'replace':
-                        result.append(QUESTION_MARK)
+                        result.append(unichr(QUESTION_MARK))
                     elif errors == 'ignore':
                         pass
                     else:
                         raise ValueError("Unknown error parameter: " + errors)
 
-        return u''.join(result), len(result)
+        return ''.join(result), len(result)
 
 
 # encodings module API

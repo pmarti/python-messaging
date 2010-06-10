@@ -27,7 +27,7 @@ import re
 
 from messaging.gsm0338 import is_valid_gsm_text
 from messaging.utils import (bytes_to_str, swap, encode_byte,
-                             encode_str, debug, clean_number)
+                             encode_str, debug, clean_number, to_bytes)
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
@@ -221,10 +221,7 @@ class PDU(object):
             # coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet
             sender = encode_str(d.read(int(sndlen / 2.0)))
             sender = self._unpack_msg(sender)
-            try:
-                sender = sender.decode("gsm0338")
-            except AttributeError:
-                pass
+            sender = sender.decode("gsm0338")
         else:
             # Extract phone number of sender
             sender = swap(d.read(int(sndlen / 2.0)))
@@ -595,18 +592,18 @@ class PDU(object):
             mask = 0x7F >> count
             out = ((byte & mask) << count) + last
             last = byte >> (7 - count)
-            result.append(chr(out))
+            result.append(out)
 
             if limit and len(result) >= limit:
                 break
 
             if count == 6:
-                result.append(chr(last))
+                result.append(last)
                 last = 0
 
             count = (count + 1) % 7
 
-        return ''.join(result)
+        return to_bytes(result)
 
     def _get_rand_id(self):
         if not self.id_list:
