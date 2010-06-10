@@ -58,6 +58,16 @@ RESERVED = 7
 VALID_NUMBER = re.compile("^\+?\d{3,20}$")
 
 
+def get_pdu_length(pdu, len_smsc):
+    """
+    Returns the PDU length of ``pdu``
+
+    This length is used when sending the PDU with a modem, as the
+    initial parameter to AT+CMGS
+    """
+    return (len(pdu) / 2) - len_smsc
+
+
 class PDU(object):
 
     def __init__(self):
@@ -112,7 +122,7 @@ class PDU(object):
             debug("full_pdu: %s" % pdu)
             debug("full_text: %s" % text)
             debug("-" * 20)
-            return [((len(pdu) / 2) - len_smsc, pdu.upper())]
+            return [(get_pdu_length(pdu, len_smsc), pdu.upper())]
 
         # multipart SMS
         sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp,
@@ -136,7 +146,7 @@ class PDU(object):
             debug("full_pdu: %s" % pdu)
             debug("full_text: %s" % text)
             debug("-" * 20)
-            pdu_list.append(((len(pdu) / 2) - len_smsc, pdu.upper()))
+            pdu_list.append((get_pdu_length(pdu, len_smsc), pdu.upper()))
 
         return pdu_list
 

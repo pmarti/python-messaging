@@ -14,27 +14,30 @@ class TestEncodingFunctions(unittest.TestCase):
         text = "hola"
         csca = "+34646456456"
         expected = "07914346466554F611000B914316565811F90000AA04E8373B0C"
+        expected_len = 18
 
         pdu = self.pdu.encode_pdu(number, text, csca=csca, msgref=0x0)[0]
-        self.assertEqual(pdu[1], expected)
+        self.assertEqual(pdu, (expected_len, expected))
 
     def test_encoding_7bit_message_without_msmc(self):
         number = "+34616585119"
         text = "hola"
         expected = "0011000B914316565811F90000AA04E8373B0C"
+        expected_len = 18
 
         pdu = self.pdu.encode_pdu(number, text, msgref=0x0)[0]
-        self.assertEqual(pdu[1], expected)
+        self.assertEqual(pdu, (expected_len, expected))
 
     def test_encoding_7bit_to_store_message(self):
         number = "+34123456"
         csca = "+34987654"
         text = "hey there"
+        expected_len = 19
         expected = "0591438967450100089143214365000009E8721E444797E565"
 
         pdu = self.pdu.encode_pdu(number, text, csca=csca, store=True,
                                   msgref=0x0)[0]
-        self.assertEqual(pdu[1], expected)
+        self.assertEqual(pdu, (expected_len, expected))
 
     def test_encoding_7bit_with_request_status(self):
         # tested with pduspy.exe and http://www.rednaxela.net/pdu.php
