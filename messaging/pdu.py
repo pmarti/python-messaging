@@ -286,6 +286,8 @@ class PDU(object):
                         headlen += 1
                     headlen /= 7
 
+            headlen = int(headlen)
+
         if fmt == SEVENBIT_FORMAT:
             msg = self._unpack_msg(msg)[headlen:msgl]
             msg = msg.decode("gsm0338")
