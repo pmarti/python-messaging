@@ -23,10 +23,11 @@
 from cStringIO import StringIO
 from binascii import unhexlify
 from datetime import datetime, timedelta
+import re
 
 from messaging.gsm0338 import is_valid_gsm_text
 from messaging.utils import (bytes_to_str, swap, encode_byte,
-                             encode_str, debug, clean_number)
+                             encode_str, debug, clean_number, to_bytes)
 
 SEVENBIT_FORMAT = 0x00
 EIGHTBIT_FORMAT = 0x04
@@ -54,6 +55,18 @@ ALPHANUMERIC = 5
 ABBREVIATED = 6
 RESERVED = 7
 
+VALID_NUMBER = re.compile("^\+?\d{3,20}$")
+
+
+def get_pdu_length(pdu, len_smsc):
+    """
+    Returns the PDU length of ``pdu``
+
+    This length is used when sending the PDU with a modem, as the
+    initial parameter to AT+CMGS
+    """
+    return (len(pdu) / 2) - len_smsc
+
 
 class PDU(object):
 
@@ -78,6 +91,12 @@ class PDU(object):
                         use it for testing
         :type rand_id: int
         """
+        if not VALID_NUMBER.match(number):
+            raise ValueError("Invalid number format: %s" % number)
+
+        if csca and not VALID_NUMBER.match(csca):
+            raise ValueError("Invalid csca format: %s" % csca)
+
         smsc_pdu = self._get_smsc_pdu(csca)
         sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp, store)
         tpmessref_pdu = self._get_tpmessref_pdu(msgref)
@@ -103,7 +122,7 @@ class PDU(object):
             debug("full_pdu: %s" % pdu)
             debug("full_text: %s" % text)
             debug("-" * 20)
-            return [((len(pdu) / 2) - len_smsc, pdu.upper())]
+            return [(get_pdu_length(pdu, len_smsc), pdu.upper())]
 
         # multipart SMS
         sms_submit_pdu = self._get_sms_submit_pdu(request_status, msgvp,
@@ -127,7 +146,7 @@ class PDU(object):
             debug("full_pdu: %s" % pdu)
             debug("full_text: %s" % text)
             debug("-" * 20)
-            pdu_list.append(((len(pdu) / 2) - len_smsc, pdu.upper()))
+            pdu_list.append((get_pdu_length(pdu, len_smsc), pdu.upper()))
 
         return pdu_list
 
@@ -143,7 +162,7 @@ class PDU(object):
           SMSC number
 
         date
-          GSM format date string
+          GSM format date string (UTC)
 
         text
           The SMS text
@@ -185,7 +204,11 @@ class PDU(object):
         # Status report request indicated bit 5
         # User Data Header Indicator bit 6
         # Reply path set bit 7
-        mtype = ord(d.read(1))
+        try:
+            mtype = ord(d.read(1))
+        except TypeError:
+            raise ValueError("Decoding this type of SMS is not supported yet")
+
         if mtype & SMS_STATUS_REPORT:
             return self._decode_status_report_pdu(pdu, d, csca)
 
@@ -208,10 +231,7 @@ class PDU(object):
             # coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet
             sender = encode_str(d.read(int(sndlen / 2.0)))
             sender = self._unpack_msg(sender)
-            try:
-                sender = sender.decode("gsm0338")
-            except AttributeError:
-                pass
+            sender = sender.decode("gsm0338")
         else:
             # Extract phone number of sender
             sender = swap(d.read(int(sndlen / 2.0)))
@@ -255,7 +275,7 @@ class PDU(object):
             sndlocaltime = datetime.strptime(_datestr, outputfmt)
             sndoffset = timedelta(minutes=offset)
             gmttime = sndlocaltime - sndoffset
-
+            # return the date as UTC
             datestr = gmttime.strftime(outputfmt)
 
         # Now get message body
@@ -275,6 +295,8 @@ class PDU(object):
                     while headlen % 7:
                         headlen += 1
                     headlen /= 7
+
+            headlen = int(headlen)
 
         if fmt == SEVENBIT_FORMAT:
             msg = self._unpack_msg(msg)[headlen:msgl]
@@ -552,7 +574,7 @@ class PDU(object):
         udh_len = 0x05
         mid = 0x00
         data_len = 0x03
-        csms_ref = self._get_rand_id() if rand_id is None else rand_id
+        csms_ref = self._get_rand_id() if rand_id is None else rand_id & 0xFF
 
         for i, msg in enumerate(msgs):
             i += 1
@@ -582,18 +604,18 @@ class PDU(object):
             mask = 0x7F >> count
             out = ((byte & mask) << count) + last
             last = byte >> (7 - count)
-            result.append(chr(out))
+            result.append(out)
 
             if limit and len(result) >= limit:
                 break
 
             if count == 6:
-                result.append(chr(last))
+                result.append(last)
                 last = 0
 
             count = (count + 1) % 7
 
-        return ''.join(result)
+        return to_bytes(result)
 
     def _get_rand_id(self):
         if not self.id_list:

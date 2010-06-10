@@ -13,8 +13,10 @@ became clear that a joint effort would be more benefitial for everyone.
 Features
 ========
 
- * py3 support
  * Supports 7bit, 8bit and UCS2 encodings
  * Multipart encoding/decoding
  * Status report encoding/decoding
+ * Relative validity
+ * Alphanumeric address decoding
+ * Supports python 2.5 up to 3.2
  * Tests
