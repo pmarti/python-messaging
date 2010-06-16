@@ -191,9 +191,9 @@ class PDU(object):
             raise ValueError("Can not decode an odd-length pdu")
 
         # Service centre address
-        smscl = ord(d.read(1))
+        smscl = ord(d.read(1)) - 1
         smscertype = ord(d.read(1))
-        smscer = swap(d.read(smscl - 1))
+        smscer = swap(d.read(smscl))
         if smscertype == INTERNATIONAL_NUMBER:
             smscer = '+%s' % smscer
 
@@ -216,7 +216,7 @@ class PDU(object):
         sms_type = SMS_SUBMIT if mtype & SMS_SUBMIT else SMS_DELIVER
 
         # is this a concatenated msg?
-        testheader = bool(mtype & SMS_CONCAT)
+        concatenated = bool(mtype & SMS_CONCAT)
 
         if sms_type == SMS_SUBMIT:
             # skip the message reference
@@ -225,16 +225,17 @@ class PDU(object):
         sndlen = ord(d.read(1))
         if sndlen % 2:
             sndlen += 1
+        sndlen = int(sndlen / 2.0)
 
         sndtype = (ord(d.read(1)) >> 4) & 0x07  # bits 654
         if sndtype == ALPHANUMERIC:
             # coded according to 3GPP TS 23.038 [9] GSM 7-bit default alphabet
-            sender = encode_str(d.read(int(sndlen / 2.0)))
+            sender = encode_str(d.read(sndlen))
             sender = self._unpack_msg(sender)
             sender = sender.decode("gsm0338")
         else:
             # Extract phone number of sender
-            sender = swap(d.read(int(sndlen / 2.0)))
+            sender = swap(d.read(sndlen))
             if sndtype == INTERNATIONAL:
                 sender = '+%s' % sender
 
@@ -284,7 +285,7 @@ class PDU(object):
         # check for header
         cnt = seq = ref = headlen = 0
 
-        if testheader:
+        if concatenated:
             if msg[2:4] == "00":  # found header for concat message
                 headlen = (int(msg[0:2], 16) + 1) * 8
                 # subheadlen = int(msg[4:6], 16)
@@ -321,8 +322,9 @@ class PDU(object):
         sndlen = ord(d.read(1))
         if sndlen % 2:
             sndlen += 1
+        sndlen = int(sndlen / 2.0)
         sndtype = ord(d.read(1))
-        recipient = swap(d.read(int(sndlen / 2.0)))
+        recipient = swap(d.read(sndlen))
         if sndtype == INTERNATIONAL_NUMBER:
             recipient = '+%s' % recipient
 
@@ -400,8 +402,8 @@ class PDU(object):
         if msgref is None:
             msgref = self._get_rand_id()
 
-        tpmessref = msgref & 0xFF
-        return encode_byte(tpmessref)
+        msgref &= 0xFF
+        return encode_byte(msgref)
 
     def _get_phone_pdu(self, number):
         number = clean_number(number)
