@@ -101,3 +101,11 @@ class TestEncodingFunctions(unittest.TestCase):
         messages = self.pdu.encode_pdu(number, text, msgref=0x0, rand_id=136)
         for i, (pdu_len, pdu) in enumerate(messages):
             self.assertEqual(expected[i], pdu)
+
+    def test_encoding_bad_number_raises_error(self):
+        self.assertRaises(ValueError,
+                    self.pdu.encode_pdu, "032BADNUMBER", "text")
+
+    def test_encoding_bad_csca_raises_error(self):
+        self.assertRaises(ValueError,
+                    self.pdu.encode_pdu, "54342342", "text", csca="1badcsca")
