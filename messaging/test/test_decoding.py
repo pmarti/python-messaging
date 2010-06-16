@@ -117,6 +117,14 @@ class TestDecodingFunctions(unittest.TestCase):
             ret = self.pdu.decode_pdu(pdu)
             self.assertEqual(ret['text'], text)
 
-    def test_decoding_odd_length_string_raises_valueerror(self):
-        pdu = "1313131"
-        self.assertRaises(ValueError, self.pdu.decode_pdu, pdu)
+    def test_decoding_odd_length_pdu_strict_raises_valueerror(self):
+        # same pdu as in test_decoding_number_alpha1 minus last char
+        pdu = "07919471060040340409D0C6A733390400009060920173018093CC74595C96838C4F6772085AD6DDE4320B444E9741D4B03C6D7EC3E9E9B71B9474D3CB727799DEA286CFE5B9991DA6CBC3F432E85E9793CBA0F09A9EB6A7CB72BA0B9474D3CB727799DE72D6E9FABAFB0CBAA7E56490BA4CD7D34170F91BE4ACD3F575F7794E0F9F4161F1B92C2F8FD1EE32DD054AA2E520E3D3991C82A8E5701"
+        self.assertRaises(ValueError, self.pdu.decode_pdu, pdu, strict=False)
+
+    def test_decoding_odd_length_pdu_no_strict(self):
+        # same pdu as in test_decoding_number_alpha1 minus last char
+        pdu = "07919471060040340409D0C6A733390400009060920173018093CC74595C96838C4F6772085AD6DDE4320B444E9741D4B03C6D7EC3E9E9B71B9474D3CB727799DEA286CFE5B9991DA6CBC3F432E85E9793CBA0F09A9EB6A7CB72BA0B9474D3CB727799DE72D6E9FABAFB0CBAA7E56490BA4CD7D34170F91BE4ACD3F575F7794E0F9F4161F1B92C2F8FD1EE32DD054AA2E520E3D3991C82A8E5701"
+        ret = self.pdu.decode_pdu(pdu)
+        text = "Lieber FONIC Kunde, die Tarifoption Internet-Tagesflatrate wurde aktiviert. Internet-Nutzung wird jetzt pro Nutzungstag abgerechnet. Ihr FONIC Tea"
+        self.assertEqual(ret['text'], text)
