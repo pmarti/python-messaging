@@ -185,9 +185,9 @@ class PDU(object):
         fmt
           Format of received SMS
         """
-        if strict and len(pdu) % 2:
-            # if strict and PDU-length is odd, remove the last character and
-            # make it even. See the discussion of this bug at
+        if not strict and len(pdu) % 2:
+            # if not strict and PDU-length is odd, remove the last character
+            # and make it even. See the discussion of this bug at
             # http://github.com/pmarti/python-messaging/issues#issue/7
             pdu = pdu[:-1]
 
