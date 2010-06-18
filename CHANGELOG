@@ -1,4 +1,16 @@
 ++++++++++++++++++++++++++++++++++++++++++++++
+python-messaging-0.5
+Overview of changes since python-messaging-0.4
+++++++++++++++++++++++++++++++++++++++++++++++
+
+This is a new major stable release of python-messaging. List of changes:
+
+ * Py3K fixes
+ * GSM 7bit encoding fixes
+ * Additional testing
+
+
+++++++++++++++++++++++++++++++++++++++++++++++
 python-messaging-0.4
 Overview of changes since python-messaging-0.3
 ++++++++++++++++++++++++++++++++++++++++++++++
