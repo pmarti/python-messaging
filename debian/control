@@ -8,6 +8,6 @@ XS-Python-Version: >= 2.5
 
 Package: python-messaging
 Architecture: all
-Depends: python (>= 2.5), ${python:Depends}, ${misc:Depends}, ${shlibs:Depends}
+Depends: python (>= 2.5), ${python:Depends}, ${misc:Depends}, ${shlibs:Depends}, python-wbxml
 XB-Python-Version: >= 2.5
 Description: A SMS encoding/decoding library

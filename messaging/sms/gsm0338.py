@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2008 Telefonica I+D
 #
 # Author : Roberto Majadas <roberto.majadas (at) openshine.com>
@@ -99,7 +98,7 @@ encoding_table = {
     0x00ec: 0x07,   # LATIN SMALL LETTER I WITH GRAVE
     0x00f2: 0x08,   # LATIN SMALL LETTER O WITH GRAVE
     0x00e7: 0x09,   # LATIN SMALL LETTER C WITH CEDILLA
-    0x00c7: 0x09,   # LATIN CAPITAL LETTER C WITH CEDILLA (see note above)
+    0x00c7: 0x09,   # LATIN CAPITAL LETTER C WITH CEDILLA
     0x000a: 0x0a,   # LINE FEED
     0x00d8: 0x0b,   # LATIN CAPITAL LETTER O WITH STROKE
     0x00f8: 0x0c,   # LATIN SMALL LETTER O WITH STROKE
@@ -117,7 +116,7 @@ encoding_table = {
     0x03a3: 0x18,   # GREEK CAPITAL LETTER SIGMA
     0x0398: 0x19,   # GREEK CAPITAL LETTER THETA
     0x039e: 0x1a,   # GREEK CAPITAL LETTER XI
-    0x00a0: 0x1b,   # ESCAPE TO EXTENSION TABLE (or displayed as NBSP, see note above)
+    0x00a0: 0x1b,   # ESCAPE TO EXTENSION TABLE
     0x00c6: 0x1c,   # LATIN CAPITAL LETTER AE
     0x00e6: 0x1d,   # LATIN SMALL LETTER AE
     0x00df: 0x7e,   # LATIN SMALL LETTER SHARP S (German)
@@ -275,7 +274,7 @@ decoding_table = {
     0x18: 0x03a3,  # GREEK CAPITAL LETTER SIGMA
     0x19: 0x0398,  # GREEK CAPITAL LETTER THETA
     0x1a: 0x039e,  # GREEK CAPITAL LETTER XI
-    # 0x001b: 0x00a0, # ESCAPE TO EXTENSION TABLE (or displayed as NBSP, see note above)
+    # 0x001b: 0x00a0, # ESCAPE TO EXTENSION TABLE
     0x1c: 0x00c6,  # LATIN CAPITAL LETTER AE
     0x1d: 0x00e6,  # LATIN SMALL LETTER AE
     0x1e: 0x00df,  # LATIN SMALL LETTER SHARP S (German)
@@ -392,7 +391,7 @@ decoding_table_escape = {
 }
 
 
-def is_valid_gsm_text(text):
+def is_gsm_text(text):
     """Returns True if ``text`` can be encoded as gsm text"""
     try:
         text.encode("gsm0338")
