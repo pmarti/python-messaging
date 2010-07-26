@@ -38,7 +38,7 @@ specific WSP header fields.
 """
 
 import array
-import time
+from datetime import datetime
 
 from messaging.utils import debug
 from messaging.mms.iterator import PreviewIterator
@@ -1018,7 +1018,6 @@ class Decoder:
 
         return compact_value
 
-    #TODO: the string output from this should be in the MMS format..?
     @staticmethod
     def decodeDateValue(byte_iter):
         """ From [5], section 8.4.2.3:
@@ -1032,7 +1031,7 @@ class Decoder:
         @return: The date, in a format such as: C{Tue Nov 27 16:12:21 2007}
         @rtype: str
         """
-        return time.ctime(Decoder.decodeLongInteger(byte_iter))
+        return datetime.fromtimestamp(Decoder.decodeLongInteger(byte_iter))
 
     @staticmethod
     def decodeDeltaSecondsValue(byte_iter):

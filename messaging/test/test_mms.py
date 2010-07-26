@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import os
 import unittest
 
@@ -38,7 +39,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'Transaction-Id': '1234', 'MMS-Version': '1.0',
             'Message-Type': 'm-retrieve-conf',
-            'Date': 'Fri Dec 20 22:26:56 2002',
+            'Date': datetime.datetime(2002, 12, 20, 22, 26, 56),
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
             'Subject': 'Simple message',
         }
@@ -57,7 +58,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'Transaction-Id': '1234', 'MMS-Version': '1.0',
             'Message-Type': 'm-retrieve-conf',
-            'Date': 'Tue Jan 21 02:57:04 2003',
+            'Date': datetime.datetime(2003, 1, 21, 2, 57, 4),
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
             'Subject': 'BT Ignite MMS',
         }
@@ -81,7 +82,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'From': 'allan@tomslot.com', 'Transaction-Id': '1234',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
-            'Date': 'Sun Feb 16 04:48:33 2003',
+            'Date': datetime.datetime(2003, 2, 16, 4, 48, 33),
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
             'Subject': 'Tom Slot Band',
         }
@@ -157,7 +158,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '1-8db', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '55225/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
-            'Date': 'Thu Mar 18 08:30:34 2004',
+            'Date': datetime.datetime(2004, 3, 18, 8, 30, 34),
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
         }
         text_data = 'Hej hopp'
@@ -214,7 +215,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '4-fc60', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '12345/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
-            'Date': 'Sun May 23 17:13:40 2004',
+            'Date': datetime.datetime(2004, 5, 23, 17, 13, 40),
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
             'Subject': 'Hej',
         }
@@ -239,7 +240,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'From': 'goldpost@hotmail.com', 'Transaction-Id': '0000000001',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
-            'Date': 'Fri Aug  9 15:08:02 2002',
+            'Date': datetime.datetime(2002, 8, 9, 15, 8, 2),
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
             'Subject': 'GOLD',
         }
@@ -298,7 +299,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '3-31cb', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '123/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
-            'Date': 'Sun May 23 16:14:58 2004',
+            'Date': datetime.datetime(2004, 5, 23, 16, 14, 58),
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
             'Subject': 'Angående art-tillhörighet',
             #'Subject': 'Ang\xc3\xa5ende art-tillh\xc3\xb6righet',
