@@ -657,7 +657,7 @@ class MMSEncoder(wsp_pdu.Encoder):
                     MMSEncoder.encode_header(hdr, headers_to_encode[hdr]))
 
         # Ok, now only "Content-type" should be left
-        content_type, ct_parameters = headers_to_encode['Content-Type'][0]
+        content_type, ct_parameters = headers_to_encode['Content-Type']
         message_header.extend(MMSEncoder.encodeMMSFieldName('Content-Type'))
         message_header.extend(
             MMSEncoder.encodeContentTypeValue(content_type, ct_parameters))
@@ -925,4 +925,4 @@ class MMSEncoder(wsp_pdu.Encoder):
             'm-delivery-ind': 0x86,
         }
 
-        return message_types.get(message_type, 0x80)
+        return [message_types.get(message_type, 0x80)]
