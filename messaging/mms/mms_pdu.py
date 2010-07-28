@@ -123,8 +123,8 @@ class MMSDecoder(wsp_pdu.Decoder):
 
         if header == 'Content-Type':
             # Otherwise it might break Content-Location
-            cType, params = value
-            self._mms_message.headers[header] = (cType, params)
+            # content_type, params = value
+            self._mms_message.headers[header] = value
 
         return data_iter
 
@@ -153,7 +153,7 @@ class MMSDecoder(wsp_pdu.Decoder):
         for part_num in range(num_entries):
             #print '\nPart %d:\n------' % part_num
             headers_len = self.decodeUintvar(data_iter)
-            dataLen = self.decodeUintvar(data_iter)
+            data_len = self.decodeUintvar(data_iter)
 
             # Prepare to read content-type + other possible headers
             ct_field_bytes = []
@@ -164,9 +164,6 @@ class MMSDecoder(wsp_pdu.Decoder):
             # Get content type
             content_type, ct_parameters = self.decodeContentTypeValue(ct_iter)
             headers = {'Content-Type': (content_type, ct_parameters)}
-            #print 'Content-Type:', content_type
-            #for param in ct_parameters:
-            #    print '    %s: %s' % (param, str(ct_parameters[param]))
 
             # Now read other possible headers until <headers_len> bytes
             # have been read
@@ -174,14 +171,12 @@ class MMSDecoder(wsp_pdu.Decoder):
                 try:
                     hdr, value = self.decode_header(ct_iter)
                     headers[hdr] = value
-                    #print '%s: %s' % (otherHeader, otherValue)
                 except StopIteration:
                     break
-            #print 'Data length:', dataLen, 'bytes'
 
             # Data (note: this is not null-terminated)
             data = array.array('B')
-            for i in range(dataLen):
+            for i in range(data_len):
                 data.append(data_iter.next())
 
             part = message.DataPart()
@@ -189,24 +184,6 @@ class MMSDecoder(wsp_pdu.Decoder):
             part.content_type_parameters = ct_parameters
             part.headers = headers
             self._mms_message.add_data_part(part)
-
-            #extension = 'dump'
-            #if content_type == 'image/jpeg':
-            #    extension = 'jpg'
-            #if content_type == 'image/gif':
-            #    extension = 'gif'
-            #elif content_type == 'audio/wav':
-            #    extension = 'wav'
-            #elif content_type == 'audio/midi':
-            #    extension = 'mid'
-            #elif content_type == 'text/plain':
-            #    extension = 'txt'
-            #elif content_type == 'application/smil':
-            #    extension = 'smil'
-
-            #f = open('part%d.%s' % (part_num, extension), 'wb')
-            #data.tofile(f)
-            #f.close()
 
     @staticmethod
     def decode_header(byte_iter):
@@ -258,11 +235,9 @@ class MMSDecoder(wsp_pdu.Decoder):
         mms_field_name = ''
         byte = wsp_pdu.Decoder.decodeShortIntegerFromByte(byte_iter.preview())
 
-        #byte = wsp_pdu.Decoder.decodeShortInteger(byte_iter)
         if byte in mms_field_names:
             byte_iter.next()
             mms_field_name = mms_field_names[byte][0]
-#            byte_iter.next()
         else:
             byte_iter.reset_preview()
             raise wsp_pdu.DecodeError('Invalid MMS Header: could '
@@ -297,7 +272,6 @@ class MMSDecoder(wsp_pdu.Decoder):
         @return: The decoded text string
         @rtype: str
         """
-        decodedString = ''
         try:
             # First try "Value-length Char-set Text-string"
             value_length = wsp_pdu.Decoder.decodeValueLength(byte_iter)
@@ -308,12 +282,10 @@ class MMSDecoder(wsp_pdu.Decoder):
                 raise Exception('EncodedStringValue decoding error - '
                                 'Could not decode Charset value: %s' % msg)
 
-            decodedString = wsp_pdu.Decoder.decodeTextString(byte_iter)
+            return wsp_pdu.Decoder.decodeTextString(byte_iter)
         except wsp_pdu.DecodeError:
             # Fall back on just "Text-string"
-            decodedString = wsp_pdu.Decoder.decodeTextString(byte_iter)
-
-        return decodedString
+            return wsp_pdu.Decoder.decodeTextString(byte_iter)
 
     @staticmethod
     def decodeBooleanValue(byte_iter):
@@ -337,14 +309,8 @@ class MMSDecoder(wsp_pdu.Decoder):
             byte_iter.reset_preview()
             raise wsp_pdu.DecodeError('Error parsing boolean value '
                                       'for byte: %s' % hex(byte))
-        else:
-            byte = byte_iter.next()
-            if byte == 128:
-                value = True
-            elif byte == 129:
-                value = False
-
-        return value
+        byte = byte_iter.next()
+        return byte == 128
 
     @staticmethod
     def decodeFromValue(byte_iter):
@@ -381,20 +347,20 @@ class MMSDecoder(wsp_pdu.Decoder):
         @return: The decoded message class
         @rtype: str
         """
-        class_identifiers = {128: 'Personal',
-                            129: 'Advertisement',
-                            130: 'Informational',
-                            131: 'Auto'}
+        class_identifiers = {
+            128: 'Personal',
+            129: 'Advertisement',
+            130: 'Informational',
+            131: 'Auto',
+        }
         msg_class = ''
         byte = byte_iter.preview()
         if byte in class_identifiers:
             byte_iter.next()
-            msg_class = class_identifiers[byte]
-        else:
-            byte_iter.reset_preview()
-            msg_class = wsp_pdu.Decoder.decodeTokenText(byte_iter)
+            return class_identifiers[byte]
 
-        return msg_class
+        byte_iter.reset_preview()
+        return wsp_pdu.Decoder.decodeTokenText(byte_iter)
 
     @staticmethod
     def decodeMessageTypeValue(byte_iter):
@@ -403,21 +369,23 @@ class MMSDecoder(wsp_pdu.Decoder):
         @return: The decoded message type, or '<unknown>'
         @rtype: str
         """
-        message_types = {0x80: 'm-send-req',
-                        0x81: 'm-send-conf',
-                        0x82: 'm-notification-ind',
-                        0x83: 'm-notifyresp-ind',
-                        0x84: 'm-retrieve-conf',
-                        0x85: 'm-acknowledge-ind',
-                        0x86: 'm-delivery-ind'}
+        message_types = {
+            0x80: 'm-send-req',
+            0x81: 'm-send-conf',
+            0x82: 'm-notification-ind',
+            0x83: 'm-notifyresp-ind',
+            0x84: 'm-retrieve-conf',
+            0x85: 'm-acknowledge-ind',
+            0x86: 'm-delivery-ind',
+        }
 
         byte = byte_iter.preview()
         if byte in message_types:
             byte_iter.next()
             return message_types[byte]
-        else:
-            byte_iter.reset_preview()
-            return '<unknown>'
+
+        byte_iter.reset_preview()
+        return '<unknown>'
 
     @staticmethod
     def decodePriorityValue(byte_iter):
@@ -435,10 +403,10 @@ class MMSDecoder(wsp_pdu.Decoder):
         if byte in priorities:
             byte = byte_iter.next()
             return priorities[byte]
-        else:
-            byte_iter.reset_preview()
-            raise wsp_pdu.DecodeError('Error parsing Priority value '
-                                      'for byte: %s' % byte)
+
+        byte_iter.reset_preview()
+        raise wsp_pdu.DecodeError('Error parsing Priority value '
+                                  'for byte: %s' % byte)
 
     @staticmethod
     def decodeSenderVisibilityValue(byte_iter):
@@ -490,6 +458,7 @@ class MMSDecoder(wsp_pdu.Decoder):
         }
         byte = byte_iter.preview()
         byte_iter.next()
+        # Return error unspecified if it couldn't be decoded
         return response_status_values.get(byte, 0x81)
 
     @staticmethod
@@ -537,14 +506,11 @@ class MMSDecoder(wsp_pdu.Decoder):
         token = byte_iter.next()
 
         if token == 0x80:    # Absolute-token
-            data = MMSDecoder.decodeDateValue(byte_iter)
+            return MMSDecoder.decodeDateValue(byte_iter)
         elif token == 0x81:  # Relative-token
-            data = MMSDecoder.decodeDeltaSecondsValue(byte_iter)
-        else:
-            val = hex(token)
-            raise wsp_pdu.DecodeError('Unrecognized token value: %s' % val)
+            return MMSDecoder.decodeDeltaSecondsValue(byte_iter)
 
-        return data
+        raise wsp_pdu.DecodeError('Unrecognized token value: %s' % hex(token))
 
 
 class MMSEncoder(wsp_pdu.Encoder):

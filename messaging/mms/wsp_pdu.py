@@ -234,8 +234,7 @@ class WSPEncodingAssignments:
     # known parameter assignments)
     # Temporary fix to allow different types of header field values to be
     # dynamically decoded
-    hdrFieldEncodings = {'Accept': 'AcceptValue',
-                         'Pragma': 'PragmaValue'}
+    hdrFieldEncodings = {'Accept': 'AcceptValue', 'Pragma': 'PragmaValue'}
 
     @staticmethod
     def wellKnownParameters(version='1.2'):
@@ -505,11 +504,10 @@ class Decoder:
             byte_iter.reset_preview()
             raise DecodeError('Invalid quoted string: must '
                               'start with <octect 34>')
-        else:
-            byte_iter.next()
-            # CHECK: should the quotation chars be pre- and appended before returning
-            # *technically* we should not check for quote characters. oh well.
-            return Decoder.decodeTextString(byte_iter)
+        byte_iter.next()
+        # CHECK: should the quotation chars be pre- and appended before
+        # returning *technically* we should not check for quote characters.
+        return Decoder.decodeTextString(byte_iter)
 
     @staticmethod
     def decodeTokenText(byte_iter):
@@ -608,8 +606,8 @@ class Decoder:
             byte_iter.reset_preview()
             raise DecodeError('Not a valid short-length: '
                               'should be in octet range 0-30')
-        else:
-            return byte_iter.next()
+
+        return byte_iter.next()
 
     @staticmethod
     def decodeValueLength(byte_iter):
@@ -1060,15 +1058,12 @@ class Decoder:
         @return: The decode quality factor (Q-value)
         @rtype: float
         """
-        q_value = 0.0
         q_value_int = Decoder.decodeUintvar(byte_iter)
         #TODO: limit the amount of decimal points
         if q_value_int > 100:
-            q_value = float(q_value_int - 100) / 1000.0
-        else:
-            q_value = float(q_value_int - 1) / 100.0
+            return float(q_value_int - 100) / 1000.0
 
-        return q_value
+        return float(q_value_int - 1) / 100.0
 
     @staticmethod
     def decodeVersionValue(byte_iter):
@@ -1622,8 +1617,7 @@ class Encoder:
                 raise EncodeError('Char "%s" in text string; cannot '
                                   'encode as Token-text' % chr(char))
 
-        encodedToken = Encoder.encodeTextString(text)
-        return encodedToken
+        return Encoder.encodeTextString(text)
 
     @staticmethod
     def encodeIntegerValue(integer):
