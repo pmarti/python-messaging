@@ -227,6 +227,20 @@ class MMSMessage:
             self.encode().tofile(f)
 
     @staticmethod
+    def from_data(data):
+        """Convenience static funtion that loads the specified MMS message
+        from raw data, and returns a new MMSMessage object,
+        which can then be manipulated and re-encoded, for instance.
+
+        @param data: The data to load
+        @type filename: array.array
+
+        @note: This uses the C{mms.mms_pdu.MMSDecoder} class internally
+        """
+        decoder = mms.mms_pdu.MMSDecoder()
+        return decoder.decode_data(data)
+
+    @staticmethod
     def from_file(filename):
         """ Convenience static funtion that loads the specified MMS message
         file from disk, decodes its data, and returns a new MMSMessage object,

@@ -13,6 +13,18 @@ from messaging.mms import message, wsp_pdu
 from messaging.mms.iterator import PreviewIterator
 
 
+def flatten_list(x):
+    """Flattens ``x`` into a single list"""
+    result = []
+    for el in x:
+        if hasattr(el, "__iter__") and not isinstance(el, basestring):
+            result.extend(flatten_list(el))
+        else:
+            result.append(el)
+    return result
+
+
+
 mms_field_names = {
     0x01: ('Bcc', 'EncodedStringValue'),
     0x02: ('Cc', 'EncodedStringValue'),
@@ -622,8 +634,8 @@ class MMSEncoder(wsp_pdu.Encoder):
         # Ok, now only "Content-type" should be left
         content_type, ct_parameters = headers_to_encode['Content-Type']
         message_header.extend(MMSEncoder.encodeMMSFieldName('Content-Type'))
-        message_header.extend(
-            MMSEncoder.encodeContentTypeValue(content_type, ct_parameters))
+        ret = MMSEncoder.encodeContentTypeValue(content_type, ct_parameters)
+        message_header.extend(flatten_list(ret))
 
         return message_header
 

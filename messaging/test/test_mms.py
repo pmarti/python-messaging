@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from array import array
 import datetime
 import os
 import unittest
@@ -10,6 +11,18 @@ from messaging.mms.message import MMSMessage
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'mms-data')
 
 class TestMmsDecoding(unittest.TestCase):
+
+    def test_decoding_from_data(self):
+        path = os.path.join(DATA_DIR, 'iPhone.mms')
+        data = array("B", open(path, 'rb').read())
+        mms = MMSMessage.from_data(data)
+        headers = {
+            'From': '<not inserted>', 'Transaction-Id': '1262957356-3',
+            'MMS-Version': '1.2', 'To': '1337/TYPE=PLMN',
+            'Message-Type': 'm-send-req',
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '0.smil', 'Type': 'application/smil'}),
+        }
+        self.assertEqual(mms.headers, headers)
 
     def test_decoding_iPhone_mms(self):
         path = os.path.join(DATA_DIR, 'iPhone.mms')
