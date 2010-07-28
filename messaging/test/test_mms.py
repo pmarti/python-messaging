@@ -19,12 +19,12 @@ class TestMmsDecoding(unittest.TestCase):
             'From': '<not inserted>', 'Transaction-Id': '1262957356-3',
             'MMS-Version': '1.2', 'To': '1337/TYPE=PLMN',
             'Message-Type': 'm-send-req',
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '0.smil', 'Type': 'application/smil'}),
         }
         smil_data = '<smil>\n<head>\n<layout>\n <root-layout/>\n<region id="Text" top="70%" left="0%" height="30%" width="100%" fit="scroll"/>\n<region id="Image" top="0%" left="0%" height="70%" width="100%" fit="meet"/>\n</layout>\n</head>\n<body>\n<par dur="10s">\n<img src="IMG_6807.jpg" region="Image"/>\n</par>\n</body>\n</smil>\n'
         self.assertEqual(mms.headers, headers)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(len(mms.data_parts), 2)
         self.assertEqual(mms.data_parts[0].content_type, 'application/smil')
         self.assertEqual(mms.data_parts[0].data, smil_data)
@@ -40,13 +40,13 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '1234', 'MMS-Version': '1.0',
             'Message-Type': 'm-retrieve-conf',
             'Date': datetime.datetime(2002, 12, 20, 22, 26, 56),
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {}),
             'Subject': 'Simple message',
         }
         text_data = "This is a simple MMS message with a single text body part."
         self.assertEqual(mms.headers, headers)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(len(mms.data_parts), 1)
         self.assertEqual(mms.data_parts[0].content_type, 'text/plain')
         self.assertEqual(mms.data_parts[0].data, text_data)
@@ -59,14 +59,14 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '1234', 'MMS-Version': '1.0',
             'Message-Type': 'm-retrieve-conf',
             'Date': datetime.datetime(2003, 1, 21, 2, 57, 4),
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<btmms.smil>', 'Type': 'application/smil'}),
             'Subject': 'BT Ignite MMS',
         }
         smil_data = '<smil><head><layout><root-layout/>\r\n<region id="Image" top="0" left="0" height="50%" width="100%" fit="hidden"/>\r\n<region id="Text" top="50%" left="0" height="50%" width="100%" fit="hidden"/>\r\n</layout>\r\n</head>\r\n<body><par dur="6825ms"><img src="btlogo.gif" region="Image"></img>\r\n<audio src="catchy_g.amr" begin="350ms" end="6350ms"></audio>\r\n</par>\r\n<par dur="3000ms"><text src="btmms.txt" region="Text"><param name="foreground-color" value="#000000"/>\r\n</text>\r\n</par>\r\n</body>\r\n</smil>\r\n\r\n'
         text_data = 'BT Ignite\r\n\r\nMMS Services'
         self.assertEqual(mms.headers, headers)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(len(mms.data_parts), 4)
         self.assertEqual(mms.data_parts[0].content_type, 'application/smil')
         self.assertEqual(mms.data_parts[0].data, smil_data)
@@ -83,14 +83,14 @@ class TestMmsDecoding(unittest.TestCase):
             'From': 'allan@tomslot.com', 'Transaction-Id': '1234',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
             'Date': datetime.datetime(2003, 2, 16, 4, 48, 33),
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<tomslot.smil>', 'Type': 'application/smil'}),
             'Subject': 'Tom Slot Band',
         }
         smil_data = '<smil>\r\n\t<head>\r\n\t\t<meta name="title" content="smil"/>\r\n\t\t<meta name="author" content="PANASONIC"/>\r\n\t\t<layout>\r\n\t\t\t<root-layout background-color="#FFFFFF" width="132" height="176"/>\r\n\t\t\t<region id="Image" width="132" height="100" left="0" top="0" fit="meet"/>\r\n\t\t\t<region id="Text" width="132" height="34" left="0" top="100" fit="scroll"/>\r\n\t\t</layout>\r\n\t</head>\r\n\t<body>\r\n\t\t<par dur="1000ms">\r\n\t\t\t<img src="img00.jpg" region="Image"/>\r\n\t\t</par>\r\n\t\t<par dur="1000ms">\r\n\t\t\t<img src="img01.jpg" region="Image"/>\r\n\t\t</par>\r\n\t\t<par dur="1000ms">\r\n\t\t\t<img src="img02.jpg" region="Image"/>\r\n\t\t</par>\r\n\t\t<par dur="1000ms">\r\n\t\t\t<img src="img03.jpg" region="Image"/>\r\n\t\t</par>\r\n\t\t<par dur="22000ms">\r\n\t\t\t<img src="img04.jpg" region="Image"/>\r\n\t\t\t<text src="txt04.txt" region="Text">\r\n\t\t\t\t<param name="foreground-color" value="#0000F8"/>\r\n\t\t\t</text>\r\n\t\t\t<audio src="aud04.amr"/>\r\n\t\t</par>\r\n\t</body>\r\n</smil>\r\n'
         text_data = 'Presented by NowMMS\r\n'
         self.assertEqual(mms.headers, headers)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(len(mms.data_parts), 8)
         self.assertEqual(mms.data_parts[0].content_type, 'application/smil')
         self.assertEqual(mms.data_parts[0].data, smil_data)
@@ -112,14 +112,14 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '2112410527', 'MMS-Version': '1.0',
             'To': 'tdpt@ajajg.cdm', 'Delivery-Report': False,
             'Message-Type': 'm-send-req',
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<SMIL.TXT>', 'Type': 'application/smil'}),
             'Subject': 'Picture3',
         }
         smil_data = '<smil><head><layout><root-layout height="160px" width="128px"/><region id="Top" top="0"  left="0" height="50%" width="100%" /><region id="Bottom" top="50%" left="0" height="50%" width="100%" /></layout></head><body><par dur="5s"><img src="cid:Picture3.jpg" region="Top" begin="0s" end="5s"></img></par></body></smil>'
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 2)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(mms.data_parts[0].content_type, 'image/jpeg')
         self.assertEqual(mms.data_parts[0].content_type_parameters,
                          {'Name': 'Picture3.jpg'})
@@ -135,7 +135,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '1067263672', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '112/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<smil_0>', 'Type': 'application/smil'}),
             'Subject': 'rubrik',
         }
         smil_data = '<smil>\n  <head>\n    <layout>\n      <root-layout width="100%" height="100%" />\n      <region id="Text" left="0%" top="0%" width="100%" height="50%" />\n      <region id="Image" left="0%" top="50%" width="100%" height="50%" />\n    </layout>\n  </head>\n  <body>\n    <par dur="30000ms">\n      <text src="cid:text_0" region="Text" />\n    </par>\n  </body>\n</smil>\n'
@@ -143,7 +143,7 @@ class TestMmsDecoding(unittest.TestCase):
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 2)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(mms.data_parts[0].content_type, 'application/smil')
         self.assertEqual(mms.data_parts[0].data, smil_data)
         self.assertEqual(mms.data_parts[1].data, text_data)
@@ -159,14 +159,14 @@ class TestMmsDecoding(unittest.TestCase):
             'Priority': 'Normal', 'To': '55225/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
             'Date': datetime.datetime(2004, 3, 18, 8, 30, 34),
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<AAAA>', 'Type': 'application/smil'}),
         }
         text_data = 'Hej hopp'
         smil_data = '<smil><head><layout><root-layout height="240px" width="160px"/>\r\n<region id="Image" top="0" left="0" height="50%" width="100%" fit="hidden"/>\r\n<region id="Text" top="50%" left="0" height="50%" width="100%" fit="hidden"/>\r\n</layout>\r\n</head>\r\n<body><par dur="2000ms"><img src="Tony.gif" region="Image"></img>\r\n<text src="mms.txt" region="Text"></text>\r\n<audio src="OldhPhone.mid"></audio>\r\n</par>\r\n</body>\r\n</smil>\r\n'
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 4)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(mms.data_parts[0].content_type, 'image/gif')
         self.assertEqual(mms.data_parts[0].content_type_parameters,
                          {'Name': 'Tony.gif'})
@@ -187,7 +187,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '1118775337', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': 'Jg', 'Delivery-Report': False,
             'Message-Type': 'm-send-req',
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<smil_0>', 'Type': 'application/smil'}),
             'Subject': 'Jgj',
         }
         text_data = 'Jgj'
@@ -195,7 +195,7 @@ class TestMmsDecoding(unittest.TestCase):
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 3)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(mms.data_parts[0].content_type, 'application/smil')
         self.assertEqual(mms.data_parts[0].data, smil_data)
         self.assertEqual(mms.data_parts[1].content_type, 'text/plain')
@@ -216,7 +216,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Priority': 'Normal', 'To': '12345/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
             'Date': datetime.datetime(2004, 5, 23, 17, 13, 40),
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<AAAA>', 'Type': 'application/smil'}),
             'Subject': 'Hej',
         }
         smil_data = '<smil><head><layout><root-layout height="240px" width="160px"/>\r\n<region id="Image" top="0" left="0" height="50%" width="100%" fit="hidden"/>\r\n<region id="Text" top="50%" left="0" height="50%" width="100%" fit="hidden"/>\r\n</layout>\r\n</head>\r\n<body><par dur="2000ms"><text src="mms.txt" region="Text"></text>\r\n<img src="SonyhEr.gif" region="Image"></img>\r\n</par>\r\n</body>\r\n</smil>\r\n'
@@ -224,7 +224,7 @@ class TestMmsDecoding(unittest.TestCase):
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 3)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(mms.data_parts[0].content_type, 'text/plain')
         self.assertEqual(mms.data_parts[0].data, text_data)
         self.assertEqual(mms.data_parts[1].content_type, 'image/gif')
@@ -241,7 +241,7 @@ class TestMmsDecoding(unittest.TestCase):
             'From': 'goldpost@hotmail.com', 'Transaction-Id': '0000000001',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
             'Date': datetime.datetime(2002, 8, 9, 15, 8, 2),
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<A0>', 'Type': 'application/smil'}),
             'Subject': 'GOLD',
         }
         text_data1 = 'Audio'
@@ -254,7 +254,7 @@ class TestMmsDecoding(unittest.TestCase):
         smil_data = '<smil><head><layout><root-layout background-color="#000000"/>\r\n<region id="text" top="0" left="0" height="100%" width="100%"/>\r\n</layout>\r\n</head>\r\n<body>\r\n<par dur="3000ms">\r\n<text src="Text0000.txt" region="text">\r\n <param name="foreground-color" value="#ffff00"/>\r\n <param name="textsize" value="large"/>\r\n</text>\r\n</par>\r\n<par dur="2000ms">\r\n<text src="Text0001.txt" region="text">\r\n <param name="foreground-color" value="#ffff00"/>\r\n <param name="textsize" value="small"/>\r\n</text>\r\n</par>\r\n<par dur="2000ms">\r\n<text src="Text0007.txt" region="text">\r\n <param name="foreground-color" value="#ffff00"/>\r\n <param name="textsize" value="normal"/>\r\n</text>\r\n</par>\r\n<par dur="6000ms">\r\n<text src="Text0008.txt" region="text">\r\n <param name="foreground-color" value="#ffff00"/>\r\n <param name="textsize" value="normal"/>\r\n</text>\r\n<audio src="gold102.amr" start="1000ms"/>\r\n</par>\r\n<seq repeatcount="4">\r\n<par dur="1500ms">\r\n<text src="Text0002.txt" region="text">\r\n <param name="foreground-color" value="#ff0080"/>\r\n <param name="textsize" value="normal"/>\r\n</text>\r\n</par>\r\n<par dur="1500ms">\r\n<text src="Text0003.txt" region="text">\r\n <param name="foreground-color" value="#00ff00"/>\r\n <param name="textsize" value="normal"/>\r\n</text>\r\n</par>\r\n</seq>\r\n<par dur="10000ms">\r\n<text src="Text0006.txt" region="text">\r\n <param name="foreground-color" value="#ffff00"/>\r\n <param name="textsize" value="normal"/>\r\n</text>\r\n</par>\r\n</body></smil>'
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 9)
-        self.assertEqual(mms.content_type, 'application/vnd.wap.multipart.mixed')
+        self.assertEqual(mms.content_type, 'application/vnd.wap.multipart.related')
         self.assertEqual(mms.data_parts[0].content_type, 'text/plain')
         self.assertEqual(mms.data_parts[0].data, text_data1)
         self.assertEqual(mms.data_parts[0].content_type_parameters,
@@ -300,7 +300,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Priority': 'Normal', 'To': '123/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
             'Date': datetime.datetime(2004, 5, 23, 16, 14, 58),
-            'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
+            'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<AAAA>', 'Type': 'application/smil'}),
             'Subject': 'Angående art-tillhörighet',
             #'Subject': 'Ang\xc3\xa5ende art-tillh\xc3\xb6righet',
         }
@@ -309,7 +309,7 @@ class TestMmsDecoding(unittest.TestCase):
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 3)
         self.assertEqual(mms.content_type,
-                         'application/vnd.wap.multipart.mixed')
+                         'application/vnd.wap.multipart.related')
         self.assertEqual(mms.data_parts[0].content_type, 'image/vnd.wap.wbmp')
         self.assertEqual(mms.data_parts[0].content_type_parameters,
                         {'Name': 'Rain.wbmp'})

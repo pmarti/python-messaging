@@ -120,16 +120,12 @@ class MMSDecoder(wsp_pdu.Decoder):
                 content_type_found = True
             else:
                 self._mms_message.headers[header] = value
-                #print '%s: %s' % (header, str(value))
 
-        #cType = value[0]
-        #print '%s: %s' % (header, cType)
-        #params = value[1]
-        #for parameter in params:
-        #    print '    %s: %s' % (parameter, str(params[parameter]))
+        if header == 'Content-Type':
+            # Otherwise it might break Content-Location
+            cType, params = value
+            self._mms_message.headers[header] = (cType, params)
 
-        #print "SETTING HEADER %s, VALUE %s" % (header, (cType, params))
-        #self._mms_message.headers[header] = (cType, params)
         return data_iter
 
     def decode_message_body(self, data_iter):
@@ -145,6 +141,7 @@ class MMSDecoder(wsp_pdu.Decoder):
             num_entries = self.decodeUintvar(data_iter)
         except StopIteration:
             return
+
         #print 'Number of data entries (parts) in MMS body:', num_entries
 
         ########## MMS body: entries ##########
