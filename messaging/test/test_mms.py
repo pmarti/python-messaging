@@ -10,6 +10,7 @@ from messaging.mms.message import MMSMessage
 # http://github.com/heyman/mms-decoder
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'mms-data')
 
+
 class TestMmsDecoding(unittest.TestCase):
 
     def test_decoding_from_data(self):

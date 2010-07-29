@@ -179,8 +179,8 @@ class WSPEncodingAssignments:
     # Well-known character sets (table 42 of [5])
     # Format {<assinged_number> : <charset>}
     # Note that the assigned number is the same as the IANA MIBEnum value
-    # "gsm-default-alphabet" is not included, as it is not assigned any value in [5]
-    # Also note, this is by no means a complete list
+    # "gsm-default-alphabet" is not included, as it is not assigned any
+    # value in [5]. Also note, this is by no means a complete list
     wkCharSets = {
         0x07EA: 'big5',
         0x03E8: 'iso-10646-ucs-2',
@@ -514,9 +514,9 @@ class Decoder:
         """ From [5], section 8.4.2.1:
         Token-text = Token End-of-string
 
-        @raise DecodeError: invalid token; in this case, byte_iter is not modified
+        @raise DecodeError: invalid token; byte_iter is not modified
 
-        @return: The token string if successful, or the byte that was read if not
+        @return: The token string if successful, otherwise the read byte
         @rtype: str or int
         """
         separators = (11, 32, 40, 41, 44, 47, 58, 59, 60, 61, 62, 63, 64, 91,
@@ -631,22 +631,22 @@ class Decoder:
         @return: The decoded value length indicator
         @rtype: int
         """
-        lengthValue = 0
+        length_value = 0
         # Check for short-length
         try:
-            lengthValue = Decoder.decodeShortLength(byte_iter)
+            length_value = Decoder.decodeShortLength(byte_iter)
         except DecodeError:
             byte = byte_iter.preview()
             # CHECK: this strictness MAY cause issues, but it is correct
             if byte == 31:
                 byte_iter.next()  # skip past the length-quote
-                lengthValue = Decoder.decodeUintvar(byte_iter)
+                length_value = Decoder.decodeUintvar(byte_iter)
             else:
                 byte_iter.reset_preview()
                 raise DecodeError('Invalid Value-length: not short-length, '
                                   'and no length-quote present')
 
-        return lengthValue
+        return length_value
 
     @staticmethod
     def decodeIntegerValue(byte_iter):
@@ -811,11 +811,7 @@ class Decoder:
         @rtype: tuple
         """
         # This is the length of the (encoded) media-type and all parameters
-        #try:
         value_length = Decoder.decodeValueLength(byte_iter)
-        #except DecodeError:
-            #CHECK: this is being very leniet, based on real-world tests (specs don't mention this):
-        #    value_length = Decoder.decodeIntegerValue(byte_iter)
 
         # Read parameters, etc, until <value_length> is reached
         ct_field_bytes = array.array('B')
@@ -846,11 +842,9 @@ class Decoder:
         @rtype: tuple
         """
         try:
-            parameter, value = Decoder.decodeTypedParameter(byte_iter)
+            return Decoder.decodeTypedParameter(byte_iter)
         except DecodeError:
-            parameter, value = Decoder.decodeUntypedParameter(byte_iter)
-
-        return parameter, value
+            return Decoder.decodeUntypedParameter(byte_iter)
 
     @staticmethod
     def decodeTypedParameter(byte_iter):
@@ -865,10 +859,10 @@ class Decoder:
                  (<parameter name>, <parameter value>)
         @rtype: tuple
         """
-        parameterToken, valueType = Decoder.decodeWellKnownParameter(byte_iter)
-        typedValue = ''
+        token, value_type = Decoder.decodeWellKnownParameter(byte_iter)
+        typed_value = ''
         try:
-            typedValue = getattr(Decoder, 'decode%s' % valueType)(byte_iter)
+            typed_value = getattr(Decoder, 'decode%s' % value_type)(byte_iter)
         except DecodeError, msg:
             raise DecodeError('Could not decode Typed-parameter: %s' % msg)
         except:
@@ -876,7 +870,7 @@ class Decoder:
                   'unimplemented decoding operation')
             raise
 
-        return parameterToken, typedValue
+        return token, typed_value
 
     @staticmethod
     def decodeUntypedParameter(byte_iter):
@@ -891,9 +885,9 @@ class Decoder:
                  (<parameter name>, <parameter value>)
         @rtype: tuple
         """
-        parameterToken = Decoder.decodeTokenText(byte_iter)
-        parameter_value = Decoder.decodeUntypedValue(byte_iter)
-        return parameterToken, parameter_value
+        token = Decoder.decodeTokenText(byte_iter)
+        value = Decoder.decodeUntypedValue(byte_iter)
+        return token, value
 
     @staticmethod
     def decodeUntypedValue(byte_iter):
@@ -1052,14 +1046,14 @@ class Decoder:
         range 1-100, ie, 0.1 is encoded as 11 (0x0B) and 0.99 encoded as
         100 (0x64). Three decimal quality factors shall be multiplied with
         1000 and incremented by 100, and the result shall be encoded as a
-        one-octet or two-octet uintvar, eg, 0.333 shall be encoded as 0x83 0x31.
-        Quality factor 1 is the default value and shall never be sent.
+        one-octet or two-octet uintvar, eg, 0.333 shall be encoded as 0x83
+        0x31. Quality factor 1 is the default value and shall never be sent.
 
         @return: The decode quality factor (Q-value)
         @rtype: float
         """
         q_value_int = Decoder.decodeUintvar(byte_iter)
-        #TODO: limit the amount of decimal points
+        # TODO: limit the amount of decimal points
         if q_value_int > 100:
             return float(q_value_int - 100) / 1000.0
 
@@ -1100,7 +1094,6 @@ class Decoder:
         @return: The decoded Parameter Text-value
         @rtype: str
         """
-        textValue = ''
         try:
             return Decoder.decodeTokenText(byte_iter)
         except DecodeError:
@@ -1108,9 +1101,7 @@ class Decoder:
                 return Decoder.decodeQuotedString(byte_iter)
             except DecodeError:
                 # Ok, so it's a "No-value"
-                pass
-
-        return textValue
+                return ''
 
     @staticmethod
     def decodeNoValue(byte_iter):
@@ -1126,8 +1117,8 @@ class Decoder:
         @return: No-value, which is 0x00
         @rtype: int
         """
-        byte_iter, localIter = byte_iter.next()
-        if localIter.next() != 0x00:
+        byte_iter, local_iter = byte_iter.next()
+        if local_iter.next() != 0x00:
             raise DecodeError('Expected No-value')
 
         byte_iter.next()
@@ -1151,10 +1142,10 @@ class Decoder:
         @return: the decoded Accept-value (media/content type)
         @rtype: str
         """
-        acceptValue = ''
+        accept_value = ''
         # Try to use Constrained-media encoding
         try:
-            acceptValue = Decoder.decodeConstrainedMedia(byte_iter)
+            accept_value = Decoder.decodeConstrainedMedia(byte_iter)
         except DecodeError:
             # ...now try Accept-general-form
             value_length = Decoder.decodeValueLength(byte_iter)
@@ -1168,15 +1159,15 @@ class Decoder:
                 byte_iter.next()
                 q_value = Decoder.decodeQValue(byte_iter)
                 try:
-                    acceptExtension = Decoder.decodeParameter(byte_iter)
+                    accept_extension = Decoder.decodeParameter(byte_iter)
                 except DecodeError:
                     # Just set an empty iterable
-                    acceptExtension = []
+                    accept_extension = []
 
             byte_iter.reset_preview()
-            acceptValue = media
+            accept_value = media
 
-        return acceptValue
+        return accept_value
 
     @staticmethod
     def decodePragmaValue(byte_iter):
@@ -1257,8 +1248,9 @@ class Decoder:
         # decodeApplicationHeader also
         # Currently we decode most headers as TextStrings, except
         # where we have a specific decoding algorithm implemented
-        if field_name in WSPEncodingAssignments.hdrFieldEncodings:
-            wap_value_type = WSPEncodingAssignments.hdrFieldEncodings[field_name]
+        header_field_encodings = WSPEncodingAssignments.hdrFieldEncodings
+        if field_name in header_field_encodings:
+            wap_value_type = header_field_encodings[field_name]
             try:
                 decoded_value = getattr(Decoder,
                                        'decode%s' % wap_value_type)(byte_iter)
@@ -1364,15 +1356,15 @@ class Encoder:
         @return: the binary-encoded Uintvar, as a list of byte values
         @rtype: list
         """
-        uintVar = [uint & 0x7f]
+        uint_var = [uint & 0x7f]
         # Since this is the lowest entry, we do not set the continue bit to 1
         uint = uint >> 7
         # ...but for the remaining octets, we have to
         while uint > 0:
-            uintVar.insert(0, 0x80 | (uint & 0x7f))
+            uint_var.insert(0, 0x80 | (uint & 0x7f))
             uint = uint >> 7
 
-        return uintVar
+        return uint_var
 
     @staticmethod
     def encodeTextString(string):
@@ -1388,7 +1380,7 @@ class Encoder:
                      specified Text-string, as a list of byte values
         @rtype: list
         """
-        encoded_string = [ord(c) for c in string]
+        encoded_string = list(map(ord, string))
         encoded_string.append(0x00)
         return encoded_string
 
@@ -1414,11 +1406,9 @@ class Encoder:
         if integer < 0 or integer > 127:
             raise EncodeError('Short-integer value must be in '
                               'range 0-127: %d' % integer)
-        encodedInteger = []
-        # Make sure the most significant bit is set
-        byte = 0x80 | integer
-        encodedInteger.append(byte)
-        return encodedInteger
+
+        # Make sure the MSB is set
+        return [integer | 0x80]
 
     @staticmethod
     def encodeLongInteger(integer):
@@ -1444,21 +1434,21 @@ class Encoder:
         if not isinstance(integer, int):
             raise EncodeError('<integer> must be of type "int"')
 
-        encodedLongInt = []
+        encoded_long_int = []
         longInt = integer
         # Encode the Multi-octect-integer
         while longInt > 0:
             byte = 0xff & longInt
-            encodedLongInt.append(byte)
+            encoded_long_int.append(byte)
             longInt = longInt >> 8
 
         # Now add the SHort-length value, and make sure it's ok
-        shortLength = len(encodedLongInt)
+        shortLength = len(encoded_long_int)
         if shortLength > 30:
             raise EncodeError('Cannot encode Long-integer value: Short-length '
                               'is too long; should be in octet range 0-30')
-        encodedLongInt.insert(0, shortLength)
-        return encodedLongInt
+        encoded_long_int.insert(0, shortLength)
+        return encoded_long_int
 
     @staticmethod
     def encodeVersionValue(version):
@@ -1568,12 +1558,13 @@ class Encoder:
         for assigned_number in wkParamNumbers:
             if wk_params[assigned_number][0] == parameter_name:
                 # Ok, it's a Typed-parameter; encode the parameter name
-                encoded_parameter.extend(Encoder.encodeShortInteger(assigned_number))
+                encoded_parameter.extend(
+                        Encoder.encodeShortInteger(assigned_number))
                 # and now the value
-                expectedType = wk_params[assigned_number][1]
+                expected_type = wk_params[assigned_number][1]
                 try:
                     ret = getattr(Encoder,
-                                  'encode%s' % expectedType)(parameter_value)
+                                  'encode%s' % expected_type)(parameter_value)
                     encoded_parameter.extend(ret)
                 except EncodeError, msg:
                     raise EncodeError('Error encoding param value: %s' % msg)
@@ -1704,8 +1695,9 @@ class Encoder:
         # TODO: make this flow better (see also Decoder.decode_header)
         # most header values are encoded as TextStrings, except where we
         # have a specific Wap-value encoding implementation
-        if field_name in WSPEncodingAssignments.hdrFieldEncodings:
-            wap_value_type = WSPEncodingAssignments.hdrFieldEncodings[field_name]
+        header_field_encodings = WSPEncodingAssignments.hdrFieldEncodings
+        if field_name in header_field_encodings:
+            wap_value_type = header_field_encodings[field_name]
             try:
                 ret = getattr(Encoder, 'encode%s' % wap_value_type)(value)
                 encoded_header.extend(ret)
@@ -1907,7 +1899,7 @@ class Encoder:
         return [length]
 
     @staticmethod
-    def encodeAcceptValue(acceptValue):
+    def encodeAcceptValue(accept_value):
         """ From [5], section 8.4.2.7:
         Accept-value = Constrained-media | Accept-general-form
         Accept-general-form = Value-length Media-range [Accept-parameters]
@@ -1919,8 +1911,8 @@ class Encoder:
         @note: This implementation does not currently support encoding of
                "Accept-parameters".
 
-        @param acceptValue: The Accept-value to encode (media/content type)
-        @type acceptValue: str
+        @param accept_value: The Accept-value to encode (media/content type)
+        @type accept_value: str
 
         @raise EncodeError: The encoding failed.
 
@@ -1930,11 +1922,11 @@ class Encoder:
         encoded_accept_value = []
         # Try to use Constrained-media encoding
         try:
-            encoded_accept_value = Encoder.encodeConstrainedMedia(acceptValue)
+            encoded_accept_value = Encoder.encodeConstrainedMedia(accept_value)
         except EncodeError:
             # ...now try Accept-general-form
             try:
-                encoded_media_range = Encoder.encodeMediaType(acceptValue)
+                encoded_media_range = Encoder.encodeMediaType(accept_value)
             except EncodeError, msg:
                 raise EncodeError('Cannot encode Accept-value: %s' % msg)
 

@@ -24,7 +24,6 @@ def flatten_list(x):
     return result
 
 
-
 mms_field_names = {
     0x01: ('Bcc', 'EncodedStringValue'),
     0x02: ('Cc', 'EncodedStringValue'),
@@ -287,9 +286,9 @@ class MMSDecoder(wsp_pdu.Decoder):
         try:
             # First try "Value-length Char-set Text-string"
             value_length = wsp_pdu.Decoder.decodeValueLength(byte_iter)
-            #TODO: *probably* have to include proper support for charsets...
+            # TODO: add proper support for charsets...
             try:
-                charset_value = wsp_pdu.Decoder.decodeWellKnownCharset(byte_iter)
+                charset = wsp_pdu.Decoder.decodeWellKnownCharset(byte_iter)
             except wsp_pdu.DecodeError, msg:
                 raise Exception('EncodedStringValue decoding error - '
                                 'Could not decode Charset value: %s' % msg)
@@ -790,10 +789,11 @@ class MMSEncoder(wsp_pdu.Encoder):
         # See if the "MMS-header" encoding worked
         if not len(encoded_header):
             # ...it didn't. Use "Application-header" encoding
-            encoded_header_name = wsp_pdu.Encoder.encodeTokenText(header_field_name)
-            encoded_header.extend(encoded_header_name)
+            header_name = wsp_pdu.Encoder.encodeTokenText(header_field_name)
+            encoded_header.extend(header_name)
             # Now add the value
-            encoded_header.extend(wsp_pdu.Encoder.encodeTextString(header_value))
+            encoded_header.extend(
+                    wsp_pdu.Encoder.encodeTextString(header_value))
 
         return encoded_header
 
