@@ -12,7 +12,6 @@ import mimetypes
 import os
 import xml.dom.minidom
 
-from messaging import mms
 
 
 class MMSMessage:
@@ -202,12 +201,13 @@ class MMSMessage:
     def encode(self):
         """ Convenience funtion that binary-encodes this MMS message
 
-        @note: This uses the C{mms.mms_pdu.MMSEncoder} class internally
+        @note: This uses the C{mms_pdu.MMSEncoder} class internally
 
         @return: The binary-encode MMS data, as an array of bytes
         @rtype array.array('B')
         """
-        encoder = mms.mms_pdu.MMSEncoder()
+        from messaging.mms import mms_pdu
+        encoder = mms_pdu.MMSEncoder()
         return encoder.encode(self)
 
     def to_file(self, filename):
@@ -218,7 +218,7 @@ class MMSMessage:
                          data
         @type filename: str
 
-        @note: This uses the C{mms.mms_pdu.MMSEncoder} class internally
+        @note: This uses the C{mms_pdu.MMSEncoder} class internally
 
         @return: The binary-encode MMS data, as an array of bytes
         @rtype array.array('B')
@@ -235,9 +235,10 @@ class MMSMessage:
         @param data: The data to load
         @type filename: array.array
 
-        @note: This uses the C{mms.mms_pdu.MMSDecoder} class internally
+        @note: This uses the C{mms_pdu.MMSDecoder} class internally
         """
-        decoder = mms.mms_pdu.MMSDecoder()
+        from messaging.mms import mms_pdu
+        decoder = mms_pdu.MMSDecoder()
         return decoder.decode_data(data)
 
     @staticmethod
@@ -249,9 +250,10 @@ class MMSMessage:
         @param filename: The name of the file to load
         @type filename: str
 
-        @note: This uses the C{mms.mms_pdu.MMSDecoder} class internally
+        @note: This uses the C{mms_pdu.MMSDecoder} class internally
         """
-        decoder = mms.mms_pdu.MMSDecoder()
+        from messaging.mms import mms_pdu
+        decoder = mms_pdu.MMSDecoder()
         return decoder.decode_file(filename)
 
 
