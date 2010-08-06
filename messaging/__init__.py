@@ -1,3 +1,3 @@
 # see LICENSE
 
-VERSION = (0, 7, 9)
+VERSION = (0, 5, 9)
