@@ -901,3 +901,16 @@ class MMSEncoder(wsp_pdu.Encoder):
         }
 
         return [message_types.get(message_type, 0x80)]
+
+    @staticmethod
+    def encodeStatusValue(status_value):
+        status_values = {
+            'Expired': 0x80,
+            'Retrieved': 0x81,
+            'Rejected': 0x82,
+            'Deferred': 0x83,
+            'Unrecognised': 0x84,
+        }
+
+        # Return an unrecognised state if it couldn't be decoded
+        return [status_values.get(status_value, 'Unrecognised')]

@@ -358,3 +358,16 @@ class TestMmsDecoding(unittest.TestCase):
         self.assertEqual(mms.data_parts[0].data, text_data)
         self.assertEqual(mms.data_parts[0].content_type_parameters,
                          {'Charset': 'utf-8'})
+
+    def test_encoding_m_sendnotifyresp_ind(self):
+        message = MMSMessage()
+        message.headers['Transaction-Id'] = 'NOK5AIdhfTMYSG4JeIgAAsHtp72AGAAAAAAAA'
+        message.headers['Message-Type'] = 'm-notifyresp-ind'
+        message.headers['Status'] = 'Retrieved'
+        data =  [140, 131, 152, 78, 79, 75, 53, 65, 73, 100, 104, 102, 84, 77,
+                89, 83, 71, 52, 74, 101, 73, 103, 65, 65, 115, 72, 116, 112,
+                55, 50, 65, 71, 65, 65, 65, 65, 65, 65, 65, 65, 0, 141, 144,
+                149, 129, 132, 163, 1, 35, 129]
+
+        self.assertEqual(list(message.encode()[:50]), data)
+
