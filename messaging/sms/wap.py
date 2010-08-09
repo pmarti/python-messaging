@@ -2,18 +2,8 @@
 
 from array import array
 
-from pywbxml import wbxml2xml, xml2wbxml
-
 from messaging.utils import decode_str, encode_str
 from messaging.mms.mms_pdu import MMSDecoder
-
-
-def pdu2xml(pdu):
-    return wbxml2xml(decode_str(pdu))
-
-
-def xml2pdu(xml):
-    return encode_str(xml2wbxml(xml)).upper()
 
 
 def is_a_wap_push_notification(s):
