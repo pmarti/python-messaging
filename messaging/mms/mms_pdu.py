@@ -121,6 +121,7 @@ class MMSDecoder(wsp_pdu.Decoder):
         # "Content-Type", which should be the last header
         # According to [4], MMS header field names will be short integers
         content_type_found = False
+        header = ''
         while content_type_found == False:
             try:
                 header, value = self.decode_header(data_iter)
