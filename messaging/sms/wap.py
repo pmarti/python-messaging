@@ -2,7 +2,6 @@
 
 from array import array
 
-from messaging.utils import decode_str, encode_str
 from messaging.mms.mms_pdu import MMSDecoder
 
 
