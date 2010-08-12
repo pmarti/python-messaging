@@ -4,8 +4,7 @@ import unittest
 
 from messaging.sms import SmsDeliver
 from messaging.sms.wap import (is_a_wap_push_notification as is_push,
-                               extract_push_notification,
-                               xml2pdu, pdu2xml)
+                               extract_push_notification)
 
 
 def list_to_str(l):
@@ -99,20 +98,3 @@ class TestSmsWapPush(unittest.TestCase):
         self.assertEqual(mms.headers['Message-Size'], 29696)
         self.assertEqual(mms.headers['Expiry'], 259199)
         self.assertEqual(mms.headers['Content-Location'], 'http://promms/servlets/NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')
-
-
-# XML and PDUs values taken from
-# http://mobiletidings.com/2009/02/21/wap-push-over-sms-encodings/
-
-class TestWBXMLFunctions(unittest.TestCase):
-    xml = '<?xml version="1.0"?><!DOCTYPE sl PUBLIC "-//WAPFORUM//DTD SL 1.0//EN" "http://www.wapforum.org/DTD/sl.dtd"><sl href="http://mobiletidings.com/"/>'
-
-    def test_pdu2xml(self):
-        pdu = xml2pdu(self.xml)
-        self.assertEqual(self.xml, pdu2xml(pdu))
-
-    def test_xml2pdu(self):
-        # XXX: mobiletidings obtains the following PDU instead
-        #expected = "02066A008509036D6F62696C65746964696E67732E636F6D2F0001"
-        expected = "03066A008509036D6F62696C65746964696E6773008501"
-        self.assertEqual(xml2pdu(self.xml), expected)
