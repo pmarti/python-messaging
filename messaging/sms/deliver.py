@@ -1,4 +1,5 @@
 # see LICENSE
+"""Classes for processing received SMS"""
 
 from datetime import datetime, timedelta
 
@@ -10,6 +11,7 @@ from messaging.sms.udh import UserDataHeader
 
 
 class SmsDeliver(SmsBase):
+    """I am a delivered SMS in your Inbox"""
 
     def __init__(self, pdu, strict=True):
         super(SmsDeliver, self).__init__()
@@ -22,6 +24,11 @@ class SmsDeliver(SmsBase):
 
     @property
     def data(self):
+        """
+        Returns a dict populated with the SMS attributes
+
+        It mimics the old API to ease the port to the new API
+        """
         ret = {
             'text': self.text,
             'pid': self.pid,

@@ -1,4 +1,5 @@
 # See LICENSE
+"""Classes for sending SMS"""
 
 from datetime import datetime, timedelta
 import re
@@ -17,6 +18,7 @@ VALID_NUMBER = re.compile("^\+?\d{3,20}$")
 
 
 class SmsSubmit(SmsBase):
+    """I am a SMS ready to be sent"""
 
     def __init__(self, number, text):
         super(SmsSubmit, self).__init__()
@@ -71,7 +73,7 @@ class SmsSubmit(SmsBase):
     klass = property(lambda self: self._klass, _set_klass)
 
     def to_pdu(self):
-        """Returns a list of `~messaging.pdu.Pdu` objects"""
+        """Returns a list of :class:`~messaging.pdu.Pdu` objects"""
         smsc_pdu = self._get_smsc_pdu()
         sms_submit_pdu = self._get_sms_submit_pdu()
         tpmessref_pdu = self._get_tpmessref_pdu()

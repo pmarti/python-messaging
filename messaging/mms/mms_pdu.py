@@ -56,24 +56,26 @@ class MMSDecoder(wsp_pdu.Decoder):
     """A decoder for MMS messages"""
 
     def __init__(self, filename=None):
-        """@param filename: If specified, decode the content of the MMS
-                             message file with this name
-           @type filename: str
+        """
+        :param filename: If specified, decode the content of the MMS
+                         message file with this name
+        :type filename: str
         """
         self._mms_data = array.array('B')
         self._mms_message = message.MMSMessage()
         self._parts = []
 
     def decode_file(self, filename):
-        """ Load the data contained in the specified file, and decode it.
+        """
+        Load the data contained in the specified ``filename``, and decode it.
 
-        @param filename: The name of the MMS message file to open
-        @type filename: str
+        :param filename: The name of the MMS message file to open
+        :type filename: str
 
-        @raise OSError: The filename is invalid
+        :raise OSError: The filename is invalid
 
-        @return: The decoded MMS data
-        @rtype: MMSMessage
+        :return: The decoded MMS data
+        :rtype: MMSMessage
         """
         num_bytes = os.stat(filename)[6]
         data = array.array('B')
@@ -84,13 +86,14 @@ class MMSDecoder(wsp_pdu.Decoder):
         return self.decode_data(data)
 
     def decode_data(self, data):
-        """ Decode the specified MMS message data
+        """
+        Decode the specified MMS message data
 
-        @param data: The MMS message data to decode
-        @type data: array.array('B')
+        :param data: The MMS message data to decode
+        :type data: array.array('B')
 
-        @return: The decoded MMS data
-        @rtype: MMSMessage
+        :return: The decoded MMS data
+        :rtype: MMSMessage
         """
         self._mms_message = message.MMSMessage()
         self._mms_data = data
@@ -99,9 +102,10 @@ class MMSDecoder(wsp_pdu.Decoder):
         return self._mms_message
 
     def decode_message_header(self):
-        """ Decodes the (full) MMS header data
+        """
+        Decodes the (full) MMS header data
 
-        @note: This B{must} be called before C{_decodeBody()}, as it sets
+        This must be called before :func:`_decodeBody`, as it sets
         certain internal variables relating to data lengths, etc.
         """
         data_iter = PreviewIterator(self._mms_data)
@@ -141,11 +145,12 @@ class MMSDecoder(wsp_pdu.Decoder):
         return data_iter
 
     def decode_message_body(self, data_iter):
-        """ Decodes the MMS message body
+        """
+        Decodes the MMS message body
 
-        @param data_iter: an iterator over the sequence of bytes of the MMS
-                         body
-        @type data_iter: iter
+        :param data_iter: an iterator over the sequence of bytes of the MMS
+                          body
+        :type data_iter: iter
         """
         ######### MMS body: headers ###########
         # Get the number of data parts in the MMS body
@@ -199,26 +204,29 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decode_header(byte_iter):
-        """ Decodes a header entry from an MMS message, starting at the byte
-        pointed to by C{byte_iter.next()}
+        """
+        Decodes a header entry from an MMS message
 
-        From [4], section 7.1:
-        C{Header = MMS-header | Application-header}
+        starting at the byte pointed to by :func:`byte_iter.next`
 
-        @raise DecodeError: This uses C{decodeMMSHeader()} and
-                            C{decodeApplicationHeader()}, and will raise this
+        From [4], section 7.1::
+
+            Header = MMS-header | Application-header
+
+        The return type of the "header value" depends on the header
+        itself; it is thus up to the function calling this to determine
+        what that type is (or at least compensate for possibly
+        different return value types).
+
+        :raise DecodeError: This uses :func:`decodeMMSHeader` and
+                            :func:`decodeApplicationHeader`, and will raise this
                             exception under the same circumstances as
-                            C{decodeApplicationHeader()}. C{byte_iter} will
+                            :func:`decodeApplicationHeader`. ``byte_iter`` will
                             not be modified in this case.
 
-        @note: The return type of the "header value" depends on the header
-               itself; it is thus up to the function calling this to determine
-               what that type is (or at least compensate for possibly
-               different return value types).
-
-        @return: The decoded header entry from the MMS, in the format:
+        :return: The decoded header entry from the MMS, in the format:
                  (<str:header name>, <str/int/float:header value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         try:
             return MMSDecoder.decodeMMSHeader(byte_iter)
@@ -227,21 +235,25 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeMMSHeader(byte_iter):
-        """ From [4], section 7.1:
-        MMS-header = MMS-field-name MMS-value
-        MMS-field-name = Short-integer
-        MMS-value = Bcc-value | Cc-value | Content-location-value
-                       | Content-type-value | etc
+        """
+        Decodes the MMS header pointed by ``byte_iter``
 
         This method takes into account the assigned number values for MMS
         field names, as specified in [4], section 7.3, table 8.
 
-        @raise wsp_pdu.DecodeError: The MMS field name could not be parsed.
-                                    C{byte_iter} will not be modified.
+        From [4], section 7.1::
 
-        @return: The decoded MMS header, in the format:
+            MMS-header = MMS-field-name MMS-value
+            MMS-field-name = Short-integer
+            MMS-value = Bcc-value | Cc-value | Content-location-value | Content-type-value | etc
+
+
+        :raise wsp_pdu.DecodeError: The MMS field name could not be parsed.
+                                    ``byte_iter`` will not be modified.
+
+        :return: The decoded MMS header, in the format:
                  (<str:MMS-field-name>, <str:MMS-value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         # Get the MMS-field-name
         mms_field_name = ''
@@ -272,17 +284,22 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeEncodedStringValue(byte_iter):
-        """ From [4], section 7.2.9:
-        C{Encoded-string-value = Text-string | Value-length Char-set Text-string}
+        """
+        Decodes the encoded string value pointed by ``byte_iter``
+
+        From [4], section 7.2.9::
+
+            Encoded-string-value = Text-string | Value-length Char-set Text-string
+
         The Char-set values are registered by IANA as MIBEnum value.
 
-        @note: This function is not fully implemented, in that it does not
-               have proper support for the Char-set values; it basically just
-               reads over that sequence of bytes, and ignores it (see code for
-               details) - any help with this will be greatly appreciated.
+        This function is not fully implemented, in that it does not
+        have proper support for the Char-set values; it basically just
+        reads over that sequence of bytes, and ignores it (see code for
+        details) - any help with this will be greatly appreciated.
 
-        @return: The decoded text string
-        @rtype: str
+        :return: The decoded text string
+        :rtype: str
         """
         try:
             # First try "Value-length Char-set Text-string"
@@ -301,19 +318,23 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeBooleanValue(byte_iter):
-        """ From [4], section 7.2.6::
-         Delivery-report-value = Yes | No
-         Yes = <Octet 128>
-         No = <Octet 129>
+        """
+        Decodes the boolean value pointed by ``byte_iter``
+
+        From [4], section 7.2.6::
+
+           Delivery-report-value = Yes | No
+           Yes = <Octet 128>
+           No = <Octet 129>
 
         A lot of other yes/no fields use this encoding (read-reply,
         report-allowed, etc)
 
-        @raise wsp_pdu.DecodeError: The boolean value could not be parsed.
-                                C{byte_iter} will not be modified in this case.
+        :raise wsp_pdu.DecodeError: The boolean value could not be parsed.
+                                    ``byte_iter`` will not be modified.
 
-        @return: The value for the field
-        @rtype: bool
+        :return: The value for the field
+        :rtype: bool
         """
         value = None
         byte = byte_iter.preview()
@@ -326,13 +347,17 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeFromValue(byte_iter):
-        """ From [4], section 7.2.11:
-        From-value = Value-length (Address-present-token Encoded-string-value | Insert-address-token )
-        Address-present-token = <Octet 128>
-        Insert-address-token = <Octet 129>
+        """
+        Decodes the "From" value pointed by ``byte_iter``
 
-        @return: The "From" address value
-        @rtype: str
+        From [4], section 7.2.11::
+
+            From-value = Value-length (Address-present-token Encoded-string-value | Insert-address-token )
+            Address-present-token = <Octet 128>
+            Insert-address-token = <Octet 129>
+
+        :return: The "From" address value
+        :rtype: str
         """
         from_value = ''
         value_length = wsp_pdu.Decoder.decodeValueLength(byte_iter)
@@ -347,17 +372,22 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeMessageClassValue(byte_iter):
-        """ From [4], section 7.2.12:
-        Message-class-value = Class-identifier | Token-text
-        Class-identifier = Personal | Advertisement | Informational | Auto
-        Personal = <Octet 128>
-        Advertisement = <Octet 129>
-        Informational = <Octet 130>
-        Auto = <Octet 131>
+        """
+        Decodes the "Message-Class" value pointed by ``byte_iter``
+
+        From [4], section 7.2.12::
+
+            Message-class-value = Class-identifier | Token-text
+            Class-identifier = Personal | Advertisement | Informational | Auto
+            Personal = <Octet 128>
+            Advertisement = <Octet 129>
+            Informational = <Octet 130>
+            Auto = <Octet 131>
+
         The token-text is an extension method to the message class.
 
-        @return: The decoded message class
-        @rtype: str
+        :return: The decoded message class
+        :rtype: str
         """
         class_identifiers = {
             128: 'Personal',
@@ -376,10 +406,13 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeMessageTypeValue(byte_iter):
-        """ Defined in [4], section 7.2.14.
+        """
+        Decodes the "Message-Type" value pointed by ``byte_iter``
 
-        @return: The decoded message type, or '<unknown>'
-        @rtype: str
+        Defined in [4], section 7.2.14.
+
+        :return: The decoded message type, or '<unknown>'
+        :rtype: str
         """
         message_types = {
             0x80: 'm-send-req',
@@ -401,13 +434,16 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodePriorityValue(byte_iter):
-        """ Defined in [4], section 7.2.17
+        """
+        Decode the "Priority" value pointed by ``byte_iter``
 
-        @raise wsp_pdu.DecodeError: The priority value could not be decoded;
-                                C{byte_iter} is not modified in this case.
+        Defined in [4], section 7.2.17
 
-        @return: The decoded priority value
-        @rtype: str
+        :raise wsp_pdu.DecodeError: The priority value could not be decoded;
+                                    ``byte_iter`` is not modified in this case.
+
+        :return: The decoded priority value
+        :rtype: str
         """
         priorities = {128: 'Low', 129: 'Normal', 130: 'High'}
 
@@ -422,17 +458,21 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeSenderVisibilityValue(byte_iter):
-        """ Defined in [4], section 7.2.22::
-         Sender-visibility-value = Hide | Show
-         Hide = <Octet 128>
-         Show = <Octet 129>
+        """
+        Decodes the sender visibility value pointed by ``byte_iter``
 
-        @raise wsp_pdu.DecodeError: The sender visibility value could not be
-                                parsed.
-                                C{byte_iter} will not be modified in this case.
+        Defined in [4], section 7.2.22::
 
-        @return: The sender visibility: 'Hide' or 'Show'
-        @rtype: str
+           Sender-visibility-value = Hide | Show
+           Hide = <Octet 128>
+           Show = <Octet 129>
+
+        :raise wsp_pdu.DecodeError: The sender visibility value could not be
+                                    parsed. ``byte_iter`` will not be modified
+                                    in this case.
+
+        :return: The sender visibility: 'Hide' or 'Show'
+        :rtype: str
         """
         byte = byte_iter.preview()
         if byte not in (128, 129):
@@ -446,16 +486,18 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeResponseStatusValue(byte_iter):
-        """ Defined in [4], section 7.2.20
+        """
+        Decodes the "Response Status" value pointed by ``byte_iter``
 
-        Used to decode the "Response Status" MMS header.
+        Defined in [4], section 7.2.20
 
-        @raise wsp_pdu.DecodeError: The sender visibility value could not be
-                                parsed.
-                                C{byte_iter} will not be modified in this case.
 
-        @return: The decoded Response-status-value
-        @rtype: str
+        :raise wsp_pdu.DecodeError: The sender visibility value could not be
+                                parsed. ``byte_iter`` will not be modified in
+                                this case.
+
+        :return: The decoded Response-status-value
+        :rtype: str
         """
         response_status_values = {
             0x80: 'Ok',
@@ -475,16 +517,17 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeStatusValue(byte_iter):
-        """ Defined in [4], section 7.2.23
-
+        """
         Used to decode the "Status" MMS header.
 
-        @raise wsp_pdu.DecodeError: The sender visibility value could not be
-                                parsed.
-                                C{byte_iter} will not be modified in this case.
+        Defined in [4], section 7.2.23
 
-        @return: The decoded Status-value
-        @rtype: str
+        :raise wsp_pdu.DecodeError: The sender visibility value could not be
+                                    parsed. ``byte_iter`` will not be
+                                    modified in this case.
+
+        :return: The decoded Status-value
+        :rtype: str
         """
         status_values = {
             0x80: 'Expired',
@@ -500,19 +543,19 @@ class MMSDecoder(wsp_pdu.Decoder):
 
     @staticmethod
     def decodeExpiryValue(byte_iter):
-        """ Defined in [4], section 7.2.10
-
+        """
         Used to decode the "Expiry" MMS header.
 
-        From [4], section 7.2.10:
-        Expiry-value = Value-length (Absolute-token Date-value | Relative-token Delta-seconds-value)
-        Absolute-token = <Octet 128>
-        Relative-token = <Octet 129>
+        From [4], section 7.2.10::
 
-        @raise wsp_pdu.DecodeError: The Expiry-value could not be decoded
+            Expiry-value = Value-length (Absolute-token Date-value | Relative-token Delta-seconds-value)
+            Absolute-token = <Octet 128>
+            Relative-token = <Octet 129>
 
-        @return: The decoded Expiry-value, either as a date, or as a delta-seconds value
-        @rtype: str or int
+        :raise wsp_pdu.DecodeError: The Expiry-value could not be decoded
+
+        :return: The decoded Expiry-value, either as a date, or as a delta-seconds value
+        :rtype: str or int
         """
         value_length = MMSDecoder.decodeValueLength(byte_iter)
         token = byte_iter.next()
@@ -532,13 +575,14 @@ class MMSEncoder(wsp_pdu.Encoder):
         self._mms_message = message.MMSMessage()
 
     def encode(self, mms_message):
-        """ Encodes the specified MMS message
+        """
+        Encodes the specified MMS message ``mms_message``
 
-        @param mms_message: The MMS message to encode
-        @type mms_message: MMSMessage
+        :param mms_message: The MMS message to encode
+        :type mms_message: MMSMessage
 
-        @return: The binary-encoded MMS data, as a sequence of bytes
-        @rtype: array.array('B')
+        :return: The binary-encoded MMS data, as a sequence of bytes
+        :rtype: array.array('B')
         """
         self._mms_message = mms_message
         msg_data = self.encode_message_header()
@@ -546,14 +590,15 @@ class MMSEncoder(wsp_pdu.Encoder):
         return msg_data
 
     def encode_message_header(self):
-        """ Binary-encodes the MMS header data.
+        """
+        Binary-encodes the MMS header data.
 
-        @note: The encoding used for the MMS header is specified in [4].
-               All "constant" encoded values found/used in this method
-               are also defined in [4]. For a good example, see [2].
+        The encoding used for the MMS header is specified in [4].
+        All "constant" encoded values found/used in this method
+        are also defined in [4]. For a good example, see [2].
 
-        @return: the MMS PDU header, as an array of bytes
-        @rtype: array.array('B')
+        :return: the MMS PDU header, as an array of bytes
+        :rtype: array.array('B')
         """
         # See [4], chapter 8 for info on how to use these
         from_types = {'Address-present-token': 0x80,
@@ -640,11 +685,19 @@ class MMSEncoder(wsp_pdu.Encoder):
         return message_header
 
     def encode_message_body(self):
-        """ Binary-encodes the MMS body data.
+        """
+        Binary-encodes the MMS body data
 
-        @note: The MMS body is of type C{application/vnd.wap.multipart}
-        (C{mixed} or C{related}).
-        As such, its structure is divided into a header, and
+        The MMS body's header should not be confused with the actual
+        MMS header, as returned by :func:`_encode_header`.
+
+        The encoding used for the MMS body is specified in [5],
+        section 8.5. It is only referenced in [4], however [2]
+        provides a good example of how this ties in with the MMS
+        header encoding.
+
+        The MMS body is of type `application/vnd.wap.multipart` ``mixed``
+        or ``related``. As such, its structure is divided into a header, and
         the data entries/parts::
 
             [ header ][ entries ]
@@ -652,32 +705,26 @@ class MMSEncoder(wsp_pdu.Encoder):
                   MMS Body
 
         The MMS Body header consists of one entry[5]::
-         name             type           purpose
-         -------          -------        -----------
-         num_entries      Uintvar        num of entries in the multipart entity
+
+            name             type           purpose
+            -------          -------        -----------
+            num_entries      Uintvar        num of entries in the multipart entity
 
         The MMS body's multipart entries structure::
-         name             type                   purpose
-         -------          -----                  -----------
-         HeadersLen       Uintvar                length of the ContentType and
-                                                 Headers fields combined
-         DataLen          Uintvar                length of the Data field
-         ContentType      Multiple octets        the content type of the data
-         Headers          (<HeadersLen>
-                           - length of
-                          <ContentType>) octets  the part's headers
-         Data             <DataLen> octets       the part's data
 
-        @note: The MMS body's header should not be confused with the actual
-               MMS header, as returned by C{_encode_header()}.
+            name             type                   purpose
+            -------          -----                  -----------
+            HeadersLen       Uintvar                length of the ContentType and
+                                                    Headers fields combined
+            DataLen          Uintvar                length of the Data field
+            ContentType      Multiple octets        the content type of the data
+            Headers          (<HeadersLen>
+                              - length of
+                             <ContentType>) octets  the part's headers
+            Data             <DataLen> octets       the part's data
 
-        @note: The encoding used for the MMS body is specified in [5],
-               section 8.5. It is only referenced in [4], however [2]
-               provides a good example of how this ties in with the MMS
-               header encoding.
-
-        @return: The binary-encoded MMS PDU body, as an array of bytes
-        @rtype: array.array('B')
+        :return: The binary-encoded MMS PDU body, as an array of bytes
+        :rtype: array.array('B')
         """
         message_body = array.array('B')
 
@@ -741,28 +788,30 @@ class MMSEncoder(wsp_pdu.Encoder):
 
     @staticmethod
     def encode_header(header_field_name, header_value):
-        """Encodes a header entry for an MMS message
+        """
+        Encodes a header entry for an MMS message
 
-        From [4], section 7.1:
-        C{Header = MMS-header | Application-header}
-        C{MMS-header = MMS-field-name MMS-value}
-        C{MMS-field-name = Short-integer}
-        C{MMS-value = Bcc-value | Cc-value | Content-location-value | Content-type-value | etc}
+        The return type of the "header value" depends on the header
+        itself; it is thus up to the function calling this to determine
+        what that type is (or at least compensate for possibly different
+        return value types).
 
-        @raise DecodeError: This uses C{decodeMMSHeader()} and
-                            C{decodeApplicationHeader()}, and will raise this
+        From [4], section 7.1::
+
+            Header = MMS-header | Application-header
+            MMS-header = MMS-field-name MMS-value
+            MMS-field-name = Short-integer
+            MMS-value = Bcc-value | Cc-value | Content-location-value | Content-type-value | etc
+
+        :raise DecodeError: This uses :func:`decodeMMSHeader` and
+                            :func:`decodeApplicationHeader`, and will raise this
                             exception under the same circumstances as
-                            C{decodeApplicationHeader()}. C{byte_iter} will
+                            :func:`decodeApplicationHeader`. ``byte_iter`` will
                             not be modified in this case.
 
-        @note: The return type of the "header value" depends on the header
-               itself; it is thus up to the function calling this to determine
-               what that type is (or at least compensate for possibly
-               different return value types).
-
-        @return: The decoded header entry from the MMS, in the format:
+        :return: The decoded header entry from the MMS, in the format:
                  (<str:header name>, <str/int/float:header value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         encoded_header = []
         # First try encoding the header as a "MMS-header"...
@@ -800,20 +849,21 @@ class MMSEncoder(wsp_pdu.Encoder):
 
     @staticmethod
     def encodeMMSFieldName(field_name):
-        """ Encodes an MMS header field name, using the "assigned values" for
-        well-known MMS headers as specified in [4].
+        """
+        Encodes an MMS header field name
 
-        From [4], section 7.1:
-        C{MMS-field-name = Short-integer}
+        From [4], section 7.1::
 
-        @raise EncodeError: The specified header field name is not a
+            MMS-field-name = Short-integer
+
+        :raise EncodeError: The specified header field name is not a
                             well-known MMS header.
 
-        @param field_name: The header field name to encode
-        @type field_name: str
+        :param field_name: The header field name to encode
+        :type field_name: str
 
-        @return: The encoded header field name, as a sequence of bytes
-        @rtype: list
+        :return: The encoded header field name, as a sequence of bytes
+        :rtype: list
         """
         encoded_mms_field_name = []
 
@@ -831,19 +881,23 @@ class MMSEncoder(wsp_pdu.Encoder):
 
     @staticmethod
     def encodeFromValue(from_value=''):
-        """ From [4], section 7.2.11:
-        From-value = Value-length (Address-present-token Encoded-string-value | Insert-address-token )
-        Address-present-token = <Octet 128>
-        Insert-address-token = <Octet 129>
+        """
+        Encodes the "From" address value
 
-        @param from_value: The "originator" of the MMS message. This may be an
+        From [4], section 7.2.11::
+
+            From-value = Value-length (Address-present-token Encoded-string-value | Insert-address-token )
+            Address-present-token = <Octet 128>
+            Insert-address-token = <Octet 129>
+
+        :param from_value: The "originator" of the MMS message. This may be an
                           empty string, in which case a token will be encoded
                           informing the MMSC to insert the address of the
                           device that sent this message (default).
-        @type from_value: str
+        :type from_value: str
 
-        @return: The encoded "From" address value, as a sequence of bytes
-        @rtype: list
+        :return: The encoded "From" address value, as a sequence of bytes
+        :rtype: list
         """
         encoded_from_value = []
         if len(from_value) == 0:
@@ -863,33 +917,40 @@ class MMSEncoder(wsp_pdu.Encoder):
 
     @staticmethod
     def encodeEncodedStringValue(string_value):
-        """ From [4], section 7.2.9:
-        C{Encoded-string-value = Text-string | Value-length Char-set Text-string}
+        """
+        Encodes ``string_value``
+
+        This is a simple wrappper to :func:`encodeTextString`
+
+        From [4], section 7.2.9::
+
+            Encoded-string-value = Text-string | Value-length Char-set Text-string
+
         The Char-set values are registered by IANA as MIBEnum value.
 
-        @param string_value: The text string to encode
-        @type string_value: str
+        :param string_value: The text string to encode
+        :type string_value: str
 
-        @note: This function is currently a simple wrappper to
-               C{encodeTextString()}
-
-        @return: The encoded string value, as a sequence of bytes
-        @rtype: list
+        :return: The encoded string value, as a sequence of bytes
+        :rtype: list
         """
         return wsp_pdu.Encoder.encodeTextString(string_value)
 
     @staticmethod
     def encodeMessageTypeValue(message_type):
-        """ Defined in [4], section 7.2.14.
+        """
+        Encodes the Message-Type value ``message_type``
 
-        @note: Unknown message types are discarded; thus they will be encoded
-               as 0x80 ("m-send-req") by this function
+        Unknown message types are discarded; thus they will be encoded
+        as 0x80 ("m-send-req") by this function
 
-        @param message_type: The MMS message type to encode
-        @type message_type: str
+        Defined in [4], section 7.2.14.
 
-        @return: The encoded message type, as a sequence of bytes
-        @rtype: list
+        :param message_type: The MMS message type to encode
+        :type message_type: str
+
+        :return: The encoded message type, as a sequence of bytes
+        :rtype: list
         """
         message_types = {
             'm-send-req': 0x80,

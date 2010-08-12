@@ -4,7 +4,7 @@
 #
 # The docstrings in this module contain epytext markup; API documentation
 # may be created by processing this file with epydoc: http://epydoc.sf.net
-"""High-level MMS-message creation/manipulation classes"""
+"""High-level MMS message classes"""
 
 from __future__ import with_statement
 import array
@@ -15,9 +15,10 @@ import xml.dom.minidom
 
 
 class MMSMessage:
-    """An MMS message
+    """
+    I am an MMS message
 
-    @note: References used in this class: [1][2][3][4][5]
+    References used in this class: [1][2][3][4][5]
     """
     def __init__(self):
         self._pages = []
@@ -37,20 +38,23 @@ class MMSMessage:
 
     @property
     def content_type(self):
-        """Returns the string representation of this data part's
-        "Content-Type" header. No parameter information is returned;
-        to get that, access the "Content-Type" header directly (which has a
-        tuple value)from the message's C{headers} attribute.
+        """
+        Returns the Content-Type of this data part header
+
+        No parameter information is returned; to get that, access the
+        "Content-Type" header directly (which has a tuple value) from
+        the message's ``headers`` attribute.
 
         This is equivalent to calling DataPart.headers['Content-Type'][0]
         """
         return self.headers['Content-Type'][0]
 
     def add_page(self, page):
-        """Adds a single page/slide (MMSMessagePage object) to the message
+        """
+        Adds `page` to the message
 
-        @param page: The message slide/page to add
-        @type page: MMSMessagPage
+        :type page: MMSMessagePage
+        :param page: The message slide/page to add
         """
         if self.content_type != 'application/vnd.wap.multipart.related':
             value = ('application/vnd.wap.multipart.related', {})
@@ -60,30 +64,30 @@ class MMSMessage:
 
     @property
     def pages(self):
-        """ Returns a list of all the pages in this message """
+        """Returns a list of all the pages in this message"""
         return self._pages
 
     def add_data_part(self, data_part):
-        """ Adds a single data part (DataPart object) to the message, without
+        """Adds a single data part (DataPart object) to the message, without
         connecting it to a specific slide/page in the message.
 
         A data part encapsulates some form of attachment, e.g. an image, audio
-        etc.
+        etc. It is not necessary to explicitly add data parts to the message
+        using this function if :func:`add_page` is used; this method is mainly
+        useful if you want to create MMS messages without SMIL support,
+        i.e. messages of type "application/vnd.wap.multipart.mixed"
 
-        @param data_part: The data part to add
-        @type data_part: DataPart
-
-        @note: It is not necessary to explicitly add data parts to the message
-               using this function if "add_page" is used; this method is mainly
-               useful if you want to create MMS messages without SMIL support,
-               i.e. messages of type "application/vnd.wap.multipart.mixed"
+        :param data_part: The data part to add
+        :type data_part: DataPart
         """
         self._data_parts.append(data_part)
 
     @property
     def data_parts(self):
-        """ Returns a list of all the data parts in this message, including
-        data parts that were added to slides in this message """
+        """
+        Returns a list of all the data parts in this message
+
+        including data parts that were added to slides in this message"""
         parts = []
         if len(self._pages):
             parts.append(self.smil())
@@ -94,7 +98,7 @@ class MMSMessage:
         return parts
 
     def smil(self):
-        """ Returns the text of the message's SMIL file """
+        """Returns the text of the message's SMIL file"""
         impl = xml.dom.minidom.getDOMImplementation()
         smil_doc = impl.createDocument(None, "smil", None)
 
@@ -199,43 +203,42 @@ class MMSMessage:
         return smil_doc.documentElement.toprettyxml()
 
     def encode(self):
-        """ Convenience funtion that binary-encodes this MMS message
+        """
+        Return a binary representation of this MMS message
 
-        @note: This uses the C{mms_pdu.MMSEncoder} class internally
+        This uses the `~:class:messaging.mms.mms_pdu.MMSEncoder` internally
 
-        @return: The binary-encode MMS data, as an array of bytes
-        @rtype array.array('B')
+        :return: The binary-encoded MMS data, as an array of bytes
+        :rtype: array.array('B')
         """
         from messaging.mms import mms_pdu
         encoder = mms_pdu.MMSEncoder()
         return encoder.encode(self)
 
     def to_file(self, filename):
-        """ Convenience funtion that writes this MMS message to disk in
-        binary-encoded form.
+        """
+        Writes this MMS message to `filename` in binary-encoded form
 
-        @param filename: The name of the file in which to store the message
-                         data
-        @type filename: str
+        This uses the `~:class:messaging.mms.mms_pdu.MMSEncoder` internally
 
-        @note: This uses the C{mms_pdu.MMSEncoder} class internally
+        :param filename: The path where to store the message data
+        :type filename: str
 
-        @return: The binary-encode MMS data, as an array of bytes
-        @rtype array.array('B')
+        :rtype array.array('B')
+        :return: The binary-encode MMS data, as an array of bytes
         """
         with open(filename, 'wb') as f:
             self.encode().tofile(f)
 
     @staticmethod
     def from_data(data):
-        """Convenience static funtion that loads the specified MMS message
-        from raw data, and returns a new MMSMessage object,
-        which can then be manipulated and re-encoded, for instance.
+        """
+        Returns a new `:class:MMSMessage` out of ``data``
 
-        @param data: The data to load
-        @type filename: array.array
+        This uses the `~:class:messaging.mms.mms_pdu.MMSEncoder` internally
 
-        @note: This uses the C{mms_pdu.MMSDecoder} class internally
+        :param data: The data to load
+        :type filename: array.array
         """
         from messaging.mms import mms_pdu
         decoder = mms_pdu.MMSDecoder()
@@ -243,14 +246,13 @@ class MMSMessage:
 
     @staticmethod
     def from_file(filename):
-        """ Convenience static funtion that loads the specified MMS message
-        file from disk, decodes its data, and returns a new MMSMessage object,
-        which can then be manipulated and re-encoded, for instance.
+        """
+        Returns a new `:class:MMSMessage` out of file ``filename``
 
-        @param filename: The name of the file to load
-        @type filename: str
+        This uses the `~:class:messaging.mms.mms_pdu.MMSEncoder` internally
 
-        @note: This uses the C{mms_pdu.MMSDecoder} class internally
+        :param filename: The name of the file to load
+        :type filename: str
         """
         from messaging.mms import mms_pdu
         decoder = mms_pdu.MMSDecoder()
@@ -258,16 +260,15 @@ class MMSMessage:
 
 
 class MMSMessagePage:
-    """A single page (or "slide") in an MMS Message.
+    """
+    A single page/slide in an MMS Message.
 
     In order to ensure that the MMS message can be correctly displayed by most
     terminals, each page's content is limited to having 1 image, 1 audio clip
     and 1 block of text, as stated in [1].
 
-    @note: The default slide duration is set to 4 seconds; use set_duration()
-           to change this.
-
-    @note: References used in this class: [1]
+    The default slide duration is set to 4 seconds; use :func:`set_duration`
+    to change this.
     """
     def __init__(self):
         self.duration = 4000
@@ -277,15 +278,14 @@ class MMSMessagePage:
 
     @property
     def data_parts(self):
-        """ Returns a list of the data parst in this slide """
+        """Returns a list of the data parst in this slide"""
         return [part for part in (self.image, self.audio, self.text)
                     if part is not None]
 
     def number_of_parts(self):
-        """ This function calculates the amount of data "parts" (or elements)
-        in this slide.
+        """
+        Returns the number of data parts in this slide
 
-        @return: The number of data parts in this slide
         @rtype: int
         """
         num_parts = 0
@@ -298,23 +298,25 @@ class MMSMessagePage:
     #TODO: find out what the "ref" element in SMIL does
     #TODO: add support for "alt" element; also make sure what it does
     def add_image(self, filename, time_begin=0, time_end=0):
-        """ Adds an image to this slide.
-        @param filename: The name of the image file to add. Supported formats
+        """
+        Adds an image to this slide.
+
+        :param filename: The name of the image file to add. Supported formats
                          are JPEG, GIF and WBMP.
-        @type filename: str
-        @param time_begin: The time (in milliseconds) during the duration of
+        :type filename: str
+        :param time_begin: The time (in milliseconds) during the duration of
                           this slide to begin displaying the image. If this is
                           0 or less, the image will be displayed from the
                           moment the slide is opened.
-        @type time_begin: int
-        @param time_end: The time (in milliseconds) during the duration of this
+        :type time_begin: int
+        :param time_end: The time (in milliseconds) during the duration of this
                         slide at which to stop showing (i.e. hide) the image.
                         If this is 0 or less, or if it is greater than the
                         actual duration of this slide, it will be shown until
                         the next slide is accessed.
-        @type time_end: int
+        :type time_end: int
 
-        @raise TypeError: An inappropriate variable type was passed in of the
+        :raise TypeError: An inappropriate variable type was passed in of the
                           parameters
         """
         if not isinstance(filename, str):
@@ -332,24 +334,25 @@ class MMSMessagePage:
         self.image = (DataPart(filename), time_begin, time_end)
 
     def add_audio(self, filename, time_begin=0, time_end=0):
-        """ Adds an audio clip to this slide.
-        @param filename: The name of the audio file to add. Currently the only
+        """
+        Adds an audio clip to this slide.
+
+        :param filename: The name of the audio file to add. Currently the only
                          supported format is AMR.
-        @type filename: str
-        @param time_begin: The time (in milliseconds) during the duration of
+        :type filename: str
+        :param time_begin: The time (in milliseconds) during the duration of
                           this slide to begin playback of the audio clip. If
                           this is 0 or less, the audio clip will be played the
                           moment the slide is opened.
-        @type time_begin: int
-        @param time_end: The time (in milliseconds) during the duration of this
+        :type time_begin: int
+        :param time_end: The time (in milliseconds) during the duration of this
                         slide at which to stop playing (i.e. mute) the audio
                         clip. If this is 0 or less, or if it is greater than
                         the actual duration of this slide, the entire audio
                         clip will be played, or until the next slide is
                         accessed.
-        @type time_end: int
-
-        @raise TypeError: An inappropriate variable type was passed in of the
+        :type time_end: int
+        :raise TypeError: An inappropriate variable type was passed in of the
                           parameters
         """
         if not isinstance(filename, str):
@@ -367,22 +370,24 @@ class MMSMessagePage:
         self.audio = (DataPart(filename), time_begin, time_end)
 
     def add_text(self, text, time_begin=0, time_end=0):
-        """ Adds a block of text to this slide.
-        @param text: The text to add to the slide.
-        @type text: str
-        @param time_begin: The time (in milliseconds) during the duration of
+        """
+        Adds a block of text to this slide.
+
+        :param text: The text to add to the slide.
+        :type text: str
+        :param time_begin: The time (in milliseconds) during the duration of
                           this slide to begin displaying the text. If this is
                           0 or less, the text will be displayed from the
                           moment the slide is opened.
-        @type time_begin: int
-        @param time_end: The time (in milliseconds) during the duration of this
+        :type time_begin: int
+        :param time_end: The time (in milliseconds) during the duration of this
                         slide at which to stop showing (i.e. hide) the text.
                         If this is 0 or less, or if it is greater than the
                         actual duration of this slide, it will be shown until
                         the next slide is accessed.
-        @type time_end: int
+        :type time_end: int
 
-        @raise TypeError: An inappropriate variable type was passed in of the
+        :raise TypeError: An inappropriate variable type was passed in of the
                           parameters
         """
         if not isinstance(text, str):
@@ -419,12 +424,13 @@ class MMSMessagePage:
 
 
 class DataPart(object):
-    """ This class represents a data entry in the MMS body.
+    """
+    I am a data entry in the MMS body
 
-    A DataPart objectencapsulates any data content that is to be added to the
-    MMS (e.g. an image file, raw image data, audio clips, text, etc).
+    A DataPart object encapsulates any data content that is to be added
+    to the MMS (e.g. an image , raw image data, audio clips, text, etc).
 
-    A DataPart object can be queried using the Python built-in C{len()}
+    A DataPart object can be queried using the Python built-in :func:`len`
     function.
 
     This encapsulation allows custom header/parameter information to be set
@@ -457,21 +463,21 @@ class DataPart(object):
         return self.headers['Content-Type'][0]
 
     def _set_content_type(self, value):
-        """ Convenience method that sets the content type string, with no
-        parameters """
+        """Sets the content type string, with no parameters """
         self.headers['Content-Type'] = value, {}
 
     content_type = property(_get_content_type, _set_content_type)
 
     def from_file(self, filename):
-        """ Load the data contained in the specified file
+        """
+        Load the data contained in the specified file
 
-        @note: This function clears any previously-set header entries.
+        This function clears any previously-set header entries.
 
-        @param filename: The name of the file to open
-        @type filename: str
+        :param filename: The name of the file to open
+        :type filename: str
 
-        @raises OSError: The filename is invalid
+        :raises OSError: The filename is invalid
         """
         if not os.path.isfile(filename):
             raise OSError('The file "%s" does not exist' % filename)
@@ -486,18 +492,17 @@ class DataPart(object):
         self._filename = filename
 
     def set_data(self, data, content_type, ct_parameters=None):
-        """ Explicitly set the data contained by this part
+        """
+        Explicitly set the data contained by this part
 
-        @note: This function clears any previously-set header entries.
+        This function clears any previously-set header entries.
 
-        @param data: The data to hold
-        @type data: str
-        @param content_type: The MIME content type of the specified data
-        @type content_type: str
-        @param ct_parameters: A dictionary containing any content type header
-                             parmaters to add, in the format:
-                             C{{<parameter_name> : <parameter_value>}}
-        @type ct_parameters: dict
+        :param data: The data to hold
+        :type data: str
+        :param content_type: The MIME content type of the specified data
+        :type content_type: str
+        :param ct_parameters: Any content type header paramaters to add
+        :type ct_parameters: dict
         """
         self.headers = {}
         self._filename = None
@@ -509,10 +514,11 @@ class DataPart(object):
         self.headers['Content-Type'] = content_type, ct_parameters
 
     def set_text(self, text):
-        """ Convenience wrapper method for set_data()
+        """
+        Convenience wrapper method for set_data()
 
-        This method sets the DataPart object to hold the specified text
-        string, with MIME content type "text/plain".
+        This method sets the :class:`DataPart` object to hold the
+        specified text string, with MIME content type "text/plain".
 
         @param text: The text to hold
         @type text: str
@@ -528,8 +534,7 @@ class DataPart(object):
 
     @property
     def data(self):
-        """ A buffer containing the binary data of this part
-        """
+        """A buffer containing the binary data of this part"""
         if self._data is not None:
             if type(self._data) == array.array:
                 self._data = self._data.tostring()
@@ -540,5 +545,4 @@ class DataPart(object):
                 self._data = f.read()
             return self._data
 
-        else:
-            return ''
+        return ''

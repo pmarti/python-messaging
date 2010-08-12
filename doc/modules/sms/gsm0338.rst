@@ -1,0 +1,9 @@
+:mod:`messaging.sms.gsm0338`
+============================
+
+.. automodule:: messaging.sms.gsm0338
+
+Functions
+---------
+
+.. autofunction:: is_gsm_text

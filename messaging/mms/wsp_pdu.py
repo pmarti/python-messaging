@@ -4,8 +4,8 @@
 #
 # The docstrings in this module contain epytext markup; API documentation
 # may be created by processing this file with epydoc: http://epydoc.sf.net
-
-""" WSP Data Unit structure encoding and decoding classes
+"""
+WSP Data Unit structure encoding and decoding classes
 
 Throughout the classes defined in this module, the following "primitive data
 type" terminology applies, as specified in [5], section 8.1.1::
@@ -28,12 +28,9 @@ as defined in section 8.4.2.1 of [5].
 Finally, the classes defined here provide methods for decoding/parsing
 specific WSP header fields.
 
-@author: Francois Aucamp C{<faucamp@csir.co.za>}
-@license:  GNU Lesser General Public License, version 2
-@note: This is part of the PyMMS library
+References used in the code and this document:
 
-@note: References used in the code and this document:
-    5. Wap Forum/Open Mobile Alliance, "WAP-230 Wireless Session Protocol Specification"
+[5] Wap Forum/Open Mobile Alliance, "WAP-230 Wireless Session Protocol Specification"
     U{http://www.openmobilealliance.org/tech/affiliates/LicenseAgreement.asp?DocName=/wap/wap-230-wsp-20010705-a.pdf}
 """
 
@@ -45,26 +42,28 @@ from messaging.mms.iterator import PreviewIterator
 
 
 class WSPEncodingAssignments:
-    """ Static class containing the constant values defined in [5] for
-    well-known content types, parameter names, etc.
+    """
+    I contain the constant values for well-known parameters and content-types
 
-    It also defines some function for combining assigned number-tables for
+    I also define some functions for combining assigned number-tables for
     specific WSP encoding versions, where appropriate.
 
     This is used by both the Encoder and Decoder classes during well-known
     assigned number lookups (usually these functions have the string
-    C{WellKnown} in their names).
+    ``WellKnown`` in their names).
 
-        - Assigned parameters are stored in a dictionary,
-          C{well_known_parameters}, containing all assigned values for WSP
-          encoding versions 1.1 - 1.4, in the format:
-          C{{<int>assigned number: (<str>name, <str>expected value type)}}
-          A "encoding versioned"-version of this dictionary can be retrieved
-          by calling the C{wellKnowParameters()} function with an appropriate
-          WSP encoding version as parameter.
-        - Assigned content types are stored in a list, C{wkContentTypes},
-          in order; thus, their index in the list is equal to their
-          assigned value.
+    - Assigned parameters are stored in a dictionary,
+      ``well_known_parameters``, containing all assigned values for WSP
+      encoding versions 1.1 - 1.4, in the format::
+
+        <int>assigned number: (<str>name, <str>expected value type)
+
+      A "encoding versioned"-version of this dictionary can be retrieved
+      by calling the :func:`wellKnowParameters` function with an appropriate
+      WSP encoding version as parameter.
+    - Assigned content types are stored in a list, ``wkContentTypes``,
+      in order; thus, their index in the list is equal to their
+      assigned value.
     """
     wsp_pdu_types = {
         0x01: 'Connect',
@@ -238,21 +237,25 @@ class WSPEncodingAssignments:
 
     @staticmethod
     def wellKnownParameters(version='1.2'):
-        """ Formats list of assigned values for well-known parameter names,
+        """
+        Return a list of assigned values for parameter names for ``version``
+
+        Formats list of assigned values for well-known parameter names,
         for the specified WSP encoding version.
 
-        @param version: The WSP encoding version to use. This defaults
-                                to "1.2", but may be "1.1", "1.2", "1.3" or
-                                "1.4" (see table 38 in [5] for details).
-        @type version: str
+        :param version: The WSP encoding version to use. This defaults
+                        to "1.2", but may be "1.1", "1.2", "1.3" or
+                        "1.4" (see table 38 in [5] for details).
+        :type version: str
 
-        @raise ValueError: The specified encoding version is invalid.
+        :raise ValueError: The specified encoding version is invalid.
 
-        @return: A dictionary containing the well-known parameters with
+        :return: A dictionary containing the well-known parameters with
                  assigned numbers for the specified encoding version (and
-                 lower). Entries in this dict follow the format:
-                 C{{<int:assigned_number> : (<str:param_name>, <str:expected_type>)}}
-        @rtype: dict
+                 lower). Entries in this dict follow the format::
+
+                    <int:assigned_number> : (<str:param_name>, <str:expected_type>)
+        :rtype: dict
         """
         if version not in ('1.1', '1.2', '1.3', '1.4'):
             raise ValueError('version must be "1.1",'
@@ -277,19 +280,20 @@ class WSPEncodingAssignments:
 
     @staticmethod
     def header_field_names(version='1.2'):
-        """ Formats list of assigned values for header field names, for the
+        """
+        Formats list of assigned values for header field names, for the
         specified WSP encoding version.
 
-        @param version: The WSP encoding version to use. This defaults
-                                to "1.2", but may be "1.1", "1.2", "1.3" or
-                                "1.4" (see table 39 in [5] for details).
-        @type version: str
+        :param version: The WSP encoding version to use. This defaults
+                        to "1.2", but may be "1.1", "1.2", "1.3" or
+                        "1.4" (see table 39 in [5] for details).
+        :type version: str
 
-        @raise ValueError: The specified encoding version is invalid.
+        :raise ValueError: The specified encoding version is invalid.
 
-        @return: A list containing the WSP header field names with assigned
+        :return: A list containing the WSP header field names with assigned
                  numbers for the specified encoding version (and lower).
-        @rtype: list
+        :rtype: list
         """
         if version not in ('1.1', '1.2', '1.3', '1.4'):
             raise ValueError('version must be "1.1",'
@@ -309,13 +313,19 @@ class WSPEncodingAssignments:
 
 
 class DecodeError(Exception):
-    """ The decoding operation failed; most probably due to an invalid byte in
-    the sequence provided for decoding """
+    """
+    Raised when a decoding operation failed
+
+    Most probably due to an invalid byte in the sequence provided for decoding
+    """
 
 
 class EncodeError(Exception):
-    """ The encoding operation failed; most probably due to an invalid value
-    provided for encoding """
+    """
+    Raised when an encoding operation failed
+
+    Most probably due to an invalid value provided for encoding
+    """
 
 
 class Decoder:
@@ -323,39 +333,39 @@ class Decoder:
 
     @staticmethod
     def decodeUint8(byte_iter):
-        """ Decodes an 8-bit unsigned integer from the byte pointed to by
-        C{byte_iter.next()}
+        """
+        Decodes an 8-bit uint from the byte pointed to by ``byte_iter``
 
-        @note: this function will move the iterator passed as C{byte_iter} one
-               byte forward.
+        This function will move the iterator passed as ``byte_iter`` one
+        byte forward.
 
-        @param byte_iter: an iterator over a sequence of bytes
-        @type byte_iter: iter
+        :param byte_iter: an iterator over a sequence of bytes
+        :type byte_iter: iter
 
-        @return: the decoded 8-bit unsigned integer
-        @rtype: int
+        :return: the decoded 8-bit unsigned integer
+        :rtype: int
         """
         # Make the byte unsigned
         return byte_iter.next() & 0xf
 
     @staticmethod
     def decodeUintvar(byte_iter):
-        """ Decodes the variable-length unsigned integer starting at the
-        byte pointed to by C{byte_iter.next()}
+        """
+        Decodes the uint starting at the byte pointed to by ``byte_iter``
 
-        See C{wsp.Encoder.encodeUintvar()} for a detailed description of the
-        encoding scheme used for C{Uintvar} sequences.
+        See :func:`wsp.Encoder.encodeUintvar` for a detailed description of
+        the encoding scheme used for ``Uintvar`` sequences.
 
-        @note: this function will move the iterator passed as C{byte_iter} to
-               the last octet in the uintvar sequence; thus, after calling
-               this, that iterator's C{next()} function will return the first
-               byte B{after}the uintvar sequence.
+        This function will move the iterator passed as ``byte_iter`` to
+        the last octet in the uintvar sequence; thus, after calling this,
+        that iterator's `next()` function will return the first byte
+        **after** the uintvar sequence.
 
-        @param byte_iter: an iterator over a sequence of bytes
-        @type byte_iter: iter
+        :param byte_iter: an iterator over a sequence of bytes
+        :type byte_iter: iter
 
-        @return: the decoded unsigned integer
-        @rtype: int
+        :return: the decoded unsigned integer
+        :rtype: int
         """
         uint = 0
         byte = byte_iter.next()
@@ -370,21 +380,23 @@ class Decoder:
 
     @staticmethod
     def decodeShortInteger(byte_iter):
-        """ Decodes the short-integer value starting at the byte pointed to
-        by C{byte_iter.next()}.
+        """
+        Decodes the short-integer value starting at ``byte_iter``
 
-        The encoding for a long integer is specified in [5], section 8.4.2.1:
-        C{Short-integer = OCTET
+        The encoding for a long integer is specified in [5], section 8.4.2.1::
+
+            Short-integer = OCTET
+
         Integers in range 0-127 shall be encoded as a one octet value with
         the most significant bit set to one (1xxx xxxx) and with the value
-        in the remaining least significant bits.}
+        in the remaining least significant bits.
 
-        @raise DecodeError: Not a valid short-integer; the most significant
-                            isn't set to 1.
-                            C{byte_iter} will not be modified if this is raised
+        :raise DecodeError: Not a valid short-integer; the most significant
+                            isn't set to 1. ``byte_iter`` will not be
+                            modified if this is raised
 
-        @return: The decoded short integer
-        @rtype: int
+        :return: The decoded short integer
+        :rtype: int
         """
         byte = byte_iter.preview()
         if not byte & 0x80:
@@ -399,13 +411,12 @@ class Decoder:
         """
         Decodes the short-integer value contained in the specified byte value
 
-        @param byte: the byte value to decode
-        @type byte: int
+        :param byte: the byte value to decode
+        :type byte: int
 
-        @raise DecodeError: Not a valid short-integer; the most significant
-                            isn't set to 1.
-        @return: The decoded short integer
-        @rtype: int
+        :raise DecodeError: Not a valid short-integer; the MSB isn't set to 1.
+        :return: The decoded short integer
+        :rtype: int
         """
         if not byte & 0x80:
             raise DecodeError('Not a valid short-integer: MSB not set')
@@ -414,35 +425,35 @@ class Decoder:
 
     @staticmethod
     def decodeLongInteger(byte_iter):
-        """ Decodes the long integer value starting at the byte pointed to
-        by C{byte_iter.next()}.
+        """
+        Decodes the long int value pointed to by ``byte_iter``
+
+        If this function returns successfully, it will move the
+        iterator passed as ``byte_iter`` to the last octet in the
+        encoded long integer sequence; thus, after calling this, that
+        iterator's `next()` function will return the first byte
+        **after** the encoded long integer sequence.
 
         The encoding for a long integer is specified in [5], section 8.4.2.1,
         and follows the form::
 
-         Long-integer = [Short-length] [Multi-octet-integer]
-                            ^^^^^^     ^^^^^^^^^^^^^^^^^^^^^
-                            1 byte     <Short-length> bytes
+            Long-integer = [Short-length] [Multi-octet-integer]
+                               ^^^^^^     ^^^^^^^^^^^^^^^^^^^^^
+                               1 byte     <Short-length> bytes
 
-         The Short-length indicates the length of the Multi-octet-integer.
+        The Short-length indicates the length of the Multi-octet-integer.
 
-        @raise DecodeError: The byte pointed to by C{byte_iter.next()} does
+        :raise DecodeError: The byte pointed to by ``byte_iter.next`` does
                             not indicate the start of a valid long-integer
                             sequence (short-length is invalid). If this is
-                            raised, the iterator passed as C{byte_iter} will
+                            raised, the iterator passed as ``byte_iter`` will
                             not be modified.
 
-        @note: If this function returns successfully, it will move the
-               iterator passed as C{byte_iter} to the last octet in the encoded
-               long integer sequence; thus, after calling this, that
-               iterator's C{next()} function will return the first byte
-               B{after}the encoded long integer sequence.
+        :param byte_iter: an iterator over a sequence of bytes
+        :type byte_iter: iter
 
-        @param byte_iter: an iterator over a sequence of bytes
-        @type byte_iter: iter
-
-        @return: The decoded long integer
-        @rtype: int
+        :return: The decoded long integer
+        :rtype: int
         """
         try:
             shortLength = Decoder.decodeShortLength(byte_iter)
@@ -459,22 +470,23 @@ class Decoder:
 
     @staticmethod
     def decodeTextString(byte_iter):
-        """ Decodes the null-terminated, binary-encoded string value starting
-        at the byte pointed to by C{dataIter.next()}.
+        """
+        Decodes the null-terminated, binary-encoded string value starting
+        at the byte pointed to by ``byte_iter``.
+
+        this function will move the iterator passed as ``byte_iter`` to
+        the last octet in the encoded string sequence; thus, after
+        calling this, that iterator's `next()` function will return
+        the first byte **after** the encoded string sequence.
 
         This follows the basic encoding rules specified in [5], section
         8.4.2.1
 
-        @note: this function will move the iterator passed as C{byte_iter} to
-               the last octet in the encoded string sequence; thus, after
-               calling this, that iterator's C{next()} function will return
-               the first byte B{after}the encoded string sequence.
+        :param byte_iter: an iterator over a sequence of bytes
+        :type byte_iter: iter
 
-        @param byte_iter: an iterator over a sequence of bytes
-        @type byte_iter: iter
-
-        @return: The decoded text string
-        @rtype: str
+        :return: The decoded text string
+        :rtype: str
         """
         decodedString = ''
         byte = byte_iter.next()
@@ -490,13 +502,16 @@ class Decoder:
 
     @staticmethod
     def decodeQuotedString(byte_iter):
-        """ From [5], section 8.4.2.1:
-        Quoted-string = <Octet 34> *TEXT End-of-string
+        """
+        From [5], section 8.4.2.1::
+
+            Quoted-string = <Octet 34> *TEXT End-of-string
+
         The TEXT encodes an RFC2616 Quoted-string with the enclosing
         quotation-marks <"> removed
 
-        @return: The decoded text string
-        @rtype: str
+        :return: The decoded text string
+        :rtype: str
         """
         # look for the quote character
         byte = byte_iter.preview()
@@ -514,10 +529,10 @@ class Decoder:
         """ From [5], section 8.4.2.1:
         Token-text = Token End-of-string
 
-        @raise DecodeError: invalid token; byte_iter is not modified
+        :raise DecodeError: invalid token; byte_iter is not modified
 
-        @return: The token string if successful, otherwise the read byte
-        @rtype: str or int
+        :return: The token string if successful, otherwise the read byte
+        :rtype: str or int
         """
         separators = (11, 32, 40, 41, 44, 47, 58, 59, 60, 61, 62, 63, 64, 91,
                       92, 93, 123, 125)
@@ -536,16 +551,22 @@ class Decoder:
 
     @staticmethod
     def decodeExtensionMedia(byte_iter):
-        """ From [5], section 8.4.2.1:
-        Extension-media = *TEXT End-of-string
+        """
+        Decode the extension media pointed by ``byte_iter``
+
         This encoding is used for media values, which have no well-known
         binary encoding
 
-        @raise DecodeError: The TEXT started with an invalid character.
-                            C{byte_iter} is not modified if this happens.
+        From [5], section 8.4.2.1::
 
-        @return: The decoded media type value
-        @rtype: str
+            Extension-media = *TEXT End-of-string
+
+
+        :raise DecodeError: The TEXT started with an invalid character.
+                            ``byte_iter`` is not modified if this happens.
+
+        :return: The decoded media type value
+        :rtype: str
         """
         media_value = ''
         byte = byte_iter.preview()
@@ -568,8 +589,8 @@ class Decoder:
         binary encoding, or when the assigned number of the well-known
         encoding is small enough to fit into Short-integer.
 
-        @return: The decoding constrained-encoding token value
-        @rtype: str or int
+        :return: The decoding constrained-encoding token value
+        :rtype: str or int
         """
         result = None
         try:
@@ -590,15 +611,15 @@ class Decoder:
         """ From [5], section 8.4.2.2:
         Short-length = <Any octet 0-30>
 
-        @raise DecodeError: The byte is not a valid short-length value;
+        :raise DecodeError: The byte is not a valid short-length value;
                             it is not in octet range 0-30. In this case, the
-                            iterator passed as C{byte_iter} is not modified.
+                            iterator passed as ``byte_iter`` is not modified.
 
-        @note: If this function returns successfully, the iterator passed as
-               C{byte_iter} is moved one byte forward.
+        :note: If this function returns successfully, the iterator passed as
+               ``byte_iter`` is moved one byte forward.
 
-        @return: The decoded short-length
-        @rtype: int
+        :return: The decoded short-length
+        :rtype: int
         """
         # Make sure it's a valid short-length
         byte = byte_iter.preview()
@@ -611,25 +632,25 @@ class Decoder:
 
     @staticmethod
     def decodeValueLength(byte_iter):
-        """Decodes the value length indicator starting at the byte pointed to
-        by C{byte_iter.next()}.
+        """
+        Decodes the value length indicator starting at ``byte_iter``
 
         "Value length" is used to indicate the length of a value to follow, as
-        used in the C{Content-Type} header in the MMS body, for example.
+        used in the `Content-Type` header in the MMS body, for example.
 
         The encoding for a value length indicator is specified in [5],
         section 8.4.2.2, and follows the form::
 
-         Value-length = [Short-length]  --or--  [Length-quote] [Length]
-                            ^^^^^^                  ^^^^^^      ^^^^^^
-                            1 byte                  1 byte      x bytes
-                       <Any octet 0-30>          <Octet 31>   Uintvar-integer
+            Value-length = [Short-length]  --or--  [Length-quote] [Length]
+                               ^^^^^^                  ^^^^^^      ^^^^^^
+                               1 byte                  1 byte      x bytes
+                          <Any octet 0-30>          <Octet 31>   Uintvar-integer
 
-        @raise DecodeError: The ValueLength could not be decoded. If this
-                            happens, C{byte_iter} is not modified.
+        :raise DecodeError: The ValueLength could not be decoded. If this
+                            happens, ``byte_iter`` is not modified.
 
-        @return: The decoded value length indicator
-        @rtype: int
+        :return: The decoded value length indicator
+        :rtype: int
         """
         length_value = 0
         # Check for short-length
@@ -650,21 +671,24 @@ class Decoder:
 
     @staticmethod
     def decodeIntegerValue(byte_iter):
-        """ From [5], section 8.4.2.3:
-        Integer-Value = Short-integer | Long-integer
+        """
+        Decodes the integer value pointed by ``byte_iter``
 
-        @raise DecodeError: The sequence of bytes starting at
-                            C{byte_iter.next()} does not contain a valid
-                            integervalue. If this is raised, the iterator
-                            passed as C{byte_iter} is not modified.
+        From [5], section 8.4.2.3::
 
-        @note: If successful, this function will move the iterator passed as
-               C{byte_iter} to the last octet in the integer value sequence;
-               thus, after calling this, that iterator's C{next()} function
-               will return the first byte B{after}the integer value sequence.
+            Integer-Value = Short-integer | Long-integer
 
-        @return: The decoded integer value
-        @rtype: int
+        If successful, this function will move the iterator passed as
+        ``byte_iter`` to the last octet in the integer value sequence;
+        thus, after calling this, that iterator's `next()` function
+        will return the first byte **after** the integer value sequence.
+
+        :raise DecodeError: The sequence of bytes starting at ``byte_iter``
+                            does not contain a valid integer value. If this
+                            is raised, the iterator is not modified.
+
+        :return: The decoded integer value
+        :rtype: int
         """
         integer = 0
         # First try and see if it's a short-integer
@@ -680,23 +704,25 @@ class Decoder:
 
     @staticmethod
     def decodeContentTypeValue(byte_iter):
-        """Decodes an encoded content type value.
+        """
+        Decodes an encoded content type value.
 
-        From [5], section 8.4.2.24:
-        C{Content-type-value = Constrained-media | Content-general-form}
+        From [5], section 8.4.2.24::
+
+            Content-type-value = Constrained-media | Content-general-form
 
         The short form of the Content-type-value MUST only be used when the
         well-known media is in the range of 0-127 or a text string. In all
         other cases the general form MUST be used.
 
-        @return: The media type (content type), and a dictionary of
+        :return: The media type (content type), and a dictionary of
                  parameters to this content type (which is empty if there
                  are no parameters). This parameter dictionary is in the
                  format:
-                 C{{<str:parameter_name>: <str/int/float:parameter_value>}}.
+                 {<str:parameter_name>: <str/int/float:parameter_value>}.
                  The final returned tuple is in the format:
                  (<str:media_type>, <dict:parameter_dict>)
-        @rtype: tuple
+        :rtype: tuple
         """
         # First try do decode it as Constrained-media
         content_type = ''
@@ -711,30 +737,34 @@ class Decoder:
 
     @staticmethod
     def decodeWellKnownMedia(byte_iter):
-        """ From [5], section 8.4.2.7:
-        Well-known-media = Integer-value
+        """
+        Decodes the well known media pointed by ``byte_iter``
+        From [5], section 8.4.2.7::
+
+            Well-known-media = Integer-value
+
         It is encoded using values from the "Content Type Assignments" table
         (see [5], table 40).
 
-        @param byte_iter: an iterator over a sequence of bytes
-        @type byte_iter: iter
+        :param byte_iter: an iterator over a sequence of bytes
+        :type byte_iter: iter
 
-        @raise DecodeError: This is raised if the integer value representing
+        :raise DecodeError: This is raised if the integer value representing
                             the well-known media type cannot be decoded
                             correctly, or the well-known media type value
                             could not be found in the table of assigned
                             content types.
                             If this exception is raised, the iterator passed
-                            as C{byte_iter} is not modified.
+                            as ``byte_iter`` is not modified.
 
-        @note: If successful, this function will move the iterator passed as
-               C{byte_iter} to the last octet in the content type value
-               sequence; thus, after calling this, that iterator's C{next()}
-               function will return the first byte B{after}the content type
-               value sequence.
+        If successful, this function will move the iterator passed as
+        ``byte_iter`` to the last octet in the content type value
+        sequence; thus, after calling this, that iterator's `next()`
+        function will return the first byte B{after}the content type
+        value sequence.
 
-        @return: the decoded MIME content type name
-        @rtype: str
+        :return: the decoded MIME content type name
+        :rtype: str
         """
         try:
             value = Decoder.decodeIntegerValue(byte_iter)
@@ -750,16 +780,20 @@ class Decoder:
 
     @staticmethod
     def decodeMediaType(byte_iter):
-        """ From [5], section 8.2.4.24:
-        Media-type = (Well-known-media | Extension-Media) *(Parameter)
+        """
+        Decodes the media type pointed by ``byte_iter``
 
-        @param byte_iter: an iterator over a sequence of bytes
-        @type byte_iter: iter
+        Used by :func:`decodeContentGeneralForm`
 
-        @note: Used by C{decodeContentGeneralForm()}
+        From [5], section 8.2.4.24::
 
-        @return: The decoded media type
-        @rtype: str
+            Media-type = (Well-known-media | Extension-Media) *(Parameter)
+
+        :param byte_iter: an iterator over a sequence of bytes
+        :type byte_iter: iter
+
+        :return: The decoded media type
+        :rtype: str
         """
         try:
             return Decoder.decodeWellKnownMedia(byte_iter)
@@ -768,14 +802,19 @@ class Decoder:
 
     @staticmethod
     def decodeConstrainedMedia(byte_iter):
-        """ From [5], section 8.4.2.7:
-        Constrained-media = Constrained-encoding
+        """
+        Decodes the constrained media pointed pointed by ``byte_iter``
+
         It is encoded using values from the "Content Type Assignments" table.
 
-        @raise DecodeError: Invalid constrained media sequence
+        From [5], section 8.4.2.7::
 
-        @return: The decoded media type
-        @rtype: str
+            Constrained-media = Constrained-encoding
+
+        :raise DecodeError: Invalid constrained media sequence
+
+        :return: The decoded media type
+        :rtype: str
         """
         try:
             media_value = Decoder.decodeConstrainedEncoding(byte_iter)
@@ -793,22 +832,25 @@ class Decoder:
 
     @staticmethod
     def decodeContentGeneralForm(byte_iter):
-        """ From [5], section 8.4.2.24:
-        Content-general-form = Value-length Media-type
+        """
+        Decodes the content general form pointed by ``byte_iter``
 
-        @note: Used in decoding Content-type fields and their parameters;
-               see C{decodeContentTypeValue}
+        From [5], section 8.4.2.24::
 
-        @note: Used by C{decodeContentTypeValue()}
+            Content-general-form = Value-length Media-type
 
-        @return: The media type (content type), and a dictionary of
+        Used in decoding Content-type fields and their parameters;
+        see :func:`decodeContentTypeValue`. Used by
+        :func:`decodeContentTypeValue`.
+
+        :return: The media type (content type), and a dictionary of
                  parameters to this content type (which is empty if there
                  are no parameters). This parameter dictionary is in the
                  format:
-                 C{{<str:parameter_name>: <str/int/float:parameter_value>}}.
+                 {<str:parameter_name>: <str/int/float:parameter_value>}.
                  The final returned tuple is in the format:
                  (<str:media_type>, <dict:parameter_dict>)
-        @rtype: tuple
+        :rtype: tuple
         """
         # This is the length of the (encoded) media-type and all parameters
         value_length = Decoder.decodeValueLength(byte_iter)
@@ -834,12 +876,14 @@ class Decoder:
 
     @staticmethod
     def decodeParameter(byte_iter):
-        """ From [5], section 8.4.2.4:
-        Parameter = Typed-parameter | Untyped-parameter
+        """
+        From [5], section 8.4.2.4::
 
-        @return: The name of the parameter, and its value, in the format:
+            Parameter = Typed-parameter | Untyped-parameter
+
+        :return: The name of the parameter, and its value, in the format:
                  (<parameter name>, <parameter value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         try:
             return Decoder.decodeTypedParameter(byte_iter)
@@ -848,16 +892,21 @@ class Decoder:
 
     @staticmethod
     def decodeTypedParameter(byte_iter):
-        """ From [5], section 8.4.2.4:
-        C{Typed-parameter = Well-known-parameter-token Typed-value}
+        """
+        Decodes the typed parameter pointed by ``byte_iter``
+
         The actual expected type of the value is implied by the well-known
         parameter.
 
-        @note: This is used in decoding parameters; see C{decodeParameter}
+        This is used in decoding parameters; see :func:`decodeParameter`
 
-        @return: The name of the parameter, and its value, in the format:
+        From [5], section 8.4.2.4::
+
+            Typed-parameter = Well-known-parameter-token Typed-value
+
+        :return: The name of the parameter, and its value, in the format:
                  (<parameter name>, <parameter value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         token, value_type = Decoder.decodeWellKnownParameter(byte_iter)
         typed_value = ''
@@ -874,16 +923,21 @@ class Decoder:
 
     @staticmethod
     def decodeUntypedParameter(byte_iter):
-        """ From [5], section 8.4.2.4:
-        C{Untyped-parameter = Token-text Untyped-value}
+        """
+        Decodes the untyped parameter pointed by ``byte_iter``
+
+        This is used in decoding parameters; see :func:`decodeParameter`
+
         The type of the value is unknown, but it shall be encoded as an
         integer, if that is possible.
 
-        @note: This is used in decoding parameters; see C{decodeParameter}
+        From [5], section 8.4.2.4::
 
-        @return: The name of the parameter, and its value, in the format:
+            Untyped-parameter = Token-text Untyped-value
+
+        :return: The name of the parameter, and its value, in the format:
                  (<parameter name>, <parameter value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         token = Decoder.decodeTokenText(byte_iter)
         value = Decoder.decodeUntypedValue(byte_iter)
@@ -891,13 +945,18 @@ class Decoder:
 
     @staticmethod
     def decodeUntypedValue(byte_iter):
-        """ From [5], section 8.4.2.4:
-        Untyped-value = Integer-value | Text-value
+        """
+        Decodes the untyped value pointed by ``byte_iter``
 
-        @note: This is used in decoding parameter values; see
-               C{decodeUntypedParameter}
-        @return: The decoded untyped-value
-        @rtype: int or str
+        This is used in decoding parameter values; see
+        :func:`decodeUntypedParameter`
+
+        From [5], section 8.4.2.4::
+
+            Untyped-value = Integer-value | Text-value
+
+        :return: The decoded untyped-value
+        :rtype: int or str
         """
         try:
             return Decoder.decodeIntegerValue(byte_iter)
@@ -906,33 +965,34 @@ class Decoder:
 
     @staticmethod
     def decodeWellKnownParameter(byte_iter, version='1.2'):
-        """ Decodes the name and expected value type of a parameter of (for
+        """Decodes the name and expected value type of a parameter of (for
         example) a "Content-Type" header entry, taking into account the WSP
         short form (assigned numbers) of well-known parameter names, as
         specified in section 8.4.2.4 and table 38 of [5].
 
-        From [5], section 8.4.2.4:
-        Well-known-parameter-token = Integer-value
         The code values used for parameters are specified in [5], table 38
 
-        @raise ValueError: The specified encoding version is invalid.
+        From [5], section 8.4.2.4::
 
-        @raise DecodeError: This is raised if the integer value representing
+            Well-known-parameter-token = Integer-value
+
+        :raise ValueError: The specified encoding version is invalid.
+        :raise DecodeError: This is raised if the integer value representing
                             the well-known parameter name cannot be decoded
                             correctly, or the well-known paramter token value
                             could not be found in the table of assigned
                             content types.
                             If this exception is raised, the iterator passed
-                            as C{byte_iter} is not modified.
+                            as ``byte_iter`` is not modified.
 
-        @param version: The WSP encoding version to use. This defaults
+        :param version: The WSP encoding version to use. This defaults
                         to "1.2", but may be "1.1", "1.2", "1.3" or
                         1.4" (see table 39 in [5] for details).
-        @type version: str
+        :type version: str
 
-        @return: the decoded parameter name, and its expected value type, in
+        :return: the decoded parameter name, and its expected value type, in
                  the format (<parameter name>, <expected type>)
-        @rtype: tuple
+        :rtype: tuple
         """
         parameter_name = expected_value = ''
         try:
@@ -956,16 +1016,20 @@ class Decoder:
     # is EXPECTED (hence the TYPED value)
     @staticmethod
     def decodeTypedValue(byte_iter):
-        """ From [5], section 8.4.2.4:
-        Typed-value = Compact-value | Text-value
+        """
+        Decodes the typed value pointed by ``byte_iter``
+
         In addition to the expected type, there may be no value.
         If the value cannot be encoded using the expected type, it shall be
         encoded as text.
 
-        @note: This is used in decoding parameters, see C{decodeParameter()}
+        This is used in decoding parameters, see :func:`decodeParameter`
+        From [5], section 8.4.2.4::
 
-        @return: The decoded Parameter Typed-value
-        @rtype: str
+            Typed-value = Compact-value | Text-value
+
+        :return: The decoded Parameter Typed-value
+        :rtype: str
         """
         typedValue = ''
         try:
@@ -982,18 +1046,21 @@ class Decoder:
     # type is EXPECTED
     @staticmethod
     def decodeCompactValue(byte_iter):
-        """ From [5], section 8.4.2.4:
-        Compact-value = Integer-value | Date-value | Delta-seconds-value
-        | Q-value | Version-value | Uri-value
+        """
+        Decodes the compact value pointed by ``byte_iter``
 
-        @raise DecodeError: Failed to decode the Parameter Compact-value;
-                            if this happens, C{byte_iter} is unmodified
+        This is used in decoding parameters, see :func:`decodeTypeValue`
 
-        @note: This is used in decoding parameters, see C{decodeTypeValue()}
+        From [5], section 8.4.2.4::
 
-        @return: The decoded Compact-value (this is specific to the
+            Compact-value = Integer-value | Date-value | Delta-seconds-value | Q-value | Version-value | Uri-value
+
+        :raise DecodeError: Failed to decode the Parameter Compact-value;
+                            if this happens, ``byte_iter`` is unmodified
+
+        :return: The decoded Compact-value (this is specific to the
                  parameter type
-        @rtype: str or int
+        :rtype: str or int
         """
         compact_value = None
         try:
@@ -1012,27 +1079,36 @@ class Decoder:
 
     @staticmethod
     def decodeDateValue(byte_iter):
-        """ From [5], section 8.4.2.3:
-        Date-value = Long-integer
+        """
+        Decode the data value pointed by ``byte_iter``
+
         The encoding of dates shall be done in number of seconds from
         1970-01-01, 00:00:00 GMT.
 
-        @raise DecodeError: This method uses C{decodeLongInteger}, and thus
+        From [5], section 8.4.2.3::
+
+            Date-value = Long-integer
+
+        :raise DecodeError: This method uses `decodeLongInteger()`, and thus
                             raises this under the same conditions.
 
-        @return: The date, in a format such as: C{Tue Nov 27 16:12:21 2007}
-        @rtype: str
+        :rtype: datetime.datetime
         """
         return datetime.fromtimestamp(Decoder.decodeLongInteger(byte_iter))
 
     @staticmethod
     def decodeDeltaSecondsValue(byte_iter):
-        """ From [5], section 8.4.2.3:
-        Delta-seconds-value = Integer-value
-        @raise DecodeError: This method uses C{decodeIntegerValue}, and thus
+        """
+        Decodes the delta seconds value pointed by ``byte_iter``
+
+        From [5], section 8.4.2.3::
+
+            Delta-seconds-value = Integer-value
+
+        :raise DecodeError: This method uses `decodeIntegerValue`, and thus
                             raises this under the same conditions.
-        @return: the decoded delta-seconds-value
-        @rtype: int
+        :return: the decoded delta-seconds-value
+        :rtype: int
         """
         return Decoder.decodeIntegerValue(byte_iter)
 
@@ -1049,8 +1125,8 @@ class Decoder:
         one-octet or two-octet uintvar, eg, 0.333 shall be encoded as 0x83
         0x31. Quality factor 1 is the default value and shall never be sent.
 
-        @return: The decode quality factor (Q-value)
-        @rtype: float
+        :return: The decode quality factor (Q-value)
+        :rtype: float
         """
         q_value_int = Decoder.decodeUintvar(byte_iter)
         # TODO: limit the amount of decimal points
@@ -1061,12 +1137,16 @@ class Decoder:
 
     @staticmethod
     def decodeVersionValue(byte_iter):
-        """ Decodes the version-value. From [5], section 8.4.2.3:
-        Version-value = Short-integer | Text-string
+        """
+        Decodes the version-value.
 
-        @return: the decoded version value in the format, usually in the
+        From [5], section 8.4.2.3::
+
+            Version-value = Short-integer | Text-string
+
+        :return: the decoded version value in the format, usually in the
                  format: "<major_version>.<minor_version>"
-        @rtype: str
+        :rtype: str
         """
         try:
             byteValue = Decoder.decodeShortInteger(byte_iter)
@@ -1079,20 +1159,24 @@ class Decoder:
     @staticmethod
     def decodeUriValue(byte_iter):
         """
-        Stub for Uri-value decoding; this is a wrapper to C{decodeTextString}
+        Stub for Uri-value decoding; see :func:`decodeTextString`
         """
         return Decoder.decodeTextString(byte_iter)
 
     @staticmethod
     def decodeTextValue(byte_iter):
-        """Stub for Parameter Text-value decoding.
-        From [5], section 8.4.2.3:
-        Text-value = No-value | Token-text | Quoted-string
+        """
+        Stub for Parameter Text-value decoding.
 
-        This is used when decoding parameter values; see C{decodeTypedValue()}
+        This is used when decoding parameter values; see
+        :func:`decodeTypedValue`
 
-        @return: The decoded Parameter Text-value
-        @rtype: str
+        From [5], section 8.4.2.3::
+
+            Text-value = No-value | Token-text | Quoted-string
+
+        :return: The decoded Parameter Text-value
+        :rtype: str
         """
         try:
             return Decoder.decodeTokenText(byte_iter)
@@ -1105,17 +1189,16 @@ class Decoder:
 
     @staticmethod
     def decodeNoValue(byte_iter):
-        """Basically verifies that the byte pointed to by C{byte_iter.next()}
-        is 0x00.
+        """
+        Verifies that the byte pointed to by ``byte_iter`` is 0x00.
 
-        @note: If successful, this function will move C{byte_iter} one byte
-               forward.
+        If successful, this function will move ``byte_iter`` one byte forward
 
-        @raise DecodeError: If 0x00 is not found; C{byte_iter} is not modified
+        :raise DecodeError: If 0x00 is not found; ``byte_iter`` is not modified
                             if this is raised.
 
-        @return: No-value, which is 0x00
-        @rtype: int
+        :return: No-value, which is 0x00
+        :rtype: int
         """
         byte_iter, local_iter = byte_iter.next()
         if local_iter.next() != 0x00:
@@ -1126,21 +1209,23 @@ class Decoder:
 
     @staticmethod
     def decodeAcceptValue(byte_iter):
-        """ From [5], section 8.4.2.7:
-        Accept-value = Constrained-media | Accept-general-form
-        Accept-general-form = Value-length Media-range [Accept-parameters]
-        Media-range = (Well-known-media | Extension-Media) *(Parameter)
-        Accept-parameters = Q-token Q-value *(Accept-extension)
-        Accept-extension = Parameter
-        Q-token = <Octet 128>
+        """
+        most of these things are currently decoded, but discarded (e.g
+        accept-parameters); we only return the media type
 
-        @note: most of these things are currently decoded, but discarded (e.g
-               accept-parameters); we only return the media type
+        From [5], section 8.4.2.7::
 
-        @raise DecodeError: The decoding failed. C{byte_iter} will not be
+            Accept-value = Constrained-media | Accept-general-form
+            Accept-general-form = Value-length Media-range [Accept-parameters]
+            Media-range = (Well-known-media | Extension-Media) *(Parameter)
+            Accept-parameters = Q-token Q-value *(Accept-extension)
+            Accept-extension = Parameter
+            Q-token = <Octet 128>
+
+        :raise DecodeError: The decoding failed. ``byte_iter`` will not be
                             modified in this case.
-        @return: the decoded Accept-value (media/content type)
-        @rtype: str
+        :return: the decoded Accept-value (media/content type)
+        :rtype: str
         """
         accept_value = ''
         # Try to use Constrained-media encoding
@@ -1171,17 +1256,22 @@ class Decoder:
 
     @staticmethod
     def decodePragmaValue(byte_iter):
-        """ Defined in [5], section 8.4.2.38:
-        Pragma-value = No-cache | (Value-length Parameter)
+        """
+        Decodes the pragma value pointed by ``byte_iter``
 
-        From [5], section 8.4.2.15:
-        No-cache = <Octet 128>
+        Defined in [5], section 8.4.2.38::
 
-        @raise DecodeError: The decoding failed. C{byte_iter} will not be
+            Pragma-value = No-cache | (Value-length Parameter)
+
+        From [5], section 8.4.2.15::
+
+            No-cache = <Octet 128>
+
+        :raise DecodeError: The decoding failed. ``byte_iter`` will not be
                             modified in this case.
-        @return: the decoded Pragma-value, in the format:
+        :return: the decoded Pragma-value, in the format:
                  (<parameter name>, <parameter value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         byte = byte_iter.preview()
         if byte == 0x80:  # No-cache
@@ -1198,10 +1288,14 @@ class Decoder:
 
     @staticmethod
     def decodeWellKnownCharset(byte_iter):
-        """ From [5], section 8.4.2.8:
-        C{Well-known-charset = Any-charset | Integer-value}
+        """
+        From [5], section 8.4.2.8::
+
+            Well-known-charset = Any-charset | Integer-value
+            Any-charset = <Octet 128>
+
         It is encoded using values from "Character Set Assignments" table.
-        C{Any-charset = <Octet 128>}
+
         Equivalent to the special RFC2616 charset value "*"
         """
         decoded_charset = ''
@@ -1224,16 +1318,19 @@ class Decoder:
 
     @staticmethod
     def decodeWellKnownHeader(byte_iter):
-        """ From [5], section 8.4.2.6:
-        C{Well-known-header = Well-known-field-name Wap-value}
-        C{Well-known-field-name = Short-integer}
-        C{Wap-value = <many different headers value, most not implemented>}
+        """
+        Currently, "Wap-value" is decoded as a Text-string in most cases
 
-        @todo: Currently, "Wap-value" is decoded as a Text-string in most cases
+        From [5], section 8.4.2.6::
 
-        @return: The header name, and its value, in the format:
+            Well-known-header = Well-known-field-name Wap-value
+            Well-known-field-name = Short-integer
+            Wap-value = <many different headers value, most not implemented>
+
+
+        :return: The header name, and its value, in the format:
                  (<str:header_name>, <str:header_value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         field_value = Decoder.decodeShortInteger(byte_iter)
         hdr_fields = WSPEncodingAssignments.header_field_names()
@@ -1269,21 +1366,22 @@ class Decoder:
 
     @staticmethod
     def decodeApplicationHeader(byte_iter):
-        """ From [5], section 8.4.2.6:
-        C{Application-header = Token-text Application-specific-value}
+        """
+        From [5], section 8.4.2.6::
 
-        From [4], section 7.1:
-        C{Application-header = Token-text Application-specific-value}
-        C{Application-specific-value = Text-string}
+            Application-header = Token-text Application-specific-value
 
-        @note: This is used when decoding generic WSP headers;
-               see C{decode_header()}.
-        @note: We follow [4], and decode the "Application-specific-value"
-               as a Text-string
+        From [4], section 7.1::
+            Application-header = Token-text Application-specific-value
+            Application-specific-value = Text-string
 
-        @return: The application-header, and its value, in the format:
+        This is used when decoding generic WSP headers; see
+        :func:`decode_header`. We follow [4], and decode the
+        "Application-specific-value" as a Text-string
+
+        :return: The application-header, and its value, in the format:
                  (<str:application_header>, <str:application_specific_value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         try:
             app_header = Decoder.decodeTokenText(byte_iter)
@@ -1296,20 +1394,23 @@ class Decoder:
 
     @staticmethod
     def decode_header(byte_iter):
-        """Decodes a WSP header entry
+        """
+        Decodes a WSP header entry
 
-        From [5], section 8.4.2.6:
-        C{Header = Message-header | Shift-sequence}
-        C{Message-header = Well-known-header | Application-header}
-        C{Well-known-header = Well-known-field-name Wap-value}
-        C{Application-header = Token-text Application-specific-value}
+        "Shift-sequence" encoding has not been implemented. Currently,
+        almost all header values are treated as text-strings
 
-        @note: "Shift-sequence" encoding has not been implemented
-        @note: Currently, almost all header values are treated as text-strings
+        From [5], section 8.4.2.6::
 
-        @return: The decoded headername, and its value, in the format:
+            Header = Message-header | Shift-sequence
+            Message-header = Well-known-header | Application-header
+            Well-known-header = Well-known-field-name Wap-value
+            Application-header = Token-text Application-specific-value
+
+
+        :return: The decoded headername, and its value, in the format:
                  (<str:header_name>, <str:header_value>)
-        @rtype: tuple
+        :rtype: tuple
         """
         # First try decoding the header as a well-known-header
         try:
@@ -1324,20 +1425,22 @@ class Encoder:
 
     @staticmethod
     def encodeUint8(uint):
-        """ Encodes an 8-bit unsigned integer
+        """
+        Encodes an 8-bit unsigned integer
 
-        @param uint: The integer to encode
-        @type byte_iter: int
+        :param uint: The integer to encode
+        :type byte_iter: int
 
-        @return: the encoded Uint8, as a sequence of bytes
-        @rtype: list
+        :return: the encoded Uint8, as a sequence of bytes
+        :rtype: list
         """
         # Make the byte unsigned
         return [uint & 0xff]
 
     @staticmethod
     def encodeUintvar(uint):
-        """ Variable Length Unsigned Integer encoding algorithm
+        """
+        Variable Length Unsigned Integer encoding algorithm
 
         This binary-encodes the given unsigned integer number as specified
         in section 8.1.2 of [5]. Basically, each encoded byte has the
@@ -1353,8 +1456,8 @@ class Encoder:
         used octet is set to '1' to indicate more is to follow; the last used
         octet's "continue bit" is set to 0.
 
-        @return: the binary-encoded Uintvar, as a list of byte values
-        @rtype: list
+        :return: the binary-encoded Uintvar, as a list of byte values
+        :rtype: list
         """
         uint_var = [uint & 0x7f]
         # Since this is the lowest entry, we do not set the continue bit to 1
@@ -1373,12 +1476,12 @@ class Encoder:
         This follows the basic encoding rules specified in [5], section
         8.4.2.1
 
-        @param string: The text string to encode
-        @type string: str
+        :param string: The text string to encode
+        :type string: str
 
-        @return: the null-terminated, binary-encoded version of the
+        :return: the null-terminated, binary-encoded version of the
                      specified Text-string, as a list of byte values
-        @rtype: list
+        :rtype: list
         """
         encoded_string = list(map(ord, string))
         encoded_string.append(0x00)
@@ -1386,22 +1489,25 @@ class Encoder:
 
     @staticmethod
     def encodeShortInteger(integer):
-        """ Encodes the specified short-integer value
+        """
+        Encodes the specified short-integer ``integer`` value
 
-        The encoding for a long integer is specified in [5], section 8.4.2.1:
-        C{Short-integer = OCTET}
         Integers in range 0-127 shall be encoded as a one octet value with
         the most significant bit set to one (1xxx xxxx) and with the value
         in the remaining least significant bits.
 
-        @param integer: The short-integer value to encode
-        @type integer: int
+        The encoding for a long integer is specified in [5], section 8.4.2.1::
 
-        @raise EncodeError: Not a valid short-integer; the integer must be in
+            Short-integer = OCTET
+
+        :param integer: The short-integer value to encode
+        :type integer: int
+
+        :raise EncodeError: Not a valid short-integer; the integer must be in
                             the range of 0-127
 
-        @return: The encoded short integer, as a list of byte values
-        @rtype: list
+        :return: The encoded short integer, as a list of byte values
+        :rtype: list
         """
         if integer < 0 or integer > 127:
             raise EncodeError('Short-integer value must be in '
@@ -1412,24 +1518,25 @@ class Encoder:
 
     @staticmethod
     def encodeLongInteger(integer):
-        """Encodes a Long-integer value
+        """
+        Encodes a Long-integer value ``integer``
 
         The encoding for a long integer is specified in [5], section 8.4.2.1;
         for a description of this encoding scheme, see
-        C{wsp.Decoder.decodeLongIntger()}.
+        :func:`wsp.Decoder.decodeLongIntger`.
 
-        Basically:
-        From [5], section 8.4.2.2:
-        Long-integer = Short-length Multi-octet-integer
-        Short-length = <Any octet 0-30>
+        From [5], section 8.4.2.2::
 
-        @raise EncodeError: <integer> is not of type "int"
+            Long-integer = Short-length Multi-octet-integer
+            Short-length = <Any octet 0-30>
 
-        @param integer: The integer value to encode
-        @type integer: int
+        :raise EncodeError: <integer> is not of type "int"
 
-        @return: The encoded Long-integer, as a sequence of byte values
-        @rtype: list
+        :param integer: The integer value to encode
+        :type integer: int
+
+        :return: The encoded Long-integer, as a sequence of byte values
+        :rtype: list
         """
         if not isinstance(integer, int):
             raise EncodeError('<integer> must be of type "int"')
@@ -1452,20 +1559,23 @@ class Encoder:
 
     @staticmethod
     def encodeVersionValue(version):
-        """ Encodes the version-value. From [5], section 8.4.2.3:
-        Version-value = Short-integer | Text-string
+        """
+        Encodes the version-value.
 
         Example: An MMS version of "1.0" consists of a major version of 1 and a
         minor version of 0, and would be encoded as 0x90. However, a version
         of "1.2.4" would be encoded as the Text-string "1.2.4".
 
-        @param version: The version number to encode, e.g. "1.0"
-        @type version: str
+        From [5], section 8.4.2.3::
+            Version-value = Short-integer | Text-string
 
-        @raise TypeError: The specified version value was not of type C{str}
+        :param version: The version number to encode, e.g. "1.0"
+        :type version: str
 
-        @return: the encoded version value, as a list of byte values
-        @rtype: list
+        :raise TypeError: The specified version value was not of type `str`
+
+        :return: the encoded version value, as a list of byte values
+        :rtype: list
         """
         if not isinstance(version, str):
             raise TypeError('Parameter must be of type "str"')
@@ -1497,20 +1607,22 @@ class Encoder:
 
     @staticmethod
     def encodeMediaType(content_type):
-        """Encodes the specified MIME content type ("Media-type" value)
-
-        From [5], section 8.2.4.24:
-        Media-type = (Well-known-media | Extension-Media) *(Parameter)
+        """
+        Encodes the specified MIME ``content_type`` ("Media-type" value)
 
         "Well-known-media" takes into account the WSP short form of well-known
         content types, as specified in section 8.4.2.24 and table 40 of [5].
 
-        @param content_type: The MIME content type to encode
-        @type content_type: str
+        From [5], section 8.2.4.24::
 
-        @return: The binary-encoded content type, as a list of (integer) byte
+            Media-type = (Well-known-media | Extension-Media) *(Parameter)
+
+        :param content_type: The MIME content type to encode
+        :type content_type: str
+
+        :return: The binary-encoded content type, as a list of (integer) byte
                  values
-        @rtype: list
+        :rtype: list
         """
         if content_type in WSPEncodingAssignments.wkContentTypes:
             # Short-integer encoding
@@ -1523,32 +1635,36 @@ class Encoder:
 
     @staticmethod
     def encode_parameter(parameter_name, parameter_value, version='1.2'):
-        """ Binary-encodes the name of a parameter of (for example) a
-        "Content-Type" header entry, taking into account the WSP short form of
+        """
+        Encodes ``parameter_name`` and ``parameter_value`` using ``version``
+
+        Binary-encodes the name of a parameter of -say- a "Content-Type"
+        header entry, taking into account the WSP short form of
         well-known parameter names, as specified in section 8.4.2.4 and table
         38 of [5].
 
-        From [5], section 8.4.2.4:
-        C{Parameter = Typed-parameter | Untyped-parameter}
-        C{Typed-parameter = Well-known-parameter-token Typed-value}
-        C{Untyped-parameter = Token-text Untyped-value}
-        C{Untyped-value = Integer-value | Text-value}
+        From [5], section 8.4.2.4::
 
-        @param parameter_name: The name of the parameter to encode
-        @type parameter_name: str
-        @param parameter_value: The value of the parameter
-        @type parameter_value: str or int
+            Parameter = Typed-parameter | Untyped-parameter
+            Typed-parameter = Well-known-parameter-token Typed-value
+            Untyped-parameter = Token-text Untyped-value
+            Untyped-value = Integer-value | Text-value
 
-        @param version: The WSP encoding version to use. This defaults
+        :param parameter_name: The name of the parameter to encode
+        :type parameter_name: str
+        :param parameter_value: The value of the parameter
+        :type parameter_value: str or int
+
+        :param version: The WSP encoding version to use. This defaults
                         to "1.2", but may be "1.1", "1.2", "1.3" or
                         "1.4" (see table 38 in [5] for details).
-        @type version: str
+        :type version: str
 
-        @raise ValueError: The specified encoding version is invalid.
+        :raise ValueError: The specified encoding version is invalid.
 
-        @return: The binary-encoded parameter name, as a list of (integer)
+        :return: The binary-encoded parameter name, as a list of (integer)
                  byte values
-        @rtype: list
+        :rtype: list
         """
         wk_params = WSPEncodingAssignments.wellKnownParameters(version)
         encoded_parameter = []
@@ -1596,10 +1712,10 @@ class Encoder:
         """ From [5], section 8.4.2.1:
         Token-text = Token End-of-string
 
-        @raise EncodeError: Specified text cannot be encoding as a token
+        :raise EncodeError: Specified text cannot be encoding as a token
 
-        @return: The encoded token string, as a list of byte values
-        @rtype: list
+        :return: The encoded token string, as a list of byte values
+        :rtype: list
         """
         separators = (11, 32, 40, 41, 44, 47, 58, 59, 60, 61, 62, 63, 64,
                       91, 92, 93, 123, 125)
@@ -1622,13 +1738,13 @@ class Encoder:
         into a short-integer, and failing that, will encode into a
         long-integer value.
 
-        @param integer: The integer to encode
-        @type integer: int
+        :param integer: The integer to encode
+        :type integer: int
 
-        @raise EncodeError: The <integer> parameter is not of type C{int}
+        :raise EncodeError: The <integer> parameter is not of type `int`
 
-        @return: The encoded integer value, as a list of byte values
-        @rtype: list
+        :return: The encoded integer value, as a list of byte values
+        :rtype: list
         """
         if not isinstance(integer, int):
             raise EncodeError('<integer> must be of type "int"')
@@ -1641,43 +1757,44 @@ class Encoder:
 
     @staticmethod
     def encodeTextValue(text):
-        """ Stub for encoding Text-values; this is equivalent to
-        C{encodeTextString} """
+        """Stub for encoding Text-values; see :func:`encodeTextString`"""
         return Encoder.encodeTextString(text)
 
     @staticmethod
     def encodeNoValue(value=None):
-        """ Encodes a No-value, which is 0x00
+        """
+        Encodes a No-value ``value``, which is 0x00
 
-        @note: This function mainly exists for use by automatically-selected
-               encoding routines (see C{encode_parameter()} for an example.
+        This function mainly exists for use by automatically-selected
+        encoding routines (see :func:`encode_parameter`) for an example.
 
-        @param value: This value is ignored; it is present so that this
-                      method complies with the format of the other C{encode}
+        :param value: This value is ignored; it is present so that this
+                      method complies with the format of the other `encode`
                       methods.
 
-        @return: A list containing a single "No-value", which is 0x00
-        @rtype: list
+        :return: A list containing a single "No-value", which is 0x00
+        :rtype: list
         """
         return [0x00]
 
     @staticmethod
     def encode_header(field_name, value):
-        """ Encodes a WSP header entry, and its value
+        """
+        Encodes a WSP header entry ``field_name``, and its ``value``
 
-        From [5], section 8.4.2.6:
-        C{Header = Message-header | Shift-sequence}
-        C{Message-header = Well-known-header | Application-header}
-        C{Well-known-header = Well-known-field-name Wap-value}
-        C{Application-header = Token-text Application-specific-value}
+        "Shift-sequence" encoding has not been implemented. Currently,
+        almost all header values are encoded as text-strings
 
-        @note: "Shift-sequence" encoding has not been implemented
-        @note: Currently, almost all header values are encoded as
-               text-strings
+        From [5], section 8.4.2.6::
 
-        @return: The encoded header, and its value, as a sequence of
+            Header = Message-header | Shift-sequence
+            Message-header = Well-known-header | Application-header
+            Well-known-header = Well-known-field-name Wap-value
+            Application-header = Token-text Application-specific-value
+
+        :return: The encoded header, and its value, as a sequence of
                  byte values
-        @rtype: list
+        :rtype: list
         """
         encoded_header = []
         # First try encoding the header name as a "well-known-header"...
@@ -1714,18 +1831,20 @@ class Encoder:
 
     @staticmethod
     def encodeContentTypeValue(media_type, parameters):
-        """ Encodes a content type, and its parameters
-
-        From [5], section 8.4.2.24:
-        C{Content-type-value = Constrained-media | Content-general-form}
+        """
+        Encodes a content type, and its parameters
 
         The short form of the Content-type-value MUST only be used when the
         well-known media is in the range of 0-127 or a text string. In all
         other cases the general form MUST be used.
 
-        @return: The encoded Content-type-value (including parameters, if
+        From [5], section 8.4.2.24::
+
+            Content-type-value = Constrained-media | Content-general-form
+
+        :return: The encoded Content-type-value (including parameters, if
                  any), as a sequence of bytes
-        @rtype: list
+        :rtype: list
         """
         # First try do encode it using Constrained-media encoding
         try:
@@ -1740,17 +1859,22 @@ class Encoder:
 
     @staticmethod
     def encodeConstrainedMedia(media_type):
-        """ From [5], section 8.4.2.7:
-        Constrained-media = Constrained-encoding
+        """
+        Encodes the constrained media ``media_type``
+
         It is encoded using values from the "Content Type Assignments" table.
 
-        @param media_type: The media type to encode
-        @type media_type: str
+        From [5], section 8.4.2.7::
 
-        @raise EncodeError: Media value is unsuitable for Constrained-encoding
+            Constrained-media = Constrained-encoding
 
-        @return: The encoded media type, as a sequence of bytes
-        @rtype: list
+        :param media_type: The media type to encode
+        :type media_type: str
+
+        :raise EncodeError: Media value is unsuitable for Constrained-encoding
+
+        :return: The encoded media type, as a sequence of bytes
+        :rtype: list
         """
         # See if this value is in the table of well-known content types
         if media_type in WSPEncodingAssignments.wkContentTypes:
@@ -1762,20 +1886,22 @@ class Encoder:
 
     @staticmethod
     def encodeConstrainedEncoding(value):
-        """ Constrained-encoding = Extension-Media  --or--  Short-integer
+        """
+        Constrained-encoding = Extension-Media  --or--  Short-integer
+
         This encoding is used for token values, which have no well-known
         binary encoding, or when the assigned number of the well-known
         encoding is small enough to fit into Short-integer.
 
-        @param value: The value to encode
-        @type value: int or str
+        :param value: The value to encode
+        :type value: int or str
 
-        @raise EncodeError: <value> cannot be encoded as a
+        :raise EncodeError: <value> cannot be encoded as a
                             Constrained-encoding sequence
 
-        @return: The encoded constrained-encoding token value, as a sequence
+        :return: The encoded constrained-encoding token value, as a sequence
                  of bytes
-        @rtype: list
+        :rtype: list
         """
         encoded_value = None
         if isinstance(value, int):
@@ -1794,19 +1920,24 @@ class Encoder:
 
     @staticmethod
     def encodeExtensionMedia(media_value):
-        """ From [5], section 8.4.2.1:
-        Extension-media = *TEXT End-of-string
+        """
+        Encodes the extension media ``media_value``
+
         This encoding is used for media values, which have no well-known
         binary encoding
 
-        @param media_value: The media value (string) to encode
-        @type media_value: str
+        From [5], section 8.4.2.1::
 
-        @raise EncodeError: The value cannot be encoded as TEXT; probably it
+            Extension-media = *TEXT End-of-string
+
+        :param media_value: The media value (string) to encode
+        :type media_value: str
+
+        :raise EncodeError: The value cannot be encoded as TEXT; probably it
                             starts with/contains an invalid character
 
-        @return: The encoded media type value, as a sequence of bytes
-        @rtype: str
+        :return: The encoded media type value, as a sequence of bytes
+        :rtype: str
         """
         if not isinstance(media_value, basestring):
             try:
@@ -1823,16 +1954,17 @@ class Encoder:
 
     @staticmethod
     def encodeContentGeneralForm(media_type, parameters):
-        """ From [5], section 8.4.2.24:
-        Content-general-form = Value-length Media-type
+        """
+        From [5], section 8.4.2.24::
 
-        @note: Used in decoding Content-type fields and their parameters;
-               see C{decodeContentTypeValue}
+            Content-general-form = Value-length Media-type
 
-        @note: Used by C{decodeContentTypeValue()}
+        Used in decoding Content-type fields and their parameters;
+        see :func:`decodeContentTypeValue`. Used by
+        :func:`decodeContentTypeValue`.
 
-        @return: The encoded Content-general-form, as a sequence of bytes
-        @rtype: list
+        :return: The encoded Content-general-form, as a sequence of bytes
+        :rtype: list
         """
         enconded_content_general_form = []
         encoded_media_type = []
@@ -1852,23 +1984,24 @@ class Encoder:
 
     @staticmethod
     def encodeValueLength(length):
-        """ Encodes the specified length value as a value length indicator
+        """
+        Encodes the specified length value as a value length indicator
 
         "Value length" is used to indicate the length of a value to follow, as
-        used in the C{Content-Type} header in the MMS body, for example.
+        used in the `Content-Type` header in the MMS body, for example.
 
         The encoding for a value length indicator is specified in [5],
         section 8.4.2.2, and follows the form::
 
-         Value-length = [Short-length]  --or--  [Length-quote] [Length]
-                            ^^^^^^                  ^^^^^^      ^^^^^^
-                            1 byte                  1 byte      x bytes
-                       <Any octet 0-30>          <Octet 31>   Uintvar-integer
+           Value-length = [Short-length]  --or--  [Length-quote] [Length]
+                              ^^^^^^                  ^^^^^^      ^^^^^^
+                              1 byte                  1 byte      x bytes
+                         <Any octet 0-30>          <Octet 31>   Uintvar-integer
 
-        @raise EncodeError: The ValueLength could not be encoded.
+        :raise EncodeError: The ValueLength could not be encoded.
 
-        @return: The encoded value length indicator, as a sequence of bytes
-        @rtype: list
+        :return: The encoded value length indicator, as a sequence of bytes
+        :rtype: list
         """
         encoded_value_length = []
         # Try and encode it as a short-length
@@ -1883,14 +2016,16 @@ class Encoder:
 
     @staticmethod
     def encodeShortLength(length):
-        """ From [5], section 8.4.2.2:
-        Short-length = <Any octet 0-30>
+        """
+        From [5], section 8.4.2.2::
 
-        @raise EmcodeError: The specified <length> cannot be encoded as a
+            Short-length = <Any octet 0-30>
+
+        :raise EncodeError: The specified <length> cannot be encoded as a
                             short-length value; it is not in octet range 0-30.
 
-        @return: The encoded short-length, as a sequence of bytes
-        @rtype: list
+        :return: The encoded short-length, as a sequence of bytes
+        :rtype: list
         """
         if length < 0 or length > 30:
             raise EncodeError('Cannot encode short-length; length should '
@@ -1900,24 +2035,26 @@ class Encoder:
 
     @staticmethod
     def encodeAcceptValue(accept_value):
-        """ From [5], section 8.4.2.7:
-        Accept-value = Constrained-media | Accept-general-form
-        Accept-general-form = Value-length Media-range [Accept-parameters]
-        Media-range = (Well-known-media | Extension-Media) *(Parameter)
-        Accept-parameters = Q-token Q-value *(Accept-extension)
-        Accept-extension = Parameter
-        Q-token = <Octet 128>
+        """
+        From [5], section 8.4.2.7::
 
-        @note: This implementation does not currently support encoding of
+            Accept-value = Constrained-media | Accept-general-form
+            Accept-general-form = Value-length Media-range [Accept-parameters]
+            Media-range = (Well-known-media | Extension-Media) *(Parameter)
+            Accept-parameters = Q-token Q-value *(Accept-extension)
+            Accept-extension = Parameter
+            Q-token = <Octet 128>
+
+        :note: This implementation does not currently support encoding of
                "Accept-parameters".
 
-        @param accept_value: The Accept-value to encode (media/content type)
-        @type accept_value: str
+        :param accept_value: The Accept-value to encode (media/content type)
+        :type accept_value: str
 
-        @raise EncodeError: The encoding failed.
+        :raise EncodeError: The encoding failed.
 
-        @return: The encoded Accept-value, as a sequence of bytes
-        @rtype: list
+        :return: The encoded Accept-value, as a sequence of bytes
+        :rtype: list
         """
         encoded_accept_value = []
         # Try to use Constrained-media encoding
