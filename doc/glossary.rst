@@ -14,6 +14,11 @@ Glossary
         which only allowed exchange of text messages up to 160 characters
         in length.
 
+    MMSC
+        A "store and forward" server for MMS. If the recipient is in another
+        network, the MMS will be forwarded to the recipient's carrier using
+        the Internet.
+
     SMS
         Short Message Service (SMS) is the text communication service
         component of phone, web or mobile communication systems, using
@@ -26,3 +31,7 @@ Glossary
         for application-layer network communications in a wireless-communication
         environment. Most use of WAP involves accessing the mobile web from a
         mobile phone or from a PDA.
+
+    PDU
+        A PDU is a sequence of bytes used in telecommunications to convey
+        information from one host/device to another.

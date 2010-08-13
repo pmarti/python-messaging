@@ -36,32 +36,15 @@ How to encode a MMS::
     mms.add_page(slide1)
     mms.add_page(slide2)
 
-    print mms.encode()
+    payload = mms.encode()
 
 
 The above snippet binary encodes a MMS for '+34231342234' and subject 'Test
 python-messaging.mms' with two slides. The first slide is just an static
 image with some text, the second one has timing effects and will last 4.5s.
 
-Encoding a m-notifyresp-ind PDU
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In order to send a m-notifyresp-ind, you will need to know the transaction
-id of the MMS you want to acknowledge, once you have that you just need
-to::
-
-    mms = MMSMessage()
-    mms.headers['Transaction-Id'] = 'T2132112322'
-    mms.headers['Message-Type'] = 'm-notifyresp-ind'
-    mms.headers['Status'] = 'Retrieved'
-
-    print mms.encode()
-
-And POST the resulting payload to the MMSC proxy using the above method
-for sending a MMS.
-
-Sending
-~~~~~~~
+Sending a MMS
++++++++++++++
 
 In a WAP2.0 gateway, the binary message (payload) will be used as an argument
 for a plain HTTP POST::
@@ -69,8 +52,7 @@ for a plain HTTP POST::
     from cStringIO import StringIO
     import socket
 
-    host = "212.11.23.23"
-    port = 7899
+    host, port = "212.11.23.23", 7899
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((host, int(port)))
@@ -93,7 +75,25 @@ for a plain HTTP POST::
     data = buf.getvalue()
     buf.close()
 
-    print "RESPONSE", data
+    print "PROXY RESPONSE", data
+
+
+Encoding a m-notifyresp-ind PDU
++++++++++++++++++++++++++++++++
+
+In order to send a m-notifyresp-ind, you will need to know the transaction
+id of the MMS you want to acknowledge, once you have that you just need
+to::
+
+    mms = MMSMessage()
+    mms.headers['Transaction-Id'] = 'T2132112322'
+    mms.headers['Message-Type'] = 'm-notifyresp-ind'
+    mms.headers['Status'] = 'Retrieved'
+
+    payload = mms.encode()
+
+And POST the resulting payload to the :term:`MMSC` proxy using the very same
+code used for sending a MMS.
 
 
 Decoding
