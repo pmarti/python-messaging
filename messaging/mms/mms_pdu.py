@@ -336,7 +336,6 @@ class MMSDecoder(wsp_pdu.Decoder):
         :return: The value for the field
         :rtype: bool
         """
-        value = None
         byte = byte_iter.preview()
         if byte not in (128, 129):
             byte_iter.reset_preview()
@@ -395,7 +394,6 @@ class MMSDecoder(wsp_pdu.Decoder):
             130: 'Informational',
             131: 'Auto',
         }
-        msg_class = ''
         byte = byte_iter.preview()
         if byte in class_identifiers:
             byte_iter.next()
@@ -601,10 +599,10 @@ class MMSEncoder(wsp_pdu.Encoder):
         :rtype: array.array('B')
         """
         # See [4], chapter 8 for info on how to use these
-        from_types = {'Address-present-token': 0x80,
-                      'Insert-address-token': 0x81}
+        # from_types = {'Address-present-token': 0x80,
+        #               'Insert-address-token': 0x81}
 
-        content_types = {'application/vnd.wap.multipart.related': 0xb3}
+        # content_types = {'application/vnd.wap.multipart.related': 0xb3}
 
         # Create an array of 8-bit values
         message_header = array.array('B')

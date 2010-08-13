@@ -596,11 +596,11 @@ class Decoder:
         try:
             # First try and see if this is just a short-integer
             result = Decoder.decodeShortInteger(byte_iter)
-        except DecodeError, msg:
+        except DecodeError:
             # Ok, it should be Extension-Media then
             try:
                 result = Decoder.decodeExtensionMedia(byte_iter)
-            except DecodeError, msg:
+            except DecodeError:
                 # Give up
                 raise DecodeError('Not a valid Constrained-encoding sequence')
 

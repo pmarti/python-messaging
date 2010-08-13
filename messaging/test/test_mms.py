@@ -349,7 +349,6 @@ class TestMmsDecoding(unittest.TestCase):
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
         }
         text_data = 'HV'
-        smil_data = ''
         self.assertEqual(mms.headers, headers)
         self.assertEqual(len(mms.data_parts), 1)
         self.assertEqual(mms.content_type,
@@ -364,10 +363,10 @@ class TestMmsDecoding(unittest.TestCase):
         message.headers['Transaction-Id'] = 'NOK5AIdhfTMYSG4JeIgAAsHtp72AGAAAAAAAA'
         message.headers['Message-Type'] = 'm-notifyresp-ind'
         message.headers['Status'] = 'Retrieved'
-        data =  [140, 131, 152, 78, 79, 75, 53, 65, 73, 100, 104, 102, 84, 77,
-                89, 83, 71, 52, 74, 101, 73, 103, 65, 65, 115, 72, 116, 112,
-                55, 50, 65, 71, 65, 65, 65, 65, 65, 65, 65, 65, 0, 141, 144,
-                149, 129, 132, 163, 1, 35, 129]
+        data = [
+            140, 131, 152, 78, 79, 75, 53, 65, 73, 100, 104, 102, 84, 77,
+            89, 83, 71, 52, 74, 101, 73, 103, 65, 65, 115, 72, 116, 112,
+            55, 50, 65, 71, 65, 65, 65, 65, 65, 65, 65, 65, 0, 141, 144,
+            149, 129, 132, 163, 1, 35, 129]
 
         self.assertEqual(list(message.encode()[:50]), data)
-

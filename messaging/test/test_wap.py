@@ -59,13 +59,15 @@ class TestSmsWapPush(unittest.TestCase):
 
         mms, trans_id = extract_push_notification(data)
         self.assertEqual(mms.headers['Message-Type'], 'm-notification-ind')
-        self.assertEqual(mms.headers['Transaction-Id'], 'NOK5CiKcoTMYSG4MBSwAAsKv14FUHAAAAAAAA')
+        self.assertEqual(mms.headers['Transaction-Id'],
+                'NOK5CiKcoTMYSG4MBSwAAsKv14FUHAAAAAAAA')
         self.assertEqual(mms.headers['MMS-Version'], '1.0')
         self.assertEqual(mms.headers['From'], '+447785342749/TYPE=PLMN')
         self.assertEqual(mms.headers['Message-Class'], 'Personal')
         self.assertEqual(mms.headers['Message-Size'], 29696)
         self.assertEqual(mms.headers['Expiry'], 72000)
-        self.assertEqual(mms.headers['Content-Location'], 'http://promms/servlets/NOK5CiKcoTMYSG4MBSwAAsKv14FUHAAAAAAAA')
+        self.assertEqual(mms.headers['Content-Location'],
+                'http://promms/servlets/NOK5CiKcoTMYSG4MBSwAAsKv14FUHAAAAAAAA')
 
         pdus = [
             "0791447758100650400E80885810000000800004017002314303408C0C0804DFD3020105040B8423F00106226170706C69636174696F6E2F766E642E7761702E6D6D732D6D65737361676500AF848C82984E4F4B3541315A6446544D595347344F3356514141734A763934476F4E4141414141414141008D908919802B3434373731373237353034392F545950453D504C4D4E008A808E0274008805810303F47F83687474703A2F",
@@ -91,10 +93,12 @@ class TestSmsWapPush(unittest.TestCase):
 
         mms, trans_id = extract_push_notification(data)
         self.assertEqual(mms.headers['Message-Type'], 'm-notification-ind')
-        self.assertEqual(mms.headers['Transaction-Id'], 'NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')
+        self.assertEqual(mms.headers['Transaction-Id'],
+                'NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')
         self.assertEqual(mms.headers['MMS-Version'], '1.0')
         self.assertEqual(mms.headers['From'], '+447717275049/TYPE=PLMN')
         self.assertEqual(mms.headers['Message-Class'], 'Personal')
         self.assertEqual(mms.headers['Message-Size'], 29696)
         self.assertEqual(mms.headers['Expiry'], 259199)
-        self.assertEqual(mms.headers['Content-Location'], 'http://promms/servlets/NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')
+        self.assertEqual(mms.headers['Content-Location'],
+                'http://promms/servlets/NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')

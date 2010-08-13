@@ -13,7 +13,6 @@ import os
 import xml.dom.minidom
 
 
-
 class MMSMessage:
     """
     I am an MMS message
