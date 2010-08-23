@@ -81,35 +81,35 @@ class WSPEncodingAssignments:
 
     # Well-known parameter assignments ([5], table 38)
     well_known_parameters = {
-        0x00: ('Q', 'QValue'),
-        0x01: ('Charset', 'WellKnownCharset'),
-        0x02: ('Level', 'VersionValue'),
-        0x03: ('Type', 'IntegerValue'),
-        0x05: ('Name', 'TextString'),
-        0x06: ('Filename', 'TextString'),
+        0x00: ('Q', 'q_value'),
+        0x01: ('Charset', 'well_known_charset'),
+        0x02: ('Level', 'version_value'),
+        0x03: ('Type', 'integer_value'),
+        0x05: ('Name', 'text_string'),
+        0x06: ('Filename', 'text_string'),
         0x07: ('Differences', 'Field-name'),
-        0x08: ('Padding', 'ShortInteger'),
-        0x09: ('Type', 'ConstrainedEncoding'),  # encoding version 1.2
-        0x0a: ('Start', 'TextString'),
-        0x0b: ('Start-info', 'TextString'),
-        0x0c: ('Comment', 'TextString'),   # encoding version 1.3
-        0x0d: ('Domain', 'TextString'),
-        0x0e: ('Max-Age', 'DeltaSecondsValue'),
-        0x0f: ('Path', 'TextString'),
-        0x10: ('Secure', 'NoValue'),
-        0x11: ('SEC', 'ShortInteger'),  # encoding version 1.4
-        0x12: ('MAC', 'TextValue'),
-        0x13: ('Creation-date', 'DateValue'),
-        0x14: ('Modification-date', 'DateValue'),
-        0x15: ('Read-date', 'DateValue'),
-        0x16: ('Size', 'IntegerValue'),
-        0x17: ('Name', 'TextValue'),
-        0x18: ('Filename', 'TextValue'),
-        0x19: ('Start', 'TextValue'),
-        0x1a: ('Start-info', 'TextValue'),
-        0x1b: ('Comment', 'TextValue'),
-        0x1c: ('Domain', 'TextValue'),
-        0x1d: ('Path', 'TextValue'),
+        0x08: ('Padding', 'short_integer'),
+        0x09: ('Type', 'constrained_encoding'),  # encoding version 1.2
+        0x0a: ('Start', 'text_string'),
+        0x0b: ('Start-info', 'text_string'),
+        0x0c: ('Comment', 'text_string'),   # encoding version 1.3
+        0x0d: ('Domain', 'text_string'),
+        0x0e: ('Max-Age', 'delta_seconds_value'),
+        0x0f: ('Path', 'text_string'),
+        0x10: ('Secure', 'no_value'),
+        0x11: ('SEC', 'short_integer'),  # encoding version 1.4
+        0x12: ('MAC', 'text_value'),
+        0x13: ('Creation-date', 'date_value'),
+        0x14: ('Modification-date', 'date_value'),
+        0x15: ('Read-date', 'date_value'),
+        0x16: ('Size', 'integer_value'),
+        0x17: ('Name', 'text_value'),
+        0x18: ('Filename', 'text_value'),
+        0x19: ('Start', 'text_value'),
+        0x1a: ('Start-info', 'text_value'),
+        0x1b: ('Comment', 'text_value'),
+        0x1c: ('Domain', 'text_value'),
+        0x1d: ('Path', 'text_value'),
     }
 
     # Content type assignments ([5], table 40)
@@ -233,7 +233,7 @@ class WSPEncodingAssignments:
     # known parameter assignments)
     # Temporary fix to allow different types of header field values to be
     # dynamically decoded
-    hdrFieldEncodings = {'Accept': 'AcceptValue', 'Pragma': 'PragmaValue'}
+    hdrFieldEncodings = {'Accept': 'accept_value', 'Pragma': 'pragma_value'}
 
     @staticmethod
     def wellKnownParameters(version='1.2'):
@@ -332,7 +332,7 @@ class Decoder:
     """A WSP Data unit decoder"""
 
     @staticmethod
-    def decodeUint8(byte_iter):
+    def decode_uint_8(byte_iter):
         """
         Decodes an 8-bit uint from the byte pointed to by ``byte_iter``
 
@@ -349,12 +349,12 @@ class Decoder:
         return byte_iter.next() & 0xf
 
     @staticmethod
-    def decodeUintvar(byte_iter):
+    def decode_uint_var(byte_iter):
         """
         Decodes the uint starting at the byte pointed to by ``byte_iter``
 
-        See :func:`wsp.Encoder.encodeUintvar` for a detailed description of
-        the encoding scheme used for ``Uintvar`` sequences.
+        See :func:`wsp.Encoder.encode_uint_var` for a detailed description of
+        the encoding scheme used for ``uint_var`` sequences.
 
         This function will move the iterator passed as ``byte_iter`` to
         the last octet in the uintvar sequence; thus, after calling this,
@@ -379,7 +379,7 @@ class Decoder:
         return uint
 
     @staticmethod
-    def decodeShortInteger(byte_iter):
+    def decode_short_integer(byte_iter):
         """
         Decodes the short-integer value starting at ``byte_iter``
 
@@ -407,7 +407,7 @@ class Decoder:
         return byte & 0x7f
 
     @staticmethod
-    def decodeShortIntegerFromByte(byte):
+    def decode_short_integer_from_byte(byte):
         """
         Decodes the short-integer value contained in the specified byte value
 
@@ -424,7 +424,7 @@ class Decoder:
         return byte & 0x7f
 
     @staticmethod
-    def decodeLongInteger(byte_iter):
+    def decode_long_integer(byte_iter):
         """
         Decodes the long int value pointed to by ``byte_iter``
 
@@ -456,7 +456,7 @@ class Decoder:
         :rtype: int
         """
         try:
-            shortLength = Decoder.decodeShortLength(byte_iter)
+            shortLength = Decoder.decode_short_length(byte_iter)
         except DecodeError:
             raise DecodeError('short-length byte is invalid')
 
@@ -469,7 +469,7 @@ class Decoder:
         return longInt
 
     @staticmethod
-    def decodeTextString(byte_iter):
+    def decode_text_string(byte_iter):
         """
         Decodes the null-terminated, binary-encoded string value starting
         at the byte pointed to by ``byte_iter``.
@@ -488,20 +488,20 @@ class Decoder:
         :return: The decoded text string
         :rtype: str
         """
-        decodedString = ''
+        decoded_string = ''
         byte = byte_iter.next()
         # Remove Quote character (octet 127), if present
         if byte == 127:
             byte = byte_iter.next()
 
         while byte != 0x00:
-            decodedString += chr(byte)
+            decoded_string += chr(byte)
             byte = byte_iter.next()
 
-        return decodedString
+        return decoded_string
 
     @staticmethod
-    def decodeQuotedString(byte_iter):
+    def decode_quoted_string(byte_iter):
         """
         From [5], section 8.4.2.1::
 
@@ -519,13 +519,14 @@ class Decoder:
             byte_iter.reset_preview()
             raise DecodeError('Invalid quoted string: must '
                               'start with <octect 34>')
+
         byte_iter.next()
         # CHECK: should the quotation chars be pre- and appended before
         # returning *technically* we should not check for quote characters.
-        return Decoder.decodeTextString(byte_iter)
+        return Decoder.decode_text_string(byte_iter)
 
     @staticmethod
-    def decodeTokenText(byte_iter):
+    def decode_token_text(byte_iter):
         """ From [5], section 8.4.2.1:
         Token-text = Token End-of-string
 
@@ -550,7 +551,7 @@ class Decoder:
         return token
 
     @staticmethod
-    def decodeExtensionMedia(byte_iter):
+    def decode_extension_media(byte_iter):
         """
         Decode the extension media pointed by ``byte_iter``
 
@@ -583,7 +584,7 @@ class Decoder:
         return media_value
 
     @staticmethod
-    def decodeConstrainedEncoding(byte_iter):
+    def decode_constrained_encoding(byte_iter):
         """Constrained-encoding = Extension-Media  --or--  Short-integer
         This encoding is used for token values, which have no well-known
         binary encoding, or when the assigned number of the well-known
@@ -595,11 +596,11 @@ class Decoder:
         result = None
         try:
             # First try and see if this is just a short-integer
-            result = Decoder.decodeShortInteger(byte_iter)
+            result = Decoder.decode_short_integer(byte_iter)
         except DecodeError:
             # Ok, it should be Extension-Media then
             try:
-                result = Decoder.decodeExtensionMedia(byte_iter)
+                result = Decoder.decode_extension_media(byte_iter)
             except DecodeError:
                 # Give up
                 raise DecodeError('Not a valid Constrained-encoding sequence')
@@ -607,7 +608,7 @@ class Decoder:
         return result
 
     @staticmethod
-    def decodeShortLength(byte_iter):
+    def decode_short_length(byte_iter):
         """ From [5], section 8.4.2.2:
         Short-length = <Any octet 0-30>
 
@@ -631,7 +632,7 @@ class Decoder:
         return byte_iter.next()
 
     @staticmethod
-    def decodeValueLength(byte_iter):
+    def decode_value_length(byte_iter):
         """
         Decodes the value length indicator starting at ``byte_iter``
 
@@ -644,9 +645,9 @@ class Decoder:
             Value-length = [Short-length]  --or--  [Length-quote] [Length]
                                ^^^^^^                  ^^^^^^      ^^^^^^
                                1 byte                  1 byte      x bytes
-                          <Any octet 0-30>          <Octet 31>   Uintvar-integer
+                          <Any octet 0-30>          <Octet 31>   uint_var-integer
 
-        :raise DecodeError: The ValueLength could not be decoded. If this
+        :raise DecodeError: The value_length could not be decoded. If this
                             happens, ``byte_iter`` is not modified.
 
         :return: The decoded value length indicator
@@ -655,13 +656,13 @@ class Decoder:
         length_value = 0
         # Check for short-length
         try:
-            length_value = Decoder.decodeShortLength(byte_iter)
+            length_value = Decoder.decode_short_length(byte_iter)
         except DecodeError:
             byte = byte_iter.preview()
             # CHECK: this strictness MAY cause issues, but it is correct
             if byte == 31:
                 byte_iter.next()  # skip past the length-quote
-                length_value = Decoder.decodeUintvar(byte_iter)
+                length_value = Decoder.decode_uint_var(byte_iter)
             else:
                 byte_iter.reset_preview()
                 raise DecodeError('Invalid Value-length: not short-length, '
@@ -670,7 +671,7 @@ class Decoder:
         return length_value
 
     @staticmethod
-    def decodeIntegerValue(byte_iter):
+    def decode_integer_value(byte_iter):
         """
         Decodes the integer value pointed by ``byte_iter``
 
@@ -693,17 +694,17 @@ class Decoder:
         integer = 0
         # First try and see if it's a short-integer
         try:
-            integer = Decoder.decodeShortInteger(byte_iter)
+            integer = Decoder.decode_short_integer(byte_iter)
         except DecodeError:
             try:
-                integer = Decoder.decodeLongInteger(byte_iter)
+                integer = Decoder.decode_long_integer(byte_iter)
             except DecodeError:
                 raise DecodeError('Not a valid integer value')
 
         return integer
 
     @staticmethod
-    def decodeContentTypeValue(byte_iter):
+    def decode_content_type_value(byte_iter):
         """
         Decodes an encoded content type value.
 
@@ -728,15 +729,15 @@ class Decoder:
         content_type = ''
         params = {}
         try:
-            content_type = Decoder.decodeConstrainedMedia(byte_iter)
+            content_type = Decoder.decode_constrained_media(byte_iter)
         except DecodeError:
             # Try the general form
-            content_type, params = Decoder.decodeContentGeneralForm(byte_iter)
+            content_type, params = Decoder.decode_content_general_form(byte_iter)
 
         return content_type, params
 
     @staticmethod
-    def decodeWellKnownMedia(byte_iter):
+    def decode_well_known_media(byte_iter):
         """
         Decodes the well known media pointed by ``byte_iter``
         From [5], section 8.4.2.7::
@@ -767,7 +768,7 @@ class Decoder:
         :rtype: str
         """
         try:
-            value = Decoder.decodeIntegerValue(byte_iter)
+            value = Decoder.decode_integer_value(byte_iter)
         except DecodeError:
             raise DecodeError('Invalid well-known media: could not read '
                               'integer value representing it')
@@ -779,11 +780,11 @@ class Decoder:
                               'find content type in table of assigned values')
 
     @staticmethod
-    def decodeMediaType(byte_iter):
+    def decode_media_type(byte_iter):
         """
         Decodes the media type pointed by ``byte_iter``
 
-        Used by :func:`decodeContentGeneralForm`
+        Used by :func:`decode_content_general_form`
 
         From [5], section 8.2.4.24::
 
@@ -796,12 +797,12 @@ class Decoder:
         :rtype: str
         """
         try:
-            return Decoder.decodeWellKnownMedia(byte_iter)
+            return Decoder.decode_well_known_media(byte_iter)
         except DecodeError:
-            return Decoder.decodeExtensionMedia(byte_iter)
+            return Decoder.decode_extension_media(byte_iter)
 
     @staticmethod
-    def decodeConstrainedMedia(byte_iter):
+    def decode_constrained_media(byte_iter):
         """
         Decodes the constrained media pointed pointed by ``byte_iter``
 
@@ -817,7 +818,7 @@ class Decoder:
         :rtype: str
         """
         try:
-            media_value = Decoder.decodeConstrainedEncoding(byte_iter)
+            media_value = Decoder.decode_constrained_encoding(byte_iter)
         except DecodeError, msg:
             raise DecodeError('Invalid Constrained-media: %s' % msg)
 
@@ -831,7 +832,7 @@ class Decoder:
         return media_value
 
     @staticmethod
-    def decodeContentGeneralForm(byte_iter):
+    def decode_content_general_form(byte_iter):
         """
         Decodes the content general form pointed by ``byte_iter``
 
@@ -840,8 +841,8 @@ class Decoder:
             Content-general-form = Value-length Media-type
 
         Used in decoding Content-type fields and their parameters;
-        see :func:`decodeContentTypeValue`. Used by
-        :func:`decodeContentTypeValue`.
+        see :func:`decode_content_type_value`. Used by
+        :func:`decode_content_type_value`.
 
         :return: The media type (content type), and a dictionary of
                  parameters to this content type (which is empty if there
@@ -853,7 +854,7 @@ class Decoder:
         :rtype: tuple
         """
         # This is the length of the (encoded) media-type and all parameters
-        value_length = Decoder.decodeValueLength(byte_iter)
+        value_length = Decoder.decode_value_length(byte_iter)
 
         # Read parameters, etc, until <value_length> is reached
         ct_field_bytes = array.array('B')
@@ -862,12 +863,12 @@ class Decoder:
 
         ct_iter = PreviewIterator(ct_field_bytes)
         # Now, decode all the bytes read
-        media_type = Decoder.decodeMediaType(ct_iter)
+        media_type = Decoder.decode_media_type(ct_iter)
         # Decode the included paramaters (if any)
         parameters = {}
         while True:
             try:
-                parameter, value = Decoder.decodeParameter(ct_iter)
+                parameter, value = Decoder.decode_parameter(ct_iter)
                 parameters[parameter] = value
             except StopIteration:
                 break
@@ -875,7 +876,7 @@ class Decoder:
         return media_type, parameters
 
     @staticmethod
-    def decodeParameter(byte_iter):
+    def decode_parameter(byte_iter):
         """
         From [5], section 8.4.2.4::
 
@@ -886,19 +887,19 @@ class Decoder:
         :rtype: tuple
         """
         try:
-            return Decoder.decodeTypedParameter(byte_iter)
+            return Decoder.decode_typed_parameter(byte_iter)
         except DecodeError:
-            return Decoder.decodeUntypedParameter(byte_iter)
+            return Decoder.decode_untyped_parameter(byte_iter)
 
     @staticmethod
-    def decodeTypedParameter(byte_iter):
+    def decode_typed_parameter(byte_iter):
         """
         Decodes the typed parameter pointed by ``byte_iter``
 
         The actual expected type of the value is implied by the well-known
         parameter.
 
-        This is used in decoding parameters; see :func:`decodeParameter`
+        This is used in decoding parameters; see :func:`decode_parameter`
 
         From [5], section 8.4.2.4::
 
@@ -908,10 +909,10 @@ class Decoder:
                  (<parameter name>, <parameter value>)
         :rtype: tuple
         """
-        token, value_type = Decoder.decodeWellKnownParameter(byte_iter)
+        token, value_type = Decoder.decode_well_known_parameter(byte_iter)
         typed_value = ''
         try:
-            typed_value = getattr(Decoder, 'decode%s' % value_type)(byte_iter)
+            typed_value = getattr(Decoder, 'decode_%s' % value_type)(byte_iter)
         except DecodeError, msg:
             raise DecodeError('Could not decode Typed-parameter: %s' % msg)
         except:
@@ -922,11 +923,11 @@ class Decoder:
         return token, typed_value
 
     @staticmethod
-    def decodeUntypedParameter(byte_iter):
+    def decode_untyped_parameter(byte_iter):
         """
         Decodes the untyped parameter pointed by ``byte_iter``
 
-        This is used in decoding parameters; see :func:`decodeParameter`
+        This is used in decoding parameters; see :func:`decode_parameter`
 
         The type of the value is unknown, but it shall be encoded as an
         integer, if that is possible.
@@ -939,17 +940,17 @@ class Decoder:
                  (<parameter name>, <parameter value>)
         :rtype: tuple
         """
-        token = Decoder.decodeTokenText(byte_iter)
-        value = Decoder.decodeUntypedValue(byte_iter)
+        token = Decoder.decode_token_text(byte_iter)
+        value = Decoder.decode_untyped_value(byte_iter)
         return token, value
 
     @staticmethod
-    def decodeUntypedValue(byte_iter):
+    def decode_untyped_value(byte_iter):
         """
         Decodes the untyped value pointed by ``byte_iter``
 
         This is used in decoding parameter values; see
-        :func:`decodeUntypedParameter`
+        :func:`decode_untyped_parameter`
 
         From [5], section 8.4.2.4::
 
@@ -959,12 +960,12 @@ class Decoder:
         :rtype: int or str
         """
         try:
-            return Decoder.decodeIntegerValue(byte_iter)
+            return Decoder.decode_integer_value(byte_iter)
         except DecodeError:
-            return Decoder.decodeTextValue(byte_iter)
+            return Decoder.decode_text_value(byte_iter)
 
     @staticmethod
-    def decodeWellKnownParameter(byte_iter, version='1.2'):
+    def decode_well_known_parameter(byte_iter, version='1.2'):
         """Decodes the name and expected value type of a parameter of (for
         example) a "Content-Type" header entry, taking into account the WSP
         short form (assigned numbers) of well-known parameter names, as
@@ -996,7 +997,7 @@ class Decoder:
         """
         parameter_name = expected_value = ''
         try:
-            parameter_value = Decoder.decodeIntegerValue(byte_iter)
+            parameter_value = Decoder.decode_integer_value(byte_iter)
         except DecodeError:
             raise DecodeError('Invalid well-known parameter token: could '
                               'not read integer value representing it')
@@ -1015,7 +1016,7 @@ class Decoder:
     #TODO: somehow this should be more dynamic; we need to know what type
     # is EXPECTED (hence the TYPED value)
     @staticmethod
-    def decodeTypedValue(byte_iter):
+    def decode_typed_value(byte_iter):
         """
         Decodes the typed value pointed by ``byte_iter``
 
@@ -1023,7 +1024,7 @@ class Decoder:
         If the value cannot be encoded using the expected type, it shall be
         encoded as text.
 
-        This is used in decoding parameters, see :func:`decodeParameter`
+        This is used in decoding parameters, see :func:`decode_parameter`
         From [5], section 8.4.2.4::
 
             Typed-value = Compact-value | Text-value
@@ -1033,10 +1034,10 @@ class Decoder:
         """
         typedValue = ''
         try:
-            typedValue = Decoder.decodeCompactValue(byte_iter)
+            typedValue = Decoder.decode_compact_value(byte_iter)
         except DecodeError:
             try:
-                typedValue = Decoder.decodeTextValue(byte_iter)
+                typedValue = Decoder.decode_text_value(byte_iter)
             except DecodeError:
                 raise DecodeError('Could not decode the Parameter Typed-value')
 
@@ -1045,7 +1046,7 @@ class Decoder:
     # TODO: somehow this should be more dynamic; we need to know what
     # type is EXPECTED
     @staticmethod
-    def decodeCompactValue(byte_iter):
+    def decode_compact_value(byte_iter):
         """
         Decodes the compact value pointed by ``byte_iter``
 
@@ -1067,18 +1068,18 @@ class Decoder:
             # First, see if it's an integer value
             # This solves the checks for: Integer-value, Date-value,
             # Delta-seconds-value, Q-value, Version-value
-            compact_value = Decoder.decodeIntegerValue(byte_iter)
+            compact_value = Decoder.decode_integer_value(byte_iter)
         except DecodeError:
             try:
                 # Try parsing it as a Uri-value
-                compact_value = Decoder.decodeUriValue(byte_iter)
+                compact_value = Decoder.decode_uri_value(byte_iter)
             except DecodeError:
                 raise DecodeError('Could not decode Parameter Compact-value')
 
         return compact_value
 
     @staticmethod
-    def decodeDateValue(byte_iter):
+    def decode_date_value(byte_iter):
         """
         Decode the data value pointed by ``byte_iter``
 
@@ -1089,15 +1090,15 @@ class Decoder:
 
             Date-value = Long-integer
 
-        :raise DecodeError: This method uses `decodeLongInteger()`, and thus
+        :raise DecodeError: This method uses `decode_long_integer()`, and thus
                             raises this under the same conditions.
 
         :rtype: datetime.datetime
         """
-        return datetime.fromtimestamp(Decoder.decodeLongInteger(byte_iter))
+        return datetime.fromtimestamp(Decoder.decode_long_integer(byte_iter))
 
     @staticmethod
-    def decodeDeltaSecondsValue(byte_iter):
+    def decode_delta_seconds_value(byte_iter):
         """
         Decodes the delta seconds value pointed by ``byte_iter``
 
@@ -1105,17 +1106,17 @@ class Decoder:
 
             Delta-seconds-value = Integer-value
 
-        :raise DecodeError: This method uses `decodeIntegerValue`, and thus
+        :raise DecodeError: This method uses `decode_integer_value`, and thus
                             raises this under the same conditions.
         :return: the decoded delta-seconds-value
         :rtype: int
         """
-        return Decoder.decodeIntegerValue(byte_iter)
+        return Decoder.decode_integer_value(byte_iter)
 
     @staticmethod
-    def decodeQValue(byte_iter):
+    def decode_q_value(byte_iter):
         """ From [5], section 8.4.2.1:
-        The encoding is the same as in Uintvar-integer, but with restricted
+        The encoding is the same as in uint_var-integer, but with restricted
         size. When quality factor 0 and quality factors with one or two
         decimal digits are encoded, they shall be multiplied by 100 and
         incremented by one, so that they encode as a one-octet value in
@@ -1128,7 +1129,7 @@ class Decoder:
         :return: The decode quality factor (Q-value)
         :rtype: float
         """
-        q_value_int = Decoder.decodeUintvar(byte_iter)
+        q_value_int = Decoder.decode_uint_var(byte_iter)
         # TODO: limit the amount of decimal points
         if q_value_int > 100:
             return float(q_value_int - 100) / 1000.0
@@ -1136,7 +1137,7 @@ class Decoder:
         return float(q_value_int - 1) / 100.0
 
     @staticmethod
-    def decodeVersionValue(byte_iter):
+    def decode_version_value(byte_iter):
         """
         Decodes the version-value.
 
@@ -1149,27 +1150,27 @@ class Decoder:
         :rtype: str
         """
         try:
-            byteValue = Decoder.decodeShortInteger(byte_iter)
+            byteValue = Decoder.decode_short_integer(byte_iter)
             major = (byteValue & 0x70) >> 4
             minor = byteValue & 0x0f
             return '%d.%d' % (major, minor)
         except DecodeError:
-            return Decoder.decodeTextString(byte_iter)
+            return Decoder.decode_text_string(byte_iter)
 
     @staticmethod
-    def decodeUriValue(byte_iter):
+    def decode_uri_value(byte_iter):
         """
-        Stub for Uri-value decoding; see :func:`decodeTextString`
+        Stub for Uri-value decoding; see :func:`decode_text_string`
         """
-        return Decoder.decodeTextString(byte_iter)
+        return Decoder.decode_text_string(byte_iter)
 
     @staticmethod
-    def decodeTextValue(byte_iter):
+    def decode_text_value(byte_iter):
         """
         Stub for Parameter Text-value decoding.
 
         This is used when decoding parameter values; see
-        :func:`decodeTypedValue`
+        :func:`decode_typed_value`
 
         From [5], section 8.4.2.3::
 
@@ -1179,16 +1180,16 @@ class Decoder:
         :rtype: str
         """
         try:
-            return Decoder.decodeTokenText(byte_iter)
+            return Decoder.decode_token_text(byte_iter)
         except DecodeError:
             try:
-                return Decoder.decodeQuotedString(byte_iter)
+                return Decoder.decode_quoted_string(byte_iter)
             except DecodeError:
                 # Ok, so it's a "No-value"
                 return ''
 
     @staticmethod
-    def decodeNoValue(byte_iter):
+    def decode_no_value(byte_iter):
         """
         Verifies that the byte pointed to by ``byte_iter`` is 0x00.
 
@@ -1208,7 +1209,7 @@ class Decoder:
         return 0x00
 
     @staticmethod
-    def decodeAcceptValue(byte_iter):
+    def decode_accept_value(byte_iter):
         """
         most of these things are currently decoded, but discarded (e.g
         accept-parameters); we only return the media type
@@ -1230,21 +1231,21 @@ class Decoder:
         accept_value = ''
         # Try to use Constrained-media encoding
         try:
-            accept_value = Decoder.decodeConstrainedMedia(byte_iter)
+            accept_value = Decoder.decode_constrained_media(byte_iter)
         except DecodeError:
             # ...now try Accept-general-form
-            value_length = Decoder.decodeValueLength(byte_iter)
+            value_length = Decoder.decode_value_length(byte_iter)
             try:
-                media = Decoder.decodeWellKnownMedia(byte_iter)
+                media = Decoder.decode_well_known_media(byte_iter)
             except DecodeError:
-                media = Decoder.decodeExtensionMedia(byte_iter)
+                media = Decoder.decode_extension_media(byte_iter)
 
             # Check for the Q-Token (to see if there are Accept-parameters)
             if byte_iter.preview() == 128:
                 byte_iter.next()
-                q_value = Decoder.decodeQValue(byte_iter)
+                q_value = Decoder.decode_q_value(byte_iter)
                 try:
-                    accept_extension = Decoder.decodeParameter(byte_iter)
+                    accept_extension = Decoder.decode_parameter(byte_iter)
                 except DecodeError:
                     # Just set an empty iterable
                     accept_extension = []
@@ -1255,7 +1256,7 @@ class Decoder:
         return accept_value
 
     @staticmethod
-    def decodePragmaValue(byte_iter):
+    def decode_pragma_value(byte_iter):
         """
         Decodes the pragma value pointed by ``byte_iter``
 
@@ -1281,13 +1282,13 @@ class Decoder:
             parameter_value = 'No-cache'
         else:
             byte_iter.reset_preview()
-            value_length = Decoder.decodeValueLength(byte_iter)
-            parameter_name, parameter_value = Decoder.decodeParameter(byte_iter)
+            value_length = Decoder.decode_value_length(byte_iter)
+            parameter_name, parameter_value = Decoder.decode_parameter(byte_iter)
 
         return parameter_name, parameter_value
 
     @staticmethod
-    def decodeWellKnownCharset(byte_iter):
+    def decode_well_known_charset(byte_iter):
         """
         From [5], section 8.4.2.8::
 
@@ -1306,7 +1307,7 @@ class Decoder:
             byte_iter.next()
             decoded_charset = '*'
         else:
-            charset_value = Decoder.decodeIntegerValue(byte_iter)
+            charset_value = Decoder.decode_integer_value(byte_iter)
             if charset_value in WSPEncodingAssignments.wkCharSets:
                 decoded_charset = WSPEncodingAssignments.wkCharSets[charset_value]
             else:
@@ -1317,7 +1318,7 @@ class Decoder:
         return decoded_charset
 
     @staticmethod
-    def decodeWellKnownHeader(byte_iter):
+    def decode_well_known_header(byte_iter):
         """
         Currently, "Wap-value" is decoded as a Text-string in most cases
 
@@ -1332,7 +1333,7 @@ class Decoder:
                  (<str:header_name>, <str:header_value>)
         :rtype: tuple
         """
-        field_value = Decoder.decodeShortInteger(byte_iter)
+        field_value = Decoder.decode_short_integer(byte_iter)
         hdr_fields = WSPEncodingAssignments.header_field_names()
         # TODO: *technically* this can fail, but then we have already
         # read a byte... should fix?
@@ -1342,15 +1343,15 @@ class Decoder:
         field_name = hdr_fields[field_value]
 
         # TODO: make this flow better, and implement it in
-        # decodeApplicationHeader also
-        # Currently we decode most headers as TextStrings, except
+        # decode_application_header also
+        # Currently we decode most headers as text_strings, except
         # where we have a specific decoding algorithm implemented
         header_field_encodings = WSPEncodingAssignments.hdrFieldEncodings
         if field_name in header_field_encodings:
             wap_value_type = header_field_encodings[field_name]
             try:
                 decoded_value = getattr(Decoder,
-                                       'decode%s' % wap_value_type)(byte_iter)
+                                       'decode_%s' % wap_value_type)(byte_iter)
             except DecodeError, msg:
                 raise DecodeError('Could not decode Wap-value: %s' % msg)
             except:
@@ -1360,12 +1361,12 @@ class Decoder:
                 raise
 
         else:
-            decoded_value = Decoder.decodeTextString(byte_iter)
+            decoded_value = Decoder.decode_text_string(byte_iter)
 
         return field_name, decoded_value
 
     @staticmethod
-    def decodeApplicationHeader(byte_iter):
+    def decode_application_header(byte_iter):
         """
         From [5], section 8.4.2.6::
 
@@ -1384,12 +1385,12 @@ class Decoder:
         :rtype: tuple
         """
         try:
-            app_header = Decoder.decodeTokenText(byte_iter)
+            app_header = Decoder.decode_token_text(byte_iter)
         #FNA: added for brute-forcing
         except DecodeError:
-            app_header = Decoder.decodeTextString(byte_iter)
+            app_header = Decoder.decode_text_string(byte_iter)
 
-        app_specific_value = Decoder.decodeTextString(byte_iter)
+        app_specific_value = Decoder.decode_text_string(byte_iter)
         return app_header, app_specific_value
 
     @staticmethod
@@ -1414,31 +1415,31 @@ class Decoder:
         """
         # First try decoding the header as a well-known-header
         try:
-            return Decoder.decodeWellKnownHeader(byte_iter)
+            return Decoder.decode_well_known_header(byte_iter)
         except DecodeError:
             # ...now try Application-header encoding
-            return Decoder.decodeApplicationHeader(byte_iter)
+            return Decoder.decode_application_header(byte_iter)
 
 
 class Encoder:
     """A WSP Data unit decoder"""
 
     @staticmethod
-    def encodeUint8(uint):
+    def encode_uint_8(uint):
         """
         Encodes an 8-bit unsigned integer
 
         :param uint: The integer to encode
         :type byte_iter: int
 
-        :return: the encoded Uint8, as a sequence of bytes
+        :return: the encoded uint_8, as a sequence of bytes
         :rtype: list
         """
         # Make the byte unsigned
         return [uint & 0xff]
 
     @staticmethod
-    def encodeUintvar(uint):
+    def encode_uint_var(uint):
         """
         Variable Length Unsigned Integer encoding algorithm
 
@@ -1456,7 +1457,7 @@ class Encoder:
         used octet is set to '1' to indicate more is to follow; the last used
         octet's "continue bit" is set to 0.
 
-        :return: the binary-encoded Uintvar, as a list of byte values
+        :return: the binary-encoded uint_var, as a list of byte values
         :rtype: list
         """
         uint_var = [uint & 0x7f]
@@ -1470,7 +1471,7 @@ class Encoder:
         return uint_var
 
     @staticmethod
-    def encodeTextString(string):
+    def encode_text_string(string):
         """ Encodes a "Text-string" value.
 
         This follows the basic encoding rules specified in [5], section
@@ -1488,7 +1489,7 @@ class Encoder:
         return encoded_string
 
     @staticmethod
-    def encodeShortInteger(integer):
+    def encode_short_integer(integer):
         """
         Encodes the specified short-integer ``integer`` value
 
@@ -1517,13 +1518,13 @@ class Encoder:
         return [integer | 0x80]
 
     @staticmethod
-    def encodeLongInteger(integer):
+    def encode_long_integer(integer):
         """
         Encodes a Long-integer value ``integer``
 
         The encoding for a long integer is specified in [5], section 8.4.2.1;
         for a description of this encoding scheme, see
-        :func:`wsp.Decoder.decodeLongIntger`.
+        :func:`wsp.Decoder.decode_long_integer`.
 
         From [5], section 8.4.2.2::
 
@@ -1558,7 +1559,7 @@ class Encoder:
         return encoded_long_int
 
     @staticmethod
-    def encodeVersionValue(version):
+    def encode_version_value(version):
         """
         Encodes the version-value.
 
@@ -1597,16 +1598,16 @@ class Encoder:
                     minor_version = 15
 
                 minor = minor_version
-                encoded_version_val = Encoder.encodeShortInteger(major | minor)
+                encoded_version_val = Encoder.encode_short_integer(major | minor)
         except:
             # The value couldn't be encoded as a short-integer; use
             # a text-string instead
-            encoded_version_val = Encoder.encodeTextString(version)
+            encoded_version_val = Encoder.encode_text_string(version)
 
         return encoded_version_val
 
     @staticmethod
-    def encodeMediaType(content_type):
+    def encode_media_type(content_type):
         """
         Encodes the specified MIME ``content_type`` ("Media-type" value)
 
@@ -1626,10 +1627,10 @@ class Encoder:
         """
         if content_type in WSPEncodingAssignments.wkContentTypes:
             # Short-integer encoding
-            val = Encoder.encodeShortInteger(
+            val = Encoder.encode_short_integer(
                     WSPEncodingAssignments.wkContentTypes.index(content_type))
         else:
-            val = Encoder.encodeTextString(content_type)
+            val = Encoder.encode_text_string(content_type)
 
         return [val]
 
@@ -1675,12 +1676,12 @@ class Encoder:
             if wk_params[assigned_number][0] == parameter_name:
                 # Ok, it's a Typed-parameter; encode the parameter name
                 encoded_parameter.extend(
-                        Encoder.encodeShortInteger(assigned_number))
+                        Encoder.encode_short_integer(assigned_number))
                 # and now the value
                 expected_type = wk_params[assigned_number][1]
                 try:
                     ret = getattr(Encoder,
-                                  'encode%s' % expected_type)(parameter_value)
+                                  'encode_%s' % expected_type)(parameter_value)
                     encoded_parameter.extend(ret)
                 except EncodeError, msg:
                     raise EncodeError('Error encoding param value: %s' % msg)
@@ -1693,13 +1694,13 @@ class Encoder:
         # See if the "Typed-parameter" encoding worked
         if len(encoded_parameter) == 0:
             # it didn't. Use "Untyped-parameter" encoding
-            encoded_parameter.extend(Encoder.encodeTokenText(parameter_name))
+            encoded_parameter.extend(Encoder.encode_token_text(parameter_name))
             value = []
             # First try to encode the untyped-value as an integer
             try:
-                value = Encoder.encodeIntegerValue(parameter_value)
+                value = Encoder.encode_integer_value(parameter_value)
             except EncodeError:
-                value = Encoder.encodeTextString(parameter_value)
+                value = Encoder.encode_text_string(parameter_value)
 
             encoded_parameter.extend(value)
 
@@ -1708,7 +1709,7 @@ class Encoder:
     # TODO: check up on the encoding/decoding of Token-text, in particular,
     # how does this differ from text-string? does it have 0x00 at the end?
     @staticmethod
-    def encodeTokenText(text):
+    def encode_token_text(text):
         """ From [5], section 8.4.2.1:
         Token-text = Token End-of-string
 
@@ -1725,11 +1726,11 @@ class Encoder:
                 raise EncodeError('Char "%s" in text string; cannot '
                                   'encode as Token-text' % chr(char))
 
-        return Encoder.encodeTextString(text)
+        return Encoder.encode_text_string(text)
 
     @staticmethod
-    def encodeIntegerValue(integer):
-        """ Encodes an integer value
+    def encode_integer_value(integer):
+        """Encodes an integer value
 
         From [5], section 8.4.2.3:
         Integer-Value = Short-integer | Long-integer
@@ -1751,17 +1752,17 @@ class Encoder:
 
         # First try and see if it's a short-integer
         try:
-            return Encoder.encodeShortInteger(integer)
+            return Encoder.encode_short_integer(integer)
         except EncodeError:
-            return Encoder.encodeLongInteger(integer)
+            return Encoder.encode_long_integer(integer)
 
     @staticmethod
-    def encodeTextValue(text):
-        """Stub for encoding Text-values; see :func:`encodeTextString`"""
-        return Encoder.encodeTextString(text)
+    def encode_text_value(text):
+        """Stub for encoding Text-values; see :func:`encode_text_string`"""
+        return Encoder.encode_text_string(text)
 
     @staticmethod
-    def encodeNoValue(value=None):
+    def encode_no_value(value=None):
         """
         Encodes a No-value ``value``, which is 0x00
 
@@ -1800,23 +1801,23 @@ class Encoder:
         # First try encoding the header name as a "well-known-header"...
         wkHdrFields = WSPEncodingAssignments.header_field_names()
         if field_name in wkHdrFields:
-            header_field_value = Encoder.encodeShortInteger(
+            header_field_value = Encoder.encode_short_integer(
                                     wkHdrFields.index(field_name))
             encoded_header.extend(header_field_value)
         else:
             # otherwise, encode it as an "application header"
-            encoded_header_name = Encoder.encodeTokenText(field_name)
+            encoded_header_name = Encoder.encode_token_text(field_name)
             encoded_header.extend(encoded_header_name)
 
         # Now add the value
         # TODO: make this flow better (see also Decoder.decode_header)
-        # most header values are encoded as TextStrings, except where we
+        # most header values are encoded as text_strings, except where we
         # have a specific Wap-value encoding implementation
         header_field_encodings = WSPEncodingAssignments.hdrFieldEncodings
         if field_name in header_field_encodings:
             wap_value_type = header_field_encodings[field_name]
             try:
-                ret = getattr(Encoder, 'encode%s' % wap_value_type)(value)
+                ret = getattr(Encoder, 'encode_%s' % wap_value_type)(value)
                 encoded_header.extend(ret)
             except EncodeError, msg:
                 raise EncodeError('Error encoding Wap-value: %s' % msg)
@@ -1825,12 +1826,12 @@ class Encoder:
                       'unimplemented encoding operation')
                 raise
         else:
-            encoded_header.extend(Encoder.encodeTextString(value))
+            encoded_header.extend(Encoder.encode_text_string(value))
 
         return encoded_header
 
     @staticmethod
-    def encodeContentTypeValue(media_type, parameters):
+    def encode_content_type_value(media_type, parameters):
         """
         Encodes a content type, and its parameters
 
@@ -1852,13 +1853,13 @@ class Encoder:
                 raise EncodeError('Need to use '
                                   'Content-general-form for parameters')
 
-            return Encoder.encodeConstrainedMedia(media_type)
+            return Encoder.encode_constrained_media(media_type)
         except EncodeError:
             # Try the general form
-            return Encoder.encodeContentGeneralForm(media_type, parameters)
+            return Encoder.encode_content_general_form(media_type, parameters)
 
     @staticmethod
-    def encodeConstrainedMedia(media_type):
+    def encode_constrained_media(media_type):
         """
         Encodes the constrained media ``media_type``
 
@@ -1882,10 +1883,10 @@ class Encoder:
         else:
             value = media_type
 
-        return Encoder.encodeConstrainedEncoding(value)
+        return Encoder.encode_constrained_encoding(value)
 
     @staticmethod
-    def encodeConstrainedEncoding(value):
+    def encode_constrained_encoding(value):
         """
         Constrained-encoding = Extension-Media  --or--  Short-integer
 
@@ -1906,11 +1907,11 @@ class Encoder:
         encoded_value = None
         if isinstance(value, int):
             # First try and encode the value as a short-integer
-            encoded_value = Encoder.encodeShortInteger(value)
+            encoded_value = Encoder.encode_short_integer(value)
         else:
             # Ok, it should be Extension-Media then
             try:
-                encoded_value = Encoder.encodeExtensionMedia(value)
+                encoded_value = Encoder.encode_extension_media(value)
             except EncodeError:
                 # Give up
                 raise EncodeError('Cannot encode %s as a '
@@ -1919,7 +1920,7 @@ class Encoder:
         return encoded_value
 
     @staticmethod
-    def encodeExtensionMedia(media_value):
+    def encode_extension_media(media_value):
         """
         Encodes the extension media ``media_value``
 
@@ -1950,18 +1951,18 @@ class Encoder:
             raise EncodeError('Invalid Extension-media: TEXT starts with '
                               'invalid character: %s' % ord(char))
 
-        return Encoder.encodeTextString(media_value)
+        return Encoder.encode_text_string(media_value)
 
     @staticmethod
-    def encodeContentGeneralForm(media_type, parameters):
+    def encode_content_general_form(media_type, parameters):
         """
         From [5], section 8.4.2.24::
 
             Content-general-form = Value-length Media-type
 
         Used in decoding Content-type fields and their parameters;
-        see :func:`decodeContentTypeValue`. Used by
-        :func:`decodeContentTypeValue`.
+        see :func:`decode_content_type_value`. Used by
+        :func:`decode_content_type_value`.
 
         :return: The encoded Content-general-form, as a sequence of bytes
         :rtype: list
@@ -1969,13 +1970,13 @@ class Encoder:
         enconded_content_general_form = []
         encoded_media_type = []
         # Encode the actual content type
-        encoded_media_type = Encoder.encodeMediaType(media_type)
+        encoded_media_type = Encoder.encode_media_type(media_type)
         # Encode all parameters
         encoded_parameters = [Encoder.encode_parameter(name, parameters[name])
                                     for name in parameters]
 
         value_length = len(encoded_media_type) + len(encoded_parameters)
-        encoded_value_length = Encoder.encodeValueLength(value_length)
+        encoded_value_length = Encoder.encode_value_length(value_length)
         enconded_content_general_form.extend(encoded_value_length)
         enconded_content_general_form.extend(encoded_media_type)
         enconded_content_general_form.extend(encoded_parameters)
@@ -1983,7 +1984,7 @@ class Encoder:
         return enconded_content_general_form
 
     @staticmethod
-    def encodeValueLength(length):
+    def encode_value_length(length):
         """
         Encodes the specified length value as a value length indicator
 
@@ -1996,9 +1997,9 @@ class Encoder:
            Value-length = [Short-length]  --or--  [Length-quote] [Length]
                               ^^^^^^                  ^^^^^^      ^^^^^^
                               1 byte                  1 byte      x bytes
-                         <Any octet 0-30>          <Octet 31>   Uintvar-integer
+                         <Any octet 0-30>          <Octet 31>   uint_var-integer
 
-        :raise EncodeError: The ValueLength could not be encoded.
+        :raise EncodeError: The value_length could not be encoded.
 
         :return: The encoded value length indicator, as a sequence of bytes
         :rtype: list
@@ -2006,16 +2007,16 @@ class Encoder:
         encoded_value_length = []
         # Try and encode it as a short-length
         try:
-            encoded_value_length = Encoder.encodeShortLength(length)
+            encoded_value_length = Encoder.encode_short_length(length)
         except EncodeError:
-            # Encode it with a Length-quote and Uintvar
+            # Encode it with a Length-quote and uint_var
             encoded_value_length.append(31)  # Length-quote
-            encoded_value_length.extend(Encoder.encodeUintvar(length))
+            encoded_value_length.extend(Encoder.encode_uint_var(length))
 
         return encoded_value_length
 
     @staticmethod
-    def encodeShortLength(length):
+    def encode_short_length(length):
         """
         From [5], section 8.4.2.2::
 
@@ -2034,7 +2035,7 @@ class Encoder:
         return [length]
 
     @staticmethod
-    def encodeAcceptValue(accept_value):
+    def encode_accept_value(accept_value):
         """
         From [5], section 8.4.2.7::
 
@@ -2059,15 +2060,15 @@ class Encoder:
         encoded_accept_value = []
         # Try to use Constrained-media encoding
         try:
-            encoded_accept_value = Encoder.encodeConstrainedMedia(accept_value)
+            encoded_accept_value = Encoder.encode_constrained_media(accept_value)
         except EncodeError:
             # ...now try Accept-general-form
             try:
-                encoded_media_range = Encoder.encodeMediaType(accept_value)
+                encoded_media_range = Encoder.encode_media_type(accept_value)
             except EncodeError, msg:
                 raise EncodeError('Cannot encode Accept-value: %s' % msg)
 
-            value_length = Encoder.encodeValueLength(len(encoded_media_range))
+            value_length = Encoder.encode_value_length(len(encoded_media_range))
             encoded_accept_value = value_length
             encoded_accept_value.extend(encoded_media_range)
 
