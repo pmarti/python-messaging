@@ -109,8 +109,8 @@ term:`PDU` decoding is really simple with :class:`~messaging.sms.SmsDeliver`::
     #  'text': u'  1741 bst', 'fmt': 0, 'pid': 0,
     #  'dcs': 0, 'number': '+447927267410'}
 
-Apart from the pdu, the :func:`messaging.sms.SmsDeliver.__init__` accepts a
-second parameter (strict, which defaults to True). If False, it will decode
+Apart from the pdu, the :py:meth:`messaging.sms.SmsDeliver.__init__` accepts a
+second parameter (`strict`, which defaults to True). If False, it will decode
 incomplete (odd size) PDUs.
 
 Sending

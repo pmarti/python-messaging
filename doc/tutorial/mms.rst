@@ -52,10 +52,10 @@ for a plain HTTP POST::
     from cStringIO import StringIO
     import socket
 
-    host, port = "212.11.23.23", 7899
+    gw_host, gw_port = "212.11.23.23", 7899
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, int(port)))
+    s.connect((gw_host, gw_port))
     s.send("POST %s HTTP/1.0\r\n" % mmsc)
     s.send("Content-Type: application/vnd.wap.mms-message\r\n")
     s.send("Content-Length: %d\r\n\r\n" % len(payload))
@@ -99,6 +99,9 @@ code used for sending a MMS.
 Decoding
 ========
 
+Decoding from binary data
++++++++++++++++++++++++++
+
 Decoding a MMS could not be any easier, once you have the binary data of the
 MMS, you just need to::
 
@@ -106,6 +109,21 @@ MMS, you just need to::
 
     # data is an array.array("B") instance
     mms = MMSMessage.from_data(data)
+
+    print mms.headers['Message-Type']  # m-send-req
+    print mms.headers['To']            # '+34231342234/TYPE=PLMN'
+
+
+Decoding from a file
+++++++++++++++++++++
+
+Decoding a MMS serialised to a file is pretty straightforward too, you just
+need the path to the file and::
+
+    from messaging.mms.message import MMSMessage
+
+    path = '/tmp/binary-mms.bin'
+    mms = MMSMessage.from_file(path)
 
     print mms.headers['Message-Type']  # m-send-req
     print mms.headers['To']            # '+34231342234/TYPE=PLMN'
