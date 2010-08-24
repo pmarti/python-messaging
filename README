@@ -1,7 +1,7 @@
 What is python-messaging?
 =========================
 
-A SMS encoder/decoder written 100% in Python.
+A SMS/MMS encoder/decoder written 100% in Python.
 
 History
 =======
@@ -10,13 +10,26 @@ Originally written by Paul Hardwick with some bits from Dave Berkeley's
 pysms. It was imported in the Wader and MobileManager projects and quickly
 became clear that a joint effort would be more benefitial for everyone.
 
-Features
-========
+In 2010, the superb python-mms package by Francois Aucamp was merged into
+python-messaging to provide a complete SMS/MMS encoder/decoder.
+
+SMS Features
+============
 
  * Supports 7bit, 8bit and UCS2 encodings
  * Multipart encoding/decoding
  * Status report encoding/decoding
  * Relative validity
  * Alphanumeric address decoding
+ * Supports python 2.5 up to 3.2
+ * Tests
+
+
+MMS Features
+============
+
+ * SMIL support
+ * Main formats supported: jpg, gif, arm, 3gp, midi, etc.
+ * Supports MMS 1.0-1.4 decoding/encoding
  * Supports python 2.5 up to 3.2
  * Tests

@@ -9,7 +9,7 @@ if sys.version_info >= (3,):
 
 setup(name="python-messaging",
       version='0.5.9',
-      description='SMS encoder/decoder',
+      description='SMS/MMS encoder/decoder',
       license=open('COPYING').read(),
       packages=find_packages(),
       install_requires=['nose'],
