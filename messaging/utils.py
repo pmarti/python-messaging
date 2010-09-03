@@ -9,9 +9,9 @@ class FixedOffset(tzinfo):
 
     def __init__(self, offset, name):
         if isinstance(offset, timedelta):
-            self.__offset = offset
+            self.offset = offset
         else:
-            self.__offset = timedelta(minutes=offset)
+            self.offset = timedelta(minutes=offset)
 
         self.__name = name
 
@@ -25,12 +25,17 @@ class FixedOffset(tzinfo):
         sign = 1 if '+' in tz_str else -1
         offset = tz_str.replace('+', '').replace('-', '')
         hours, minutes = int(offset[:2]), int(offset[2:])
-        minutes += hours * 60 * sign
-        td = timedelta(minutes=minutes)
+        minutes += hours * 60
+
+        if sign == 1:
+            td = timedelta(minutes=minutes)
+        elif sign == -1:
+            td = timedelta(days=-1, minutes=minutes)
+
         return cls(td, name)
 
     def utcoffset(self, dt):
-        return self.__offset
+        return self.offset
 
     def tzname(self, dt):
         return self.__name
@@ -257,13 +262,13 @@ def datetime_to_absolute_validity(d, tzname='Unknown'):
     """Convert ``d`` to its integer representation"""
     n = d.strftime("%y %m %d %H %M %S %z").split(" ")
     # compute offset
-    offset = FixedOffset.from_timezone(n[-1], tzname)
-    offset = offset.utcoffset(None)
+    offset = FixedOffset.from_timezone(n[-1], tzname).offset
     # one unit is 15 minutes
-    total = int(floor(offset.seconds / (60 * 15)))
+    s = "%02d" % int(floor(offset.seconds / (60 * 15)))
+
     if offset.days < 0:
         # set MSB to 1
-        total += 0x80
+        s = "%02x" % ((int(s[0]) << 4) | int(s[1]) | 0x80)
 
-    n[-1] = str(total)
+    n[-1] = s
     return list(map(swap_nibble, n))

@@ -29,7 +29,15 @@ class TestEncodingFunctions(unittest.TestCase):
                          FixedOffset(3 * 60, "GMT+3"))
         expected = [0x99, 0x20, 0x21, 0x50, 0x75, 0x03, 0x21]
         self.assertEqual(to_absolute(when, "GMT+3"), expected)
-        # XXX: test negative offsets too
+
+        when = datetime(1999, 2, 12, 5, 57, 30, 0)
+        expected = [0x99, 0x20, 0x21, 0x50, 0x75, 0x03, 0x0]
+        self.assertEqual(to_absolute(when, "UTC"), expected)
+
+        when = datetime(1999, 2, 12, 5, 57, 30, 0,
+                         FixedOffset(-3 * 60, "GMT-3"))
+        expected = [0x99, 0x20, 0x21, 0x50, 0x75, 0x03, 0x29]
+        self.assertEqual(to_absolute(when, "GMT-3"), expected)
 
 
 class TestSmsSubmit(unittest.TestCase):
