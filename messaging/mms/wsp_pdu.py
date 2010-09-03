@@ -1095,7 +1095,7 @@ class Decoder:
 
         :rtype: datetime.datetime
         """
-        return datetime.fromtimestamp(Decoder.decode_long_integer(byte_iter))
+        return datetime.utcfromtimestamp(Decoder.decode_long_integer(byte_iter))
 
     @staticmethod
     def decode_delta_seconds_value(byte_iter):

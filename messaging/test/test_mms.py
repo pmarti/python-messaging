@@ -53,7 +53,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'Transaction-Id': '1234', 'MMS-Version': '1.0',
             'Message-Type': 'm-retrieve-conf',
-            'Date': datetime.datetime(2002, 12, 20, 22, 26, 56),
+            'Date': datetime.datetime(2002, 12, 20, 21, 26, 56),
             'Content-Type': ('application/vnd.wap.multipart.related', {}),
             'Subject': 'Simple message',
         }
@@ -72,7 +72,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'Transaction-Id': '1234', 'MMS-Version': '1.0',
             'Message-Type': 'm-retrieve-conf',
-            'Date': datetime.datetime(2003, 1, 21, 2, 57, 4),
+            'Date': datetime.datetime(2003, 1, 21, 1, 57, 4),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<btmms.smil>', 'Type': 'application/smil'}),
             'Subject': 'BT Ignite MMS',
         }
@@ -96,7 +96,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'From': 'allan@tomslot.com', 'Transaction-Id': '1234',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
-            'Date': datetime.datetime(2003, 2, 16, 4, 48, 33),
+            'Date': datetime.datetime(2003, 2, 16, 3, 48, 33),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<tomslot.smil>', 'Type': 'application/smil'}),
             'Subject': 'Tom Slot Band',
         }
@@ -172,7 +172,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '1-8db', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '55225/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
-            'Date': datetime.datetime(2004, 3, 18, 8, 30, 34),
+            'Date': datetime.datetime(2004, 3, 18, 7, 30, 34),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<AAAA>', 'Type': 'application/smil'}),
         }
         text_data = 'Hej hopp'
@@ -229,7 +229,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '4-fc60', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '12345/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
-            'Date': datetime.datetime(2004, 5, 23, 17, 13, 40),
+            'Date': datetime.datetime(2004, 5, 23, 15, 13, 40),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<AAAA>', 'Type': 'application/smil'}),
             'Subject': 'Hej',
         }
@@ -254,7 +254,7 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'From': 'goldpost@hotmail.com', 'Transaction-Id': '0000000001',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
-            'Date': datetime.datetime(2002, 8, 9, 15, 8, 2),
+            'Date': datetime.datetime(2002, 8, 9, 13, 8, 2),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<A0>', 'Type': 'application/smil'}),
             'Subject': 'GOLD',
         }
@@ -313,7 +313,7 @@ class TestMmsDecoding(unittest.TestCase):
             'Transaction-Id': '3-31cb', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '123/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
-            'Date': datetime.datetime(2004, 5, 23, 16, 14, 58),
+            'Date': datetime.datetime(2004, 5, 23, 14, 14, 58),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<AAAA>', 'Type': 'application/smil'}),
             'Subject': 'Angående art-tillhörighet',
             #'Subject': 'Ang\xc3\xa5ende art-tillh\xc3\xb6righet',
