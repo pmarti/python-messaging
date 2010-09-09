@@ -158,7 +158,7 @@ class SmsDeliver(SmsBase):
         msgl = data.pop(0)
         msg = encode_bytes(data[:msgl])
         # check for header
-        headlen = 0
+        headlen = ud_len = 0
 
         if self.mtype & 0x40:  # UDHI present
             ud_len = data.pop(0)
@@ -173,16 +173,18 @@ class SmsDeliver(SmsBase):
 
         if self.fmt == 0x00:
             # XXX: Use unpack_msg2
-            msg = unpack_msg(msg)[headlen:msgl].decode("gsm0338")
+            data = data[ud_len:].tolist()
+            #self.text = unpack_msg2(data).decode("gsm0338")
+            self.text = unpack_msg(msg)[headlen:msgl].decode("gsm0338")
 
         elif self.fmt == 0x04:
-            msg = data[ud_len:].tostring()
+            self.text = data[ud_len:].tostring()
 
         elif self.fmt == 0x08:
-            msg = u''.join([unichr(int(msg[x:x + 4], 16))
-                            for x in range(0, len(msg), 4)])
-
-        self.text = msg
+            data = data[ud_len:].tolist()
+            _bytes = [int("%02X%02X" % (data[i], data[i + 1]), 16)
+                            for i in range(0, len(data), 2)]
+            self.text = u''.join(list(map(unichr, _bytes)))
 
     pdu = property(lambda self: self._pdu, _set_pdu)
 
