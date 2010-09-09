@@ -18,6 +18,9 @@ import traceback
 
 QUESTION_MARK = chr(0x3f)
 
+# data from
+# http://snoops.roy202.org/testerman/browser/trunk/plugins/codecs/gsm0338.py
+
 mapping = [
     ('\x00', u'\u0040'),  # COMMERCIAL AT
     ('\x00', u'\u0000'),  # NULL (see note above)
@@ -181,7 +184,7 @@ escaped_mapping = [
 # unicode -> GSM 03.38
 regular_encode_dict = dict([(u, g) for g, u in mapping])
 
-# unicode -> escaped GSM 03.38 characters ("\x1b" is the GSM 03.38 escape char)
+# unicode -> escaped GSM 03.38 characters
 escape_encode_dict = dict([(g, u) for g, u in escaped_mapping])
 
 # GSM 03.38 -> unicode
@@ -189,7 +192,7 @@ escape_encode_dict = dict([(g, u) for g, u in escaped_mapping])
 # taken into account (see 0x41, etc)
 regular_decode_dict = {}
 for g, u in mapping:
-    if not g in regular_decode_dict:
+    if g not in regular_decode_dict:
         regular_decode_dict[g] = u
 
 escape_decode_dict = dict([(g, u) for g, u in escaped_mapping])
@@ -262,13 +265,13 @@ def decode(input_, errors='strict'):
 
 # encodings module API
 def getregentry(encoding):
-    if not encoding == 'gsm0338':
-        return
+    if encoding == 'gsm0338':
+        return codecs.CodecInfo(name='gsm0338',
+                                encode=encode,
+                                decode=decode)
 
-    return codecs.CodecInfo(
-        name='gsm0338',
-        encode=encode,
-        decode=decode)
+# Codec registration
+codecs.register(getregentry)
 
 
 def is_gsm_text(text):
@@ -282,6 +285,3 @@ def is_gsm_text(text):
         return False
 
     return True
-
-# Codec registration
-codecs.register(getregentry)
