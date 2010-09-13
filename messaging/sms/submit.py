@@ -35,6 +35,7 @@ class SmsSubmit(SmsBase):
 
         self.number = number
         self.text = text
+        self.text_gsm = None
 
     def _set_number(self, number):
         if number and not VALID_NUMBER.match(number):
@@ -242,10 +243,11 @@ class SmsSubmit(SmsBase):
         message_pdu = ""
 
         if self.fmt == 0x00:
-            if len(self.text) <= consts.SEVENBIT_SIZE:
-                message_pdu = [pack_8bits_to_7bits(self.text)]
+            self.text_gsm = self.text.encode("gsm0338")
+            if len(self.text_gsm) <= consts.SEVENBIT_SIZE:
+                message_pdu = [pack_8bits_to_7bits(self.text_gsm)]
             else:
-                message_pdu = self._split_sms_message(self.text)
+                message_pdu = self._split_sms_message(self.text_gsm)
         elif self.fmt == 0x04:
             if len(self.text) <= consts.EIGHTBIT_SIZE:
                 message_pdu = [pack_8bits_to_8bit(self.text)]
@@ -270,19 +272,21 @@ class SmsSubmit(SmsBase):
             len_without_udh = consts.SEVENBIT_MP_SIZE
             limit = consts.SEVENBIT_SIZE
             packing_func = pack_8bits_to_7bits
+            total_len = len(self.text_gsm)
 
         elif self.fmt == 0x04:
             len_without_udh = consts.EIGHTBIT_MP_SIZE
             limit = consts.EIGHTBIT_SIZE
             packing_func = pack_8bits_to_8bit
+            total_len = len(self.text)
 
         elif self.fmt == 0x08:
             len_without_udh = consts.UCS2_MP_SIZE
             limit = consts.UCS2_SIZE
             packing_func = pack_8bits_to_ucs2
+            total_len = len(self.text)
 
         msgs = []
-        total_len = len(self.text)
         pi, pe = 0, len_without_udh
 
         while pi < total_len:

@@ -229,6 +229,91 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertRaises(ValueError, setattr, sms, 'csca', "1badcsca")
 
 
+class TestSubmitPduCounts(unittest.TestCase):
+
+    DEST = "+3530000000"
+    GSM_CHAR = "x"
+    EGSM_CHAR = u"€"
+    UNICODE_CHAR = u"ő"
+
+    def test_gsm_1(self):
+        sms = SmsSubmit(self.DEST, self.GSM_CHAR * 160)
+        self.assertEqual(len(sms.to_pdu()), 1)
+
+    def test_gsm_2(self):
+        sms = SmsSubmit(self.DEST, self.GSM_CHAR * 161)
+        self.assertEqual(len(sms.to_pdu()), 2)
+
+    def test_gsm_3(self):
+        sms = SmsSubmit(self.DEST, self.GSM_CHAR * 153 * 2)
+        self.assertEqual(len(sms.to_pdu()), 2)
+
+    def test_gsm_4(self):
+        sms = SmsSubmit(self.DEST,
+                        self.GSM_CHAR * 153 * 2 + self.GSM_CHAR)
+        self.assertEqual(len(sms.to_pdu()), 3)
+
+    def test_gsm_5(self):
+        sms = SmsSubmit(self.DEST, self.GSM_CHAR * 153 * 3)
+        self.assertEqual(len(sms.to_pdu()), 3)
+
+    def test_gsm_6(self):
+        sms = SmsSubmit(self.DEST,
+                        self.GSM_CHAR * 153 * 3 + self.GSM_CHAR)
+        self.assertEqual(len(sms.to_pdu()), 4)
+
+    def test_egsm_1(self):
+        sms = SmsSubmit(self.DEST, self.EGSM_CHAR * 80)
+        self.assertEqual(len(sms.to_pdu()), 1)
+
+    def test_egsm_2(self):
+        sms = SmsSubmit(self.DEST,
+                        self.EGSM_CHAR * 79 + self.GSM_CHAR)
+        self.assertEqual(len(sms.to_pdu()), 1)
+
+    def test_egsm_3(self):
+        sms = SmsSubmit(self.DEST, self.EGSM_CHAR * 153)  # 306 septets
+        self.assertEqual(len(sms.to_pdu()), 2)
+
+    def test_egsm_4(self):
+        sms = SmsSubmit(self.DEST,
+                        self.EGSM_CHAR * 153 + self.GSM_CHAR)  # 307 septets
+        self.assertEqual(len(sms.to_pdu()), 3)
+
+    def test_egsm_5(self):
+        sms = SmsSubmit(self.DEST,
+                          self.EGSM_CHAR * 229 + self.GSM_CHAR)  # 459 septets
+        self.assertEqual(len(sms.to_pdu()), 3)
+
+    def test_egsm_6(self):
+        sms = SmsSubmit(self.DEST, self.EGSM_CHAR * 230)  # 460 septets
+        self.assertEqual(len(sms.to_pdu()), 4)
+
+    def test_unicode_1(self):
+        sms = SmsSubmit(self.DEST, self.UNICODE_CHAR * 70)
+        self.assertEqual(len(sms.to_pdu()), 1)
+
+    def test_unicode_2(self):
+        sms = SmsSubmit(self.DEST, self.UNICODE_CHAR * 70 + self.GSM_CHAR)
+        self.assertEqual(len(sms.to_pdu()), 2)
+
+    def test_unicode_3(self):
+        sms = SmsSubmit(self.DEST, self.UNICODE_CHAR * 67 * 2)
+        self.assertEqual(len(sms.to_pdu()), 2)
+
+    def test_unicode_4(self):
+        sms = SmsSubmit(self.DEST, self.UNICODE_CHAR * 67 * 2 + self.GSM_CHAR)
+        self.assertEqual(len(sms.to_pdu()), 3)
+
+    def test_unicode_5(self):
+        sms = SmsSubmit(self.DEST, self.UNICODE_CHAR * 67 * 3)
+        self.assertEqual(len(sms.to_pdu()), 3)
+
+    def test_unicode_6(self):
+        sms = SmsSubmit(self.DEST, self.UNICODE_CHAR * 67 * 3 + self.GSM_CHAR)
+        self.assertEqual(len(sms.to_pdu()), 4)
+
+
 class TestSmsDeliver(unittest.TestCase):
 
     def test_decoding_7bit_pdu(self):

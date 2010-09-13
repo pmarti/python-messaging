@@ -105,7 +105,7 @@ def swap_nibble(n):
 
 def pack_8bits_to_7bits(message, udh=None):
     pdu = ""
-    txt = bytes_to_str(message.encode("gsm0338"))
+    txt = bytes_to_str(message)
 
     if udh is None:
         tl = len(txt)

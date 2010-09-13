@@ -185,7 +185,7 @@ escaped_mapping = [
 regular_encode_dict = dict([(u, g) for g, u in mapping])
 
 # unicode -> escaped GSM 03.38 characters
-escape_encode_dict = dict([(g, u) for g, u in escaped_mapping])
+escape_encode_dict = dict([(u, g) for g, u in escaped_mapping])
 
 # GSM 03.38 -> unicode
 # Only first corresponding unicode character is
