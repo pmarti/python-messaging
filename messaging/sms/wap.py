@@ -20,9 +20,9 @@ def is_a_wap_push_notification(s):
 def extract_push_notification(s):
     data = array("B", s)
 
-    trans_id, wap_push, offset = data[:3]
+    wap_push, offset = data[1:3]
     assert wap_push == 0x06
 
     offset += 3
     data = data[offset:]
-    return MMSDecoder().decode_data(data), trans_id
+    return MMSDecoder().decode_data(data)

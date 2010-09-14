@@ -57,7 +57,7 @@ class TestSmsWapPush(unittest.TestCase):
         self.assertEqual(sms.number, number)
         data += sms.text
 
-        mms, trans_id = extract_push_notification(data)
+        mms = extract_push_notification(data)
         self.assertEqual(mms.headers['Message-Type'], 'm-notification-ind')
         self.assertEqual(mms.headers['Transaction-Id'],
                 'NOK5CiKcoTMYSG4MBSwAAsKv14FUHAAAAAAAA')
@@ -91,7 +91,7 @@ class TestSmsWapPush(unittest.TestCase):
         self.assertEqual(sms.number, number)
         data += sms.text
 
-        mms, trans_id = extract_push_notification(data)
+        mms = extract_push_notification(data)
         self.assertEqual(mms.headers['Message-Type'], 'm-notification-ind')
         self.assertEqual(mms.headers['Transaction-Id'],
                 'NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')
