@@ -3,6 +3,13 @@
 
 .. automodule:: messaging.mms.wsp_pdu
 
+Functions
+---------
+
+.. autofunction:: get_header_field_names
+
+.. autofunction:: get_well_known_parameters
+
 Classes
 --------
 
@@ -11,9 +18,6 @@ Classes
 
 .. autoclass:: EncodeError
    :show-inheritance:
-
-.. autoclass:: WSPEncodingAssignments
-   :members:
 
 .. autoclass:: Decoder
    :members:

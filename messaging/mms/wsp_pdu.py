@@ -40,276 +40,253 @@ from datetime import datetime
 from messaging.utils import debug
 from messaging.mms.iterator import PreviewIterator
 
+wsp_pdu_types = {
+    0x01: 'Connect',
+    0x02: 'ConnectReply',
+    0x03: 'Redirect',
+    0x04: 'Reply',
+    0x05: 'Disconnect',
+    0x06: 'Push',
+    0x07: 'ConfirmedPush',
+    0x08: 'Suspend',
+    0x09: 'Resume',
+    0x40: 'Get',
+    0x60: 'Post',
+}
 
-class WSPEncodingAssignments:
+# Well-known parameter assignments ([5], table 38)
+well_known_parameters = {
+    0x00: ('Q', 'q_value'),
+    0x01: ('Charset', 'well_known_charset'),
+    0x02: ('Level', 'version_value'),
+    0x03: ('Type', 'integer_value'),
+    0x05: ('Name', 'text_string'),
+    0x06: ('Filename', 'text_string'),
+    0x07: ('Differences', 'Field-name'),
+    0x08: ('Padding', 'short_integer'),
+    0x09: ('Type', 'constrained_encoding'),  # encoding version 1.2
+    0x0a: ('Start', 'text_string'),
+    0x0b: ('Start-info', 'text_string'),
+    0x0c: ('Comment', 'text_string'),   # encoding version 1.3
+    0x0d: ('Domain', 'text_string'),
+    0x0e: ('Max-Age', 'delta_seconds_value'),
+    0x0f: ('Path', 'text_string'),
+    0x10: ('Secure', 'no_value'),
+    0x11: ('SEC', 'short_integer'),  # encoding version 1.4
+    0x12: ('MAC', 'text_value'),
+    0x13: ('Creation-date', 'date_value'),
+    0x14: ('Modification-date', 'date_value'),
+    0x15: ('Read-date', 'date_value'),
+    0x16: ('Size', 'integer_value'),
+    0x17: ('Name', 'text_value'),
+    0x18: ('Filename', 'text_value'),
+    0x19: ('Start', 'text_value'),
+    0x1a: ('Start-info', 'text_value'),
+    0x1b: ('Comment', 'text_value'),
+    0x1c: ('Domain', 'text_value'),
+    0x1d: ('Path', 'text_value'),
+}
+
+
+# Content type assignments ([5], table 40)
+well_known_content_types = [
+    '*/*', 'text/*', 'text/html', 'text/plain',
+    'text/x-hdml', 'text/x-ttml', 'text/x-vCalendar',
+    'text/x-vCard', 'text/vnd.wap.wml',
+    'text/vnd.wap.wmlscript', 'text/vnd.wap.wta-event',
+    'multipart/*', 'multipart/mixed', 'multipart/form-data',
+    'multipart/byterantes', 'multipart/alternative',
+    'application/*', 'application/java-vm',
+    'application/x-www-form-urlencoded',
+    'application/x-hdmlc', 'application/vnd.wap.wmlc',
+    'application/vnd.wap.wmlscriptc',
+    'application/vnd.wap.wta-eventc',
+    'application/vnd.wap.uaprof',
+    'application/vnd.wap.wtls-ca-certificate',
+    'application/vnd.wap.wtls-user-certificate',
+    'application/x-x509-ca-cert',
+    'application/x-x509-user-cert',
+    'image/*', 'image/gif', 'image/jpeg', 'image/tiff',
+    'image/png', 'image/vnd.wap.wbmp',
+    'application/vnd.wap.multipart.*',
+    'application/vnd.wap.multipart.mixed',
+    'application/vnd.wap.multipart.form-data',
+    'application/vnd.wap.multipart.byteranges',
+    'application/vnd.wap.multipart.alternative',
+    'application/xml', 'text/xml',
+    'application/vnd.wap.wbxml',
+    'application/x-x968-cross-cert',
+    'application/x-x968-ca-cert',
+    'application/x-x968-user-cert',
+    'text/vnd.wap.si',
+    'application/vnd.wap.sic',
+    'text/vnd.wap.sl',
+    'application/vnd.wap.slc',
+    'text/vnd.wap.co',
+    'application/vnd.wap.coc',
+    'application/vnd.wap.multipart.related',
+    'application/vnd.wap.sia',
+    'text/vnd.wap.connectivity-xml',
+    'application/vnd.wap.connectivity-wbxml',
+    'application/pkcs7-mime',
+    'application/vnd.wap.hashed-certificate',
+    'application/vnd.wap.signed-certificate',
+    'application/vnd.wap.cert-response',
+    'application/xhtml+xml',
+    'application/wml+xml',
+    'text/css',
+    'application/vnd.wap.mms-message',
+    'application/vnd.wap.rollover-certificate',
+    'application/vnd.wap.locc+wbxml',
+    'application/vnd.wap.loc+xml',
+    'application/vnd.syncml.dm+wbxml',
+    'application/vnd.syncml.dm+xml',
+    'application/vnd.syncml.notification',
+    'application/vnd.wap.xhtml+xml',
+    'application/vnd.wv.csp.cir',
+    'application/vnd.oma.dd+xml',
+    'application/vnd.oma.drm.message',
+    'application/vnd.oma.drm.content',
+    'application/vnd.oma.drm.rights+xml',
+    'application/vnd.oma.drm.rights+wbxml',
+]
+
+# Well-known character sets (table 42 of [5])
+# Format {<assinged_number> : <charset>}
+# Note that the assigned number is the same as the IANA MIBEnum value
+# "gsm-default-alphabet" is not included, as it is not assigned any
+# value in [5]. Also note, this is by no means a complete list
+well_known_charsets = {
+    0x07EA: 'big5',
+    0x03E8: 'iso-10646-ucs-2',
+    0x04: 'iso-8859-1',
+    0x05: 'iso-8859-2',
+    0x06: 'iso-8859-3',
+    0x07: 'iso-8859-4',
+    0x08: 'iso-8859-5',
+    0x09: 'iso-8859-6',
+    0x0A: 'iso-8859-7',
+    0x0B: 'iso-8859-8',
+    0x0C: 'iso-8859-9',
+    0x11: 'shift_JIS',
+    0x03: 'us-ascii',
+    0x6A: 'utf-8',
+}
+
+# Header Field Name assignments ([5], table 39)
+header_field_names = [
+    'Accept', 'Accept-Charset', 'Accept-Encoding',
+    'Accept-Language', 'Accept-Ranges', 'Age',
+    'Allow', 'Authorization', 'Cache-Control',
+    'Connection', 'Content-Base', 'Content-Encoding',
+    'Content-Language', 'Content-Length',
+    'Content-Location', 'Content-MD5', 'Content-Range',
+    'Content-Type', 'Date', 'Etag', 'Expires', 'From',
+    'Host', 'If-Modified-Since', 'If-Match',
+    'If-None-Match', 'If-Range', 'If-Unmodified-Since',
+    'Location', 'Last-Modified', 'Max-Forwards', 'Pragma',
+    'Proxy-Authenticate', 'Proxy-Authorization', 'Public',
+    'Range', 'Referer', 'Retry-After', 'Server',
+    'Transfer-Encoding', 'Upgrade', 'User-Agent',
+    'Vary', 'Via', 'Warning', 'WWW-Authenticate',
+    'Content-Disposition',
+    # encoding version 1.2
+    'X-Wap-Application-Id', 'X-Wap-Content-URI',
+    'X-Wap-Initiator-URI', 'Accept-Application',
+    'Bearer-Indication', 'Push-Flag', 'Profile',
+    'Profile-Diff', 'Profile-Warning',
+    # encoding version 1.3
+    'Expect', 'TE', 'Trailer', 'Accept-Charset',
+    'Accept-Encoding', 'Cache-Control',
+    'Content-Range', 'X-Wap-Tod', 'Content-ID',
+    'Set-Cookie', 'Cookie', 'Encoding-Version',
+    # encoding version 1.4
+    'Profile-Warning', 'Content-Disposition',
+    'X-WAP-Security', 'Cache-Control',
+]
+
+
+# TODO: combine this dict with the header_field_names table (same as well
+# known parameter assignments)
+# Temporary fix to allow different types of header field values to be
+# dynamically decoded
+header_field_encodings = {'Accept': 'accept_value', 'Pragma': 'pragma_value'}
+
+
+def get_header_field_names(version='1.2'):
     """
-    I contain the constant values for well-known parameters and content-types
+    Formats list of assigned values for header field names, for the
+    specified WSP encoding version.
 
-    I also define some functions for combining assigned number-tables for
-    specific WSP encoding versions, where appropriate.
+    :param version: The WSP encoding version to use. This defaults
+                    to "1.2", but may be "1.1", "1.2", "1.3" or
+                    "1.4" (see table 39 in [5] for details).
+    :type version: str
 
-    This is used by both the Encoder and Decoder classes during well-known
-    assigned number lookups (usually these functions have the string
-    ``WellKnown`` in their names).
+    :raise ValueError: The specified encoding version is invalid.
 
-    - Assigned parameters are stored in a dictionary,
-      ``well_known_parameters``, containing all assigned values for WSP
-      encoding versions 1.1 - 1.4, in the format::
-
-        <int>assigned number: (<str>name, <str>expected value type)
-
-      A "encoding versioned"-version of this dictionary can be retrieved
-      by calling the :func:`wellKnowParameters` function with an appropriate
-      WSP encoding version as parameter.
-    - Assigned content types are stored in a list, ``wkContentTypes``,
-      in order; thus, their index in the list is equal to their
-      assigned value.
+    :return: A list containing the WSP header field names with assigned
+             numbers for the specified encoding version (and lower).
+    :rtype: list
     """
-    wsp_pdu_types = {
-        0x01: 'Connect',
-        0x02: 'ConnectReply',
-        0x03: 'Redirect',
-        0x04: 'Reply',
-        0x05: 'Disconnect',
-        0x06: 'Push',
-        0x07: 'ConfirmedPush',
-        0x08: 'Suspend',
-        0x09: 'Resume',
-        0x40: 'Get',
-        0x60: 'Post',
-    }
+    if version not in ('1.1', '1.2', '1.3', '1.4'):
+        raise ValueError('version must be "1.1",'
+                         '"1.2", "1.3" or "1.4"')
 
-    # Well-known parameter assignments ([5], table 38)
-    well_known_parameters = {
-        0x00: ('Q', 'q_value'),
-        0x01: ('Charset', 'well_known_charset'),
-        0x02: ('Level', 'version_value'),
-        0x03: ('Type', 'integer_value'),
-        0x05: ('Name', 'text_string'),
-        0x06: ('Filename', 'text_string'),
-        0x07: ('Differences', 'Field-name'),
-        0x08: ('Padding', 'short_integer'),
-        0x09: ('Type', 'constrained_encoding'),  # encoding version 1.2
-        0x0a: ('Start', 'text_string'),
-        0x0b: ('Start-info', 'text_string'),
-        0x0c: ('Comment', 'text_string'),   # encoding version 1.3
-        0x0d: ('Domain', 'text_string'),
-        0x0e: ('Max-Age', 'delta_seconds_value'),
-        0x0f: ('Path', 'text_string'),
-        0x10: ('Secure', 'no_value'),
-        0x11: ('SEC', 'short_integer'),  # encoding version 1.4
-        0x12: ('MAC', 'text_value'),
-        0x13: ('Creation-date', 'date_value'),
-        0x14: ('Modification-date', 'date_value'),
-        0x15: ('Read-date', 'date_value'),
-        0x16: ('Size', 'integer_value'),
-        0x17: ('Name', 'text_value'),
-        0x18: ('Filename', 'text_value'),
-        0x19: ('Start', 'text_value'),
-        0x1a: ('Start-info', 'text_value'),
-        0x1b: ('Comment', 'text_value'),
-        0x1c: ('Domain', 'text_value'),
-        0x1d: ('Path', 'text_value'),
-    }
+    version = int(version.split('.')[1])
 
-    # Content type assignments ([5], table 40)
-    wkContentTypes = [
-        '*/*', 'text/*', 'text/html', 'text/plain',
-        'text/x-hdml', 'text/x-ttml', 'text/x-vCalendar',
-        'text/x-vCard', 'text/vnd.wap.wml',
-        'text/vnd.wap.wmlscript', 'text/vnd.wap.wta-event',
-        'multipart/*', 'multipart/mixed', 'multipart/form-data',
-        'multipart/byterantes', 'multipart/alternative',
-        'application/*', 'application/java-vm',
-        'application/x-www-form-urlencoded',
-        'application/x-hdmlc', 'application/vnd.wap.wmlc',
-        'application/vnd.wap.wmlscriptc',
-        'application/vnd.wap.wta-eventc',
-        'application/vnd.wap.uaprof',
-        'application/vnd.wap.wtls-ca-certificate',
-        'application/vnd.wap.wtls-user-certificate',
-        'application/x-x509-ca-cert',
-        'application/x-x509-user-cert',
-        'image/*', 'image/gif', 'image/jpeg', 'image/tiff',
-        'image/png', 'image/vnd.wap.wbmp',
-        'application/vnd.wap.multipart.*',
-        'application/vnd.wap.multipart.mixed',
-        'application/vnd.wap.multipart.form-data',
-        'application/vnd.wap.multipart.byteranges',
-        'application/vnd.wap.multipart.alternative',
-        'application/xml', 'text/xml',
-        'application/vnd.wap.wbxml',
-        'application/x-x968-cross-cert',
-        'application/x-x968-ca-cert',
-        'application/x-x968-user-cert',
-        'text/vnd.wap.si',
-        'application/vnd.wap.sic',
-        'text/vnd.wap.sl',
-        'application/vnd.wap.slc',
-        'text/vnd.wap.co',
-        'application/vnd.wap.coc',
-        'application/vnd.wap.multipart.related',
-        'application/vnd.wap.sia',
-        'text/vnd.wap.connectivity-xml',
-        'application/vnd.wap.connectivity-wbxml',
-        'application/pkcs7-mime',
-        'application/vnd.wap.hashed-certificate',
-        'application/vnd.wap.signed-certificate',
-        'application/vnd.wap.cert-response',
-        'application/xhtml+xml',
-        'application/wml+xml',
-        'text/css',
-        'application/vnd.wap.mms-message',
-        'application/vnd.wap.rollover-certificate',
-        'application/vnd.wap.locc+wbxml',
-        'application/vnd.wap.loc+xml',
-        'application/vnd.syncml.dm+wbxml',
-        'application/vnd.syncml.dm+xml',
-        'application/vnd.syncml.notification',
-        'application/vnd.wap.xhtml+xml',
-        'application/vnd.wv.csp.cir',
-        'application/vnd.oma.dd+xml',
-        'application/vnd.oma.drm.message',
-        'application/vnd.oma.drm.content',
-        'application/vnd.oma.drm.rights+xml',
-        'application/vnd.oma.drm.rights+wbxml',
-    ]
+    versioned_field_names = header_field_names[:]
+    if version == 3:
+        versioned_field_names = versioned_field_names[:0x44]
+    elif version == 2:
+        versioned_field_names = versioned_field_names[:0x38]
+    elif version == 1:
+        versioned_field_names = versioned_field_names[:0x2f]
 
-    # Well-known character sets (table 42 of [5])
-    # Format {<assinged_number> : <charset>}
-    # Note that the assigned number is the same as the IANA MIBEnum value
-    # "gsm-default-alphabet" is not included, as it is not assigned any
-    # value in [5]. Also note, this is by no means a complete list
-    wkCharSets = {
-        0x07EA: 'big5',
-        0x03E8: 'iso-10646-ucs-2',
-        0x04: 'iso-8859-1',
-        0x05: 'iso-8859-2',
-        0x06: 'iso-8859-3',
-        0x07: 'iso-8859-4',
-        0x08: 'iso-8859-5',
-        0x09: 'iso-8859-6',
-        0x0A: 'iso-8859-7',
-        0x0B: 'iso-8859-8',
-        0x0C: 'iso-8859-9',
-        0x11: 'shift_JIS',
-        0x03: 'us-ascii',
-        0x6A: 'utf-8',
-    }
+    return versioned_field_names
 
-    # Header Field Name assignments ([5], table 39)
-    hdrFieldNames = [
-        'Accept', 'Accept-Charset', 'Accept-Encoding',
-        'Accept-Language', 'Accept-Ranges', 'Age',
-        'Allow', 'Authorization', 'Cache-Control',
-        'Connection', 'Content-Base', 'Content-Encoding',
-        'Content-Language', 'Content-Length',
-        'Content-Location', 'Content-MD5', 'Content-Range',
-        'Content-Type', 'Date', 'Etag', 'Expires', 'From',
-        'Host', 'If-Modified-Since', 'If-Match',
-        'If-None-Match', 'If-Range', 'If-Unmodified-Since',
-        'Location', 'Last-Modified', 'Max-Forwards', 'Pragma',
-        'Proxy-Authenticate', 'Proxy-Authorization', 'Public',
-        'Range', 'Referer', 'Retry-After', 'Server',
-        'Transfer-Encoding', 'Upgrade', 'User-Agent',
-        'Vary', 'Via', 'Warning', 'WWW-Authenticate',
-        'Content-Disposition',
-        # encoding version 1.2
-        'X-Wap-Application-Id', 'X-Wap-Content-URI',
-        'X-Wap-Initiator-URI', 'Accept-Application',
-        'Bearer-Indication', 'Push-Flag', 'Profile',
-        'Profile-Diff', 'Profile-Warning',
-        # encoding version 1.3
-        'Expect', 'TE', 'Trailer', 'Accept-Charset',
-        'Accept-Encoding', 'Cache-Control',
-        'Content-Range', 'X-Wap-Tod', 'Content-ID',
-        'Set-Cookie', 'Cookie', 'Encoding-Version',
-        # encoding version 1.4
-        'Profile-Warning', 'Content-Disposition',
-        'X-WAP-Security', 'Cache-Control',
-    ]
 
-    # TODO: combine this dict with the hdrFieldNames table (same as well
-    # known parameter assignments)
-    # Temporary fix to allow different types of header field values to be
-    # dynamically decoded
-    hdrFieldEncodings = {'Accept': 'accept_value', 'Pragma': 'pragma_value'}
+def get_well_known_parameters(version='1.2'):
+    """
+    Return a list of assigned values for parameter names for ``version``
 
-    @staticmethod
-    def wellKnownParameters(version='1.2'):
-        """
-        Return a list of assigned values for parameter names for ``version``
+    Formats list of assigned values for well-known parameter names,
+    for the specified WSP encoding version.
 
-        Formats list of assigned values for well-known parameter names,
-        for the specified WSP encoding version.
+    :param version: The WSP encoding version to use. This defaults
+                    to "1.2", but may be "1.1", "1.2", "1.3" or
+                    "1.4" (see table 38 in [5] for details).
+    :type version: str
 
-        :param version: The WSP encoding version to use. This defaults
-                        to "1.2", but may be "1.1", "1.2", "1.3" or
-                        "1.4" (see table 38 in [5] for details).
-        :type version: str
+    :raise ValueError: The specified encoding version is invalid.
 
-        :raise ValueError: The specified encoding version is invalid.
+    :return: A dictionary containing the well-known parameters with
+             assigned numbers for the specified encoding version (and
+             lower). Entries in this dict follow the format::
 
-        :return: A dictionary containing the well-known parameters with
-                 assigned numbers for the specified encoding version (and
-                 lower). Entries in this dict follow the format::
-
-                    <int:assigned_number> : (<str:param_name>, <str:expected_type>)
-        :rtype: dict
-        """
-        if version not in ('1.1', '1.2', '1.3', '1.4'):
-            raise ValueError('version must be "1.1",'
-                             '"1.2", "1.3" or "1.4"')
-        else:
-            version = int(version.split('.')[1])
-
-        versioned_params = dict(WSPEncodingAssignments.well_known_parameters)
-        if version <= 3:
-            for assigned_number in range(0x11, 0x1e):
-                del versioned_params[assigned_number]
-
-        if version <= 2:
-            for assigned_number in range(0x0c, 0x11):
-                del versioned_params[assigned_number]
-
-        if version == 1:
-            for assigned_number in range(0x09, 0x0c):
-                del versioned_params[assigned_number]
-
-        return versioned_params
-
-    @staticmethod
-    def header_field_names(version='1.2'):
-        """
-        Formats list of assigned values for header field names, for the
-        specified WSP encoding version.
-
-        :param version: The WSP encoding version to use. This defaults
-                        to "1.2", but may be "1.1", "1.2", "1.3" or
-                        "1.4" (see table 39 in [5] for details).
-        :type version: str
-
-        :raise ValueError: The specified encoding version is invalid.
-
-        :return: A list containing the WSP header field names with assigned
-                 numbers for the specified encoding version (and lower).
-        :rtype: list
-        """
-        if version not in ('1.1', '1.2', '1.3', '1.4'):
-            raise ValueError('version must be "1.1",'
-                             '"1.2", "1.3" or "1.4"')
-
+                <int:assigned_number> : (<str:param_name>, <str:expected_type>)
+    :rtype: dict
+    """
+    if version not in ('1.1', '1.2', '1.3', '1.4'):
+        raise ValueError('version must be "1.1",'
+                         '"1.2", "1.3" or "1.4"')
+    else:
         version = int(version.split('.')[1])
 
-        versioned_field_names = list(WSPEncodingAssignments.hdrFieldNames)
-        if version == 3:
-            versioned_field_names = versioned_field_names[:0x44]
-        elif version == 2:
-            versioned_field_names = versioned_field_names[:0x38]
-        elif version == 1:
-            versioned_field_names = versioned_field_names[:0x2f]
+    versioned_params = well_known_parameters.copy()
+    if version <= 3:
+        for assigned_number in range(0x11, 0x1e):
+            del versioned_params[assigned_number]
 
-        return versioned_field_names
+    if version <= 2:
+        for assigned_number in range(0x0c, 0x11):
+            del versioned_params[assigned_number]
+
+    if version == 1:
+        for assigned_number in range(0x09, 0x0c):
+            del versioned_params[assigned_number]
+
+    return versioned_params
 
 
 class DecodeError(Exception):
@@ -774,7 +751,7 @@ class Decoder:
                               'integer value representing it')
 
         try:
-            return WSPEncodingAssignments.wkContentTypes[value]
+            return well_known_content_types[value]
         except IndexError:
             raise DecodeError('Invalid well-known media: could not '
                               'find content type in table of assigned values')
@@ -824,7 +801,7 @@ class Decoder:
 
         if isinstance(media_value, int):
             try:
-                return WSPEncodingAssignments.wkContentTypes[media_value]
+                return well_known_content_types[media_value]
             except IndexError:
                 raise DecodeError('Invalid constrained media: could not '
                                   'find well-known content type')
@@ -1002,7 +979,7 @@ class Decoder:
             raise DecodeError('Invalid well-known parameter token: could '
                               'not read integer value representing it')
 
-        wk_params = WSPEncodingAssignments.wellKnownParameters(version)
+        wk_params = get_well_known_parameters(version)
         if parameter_value in wk_params:
             parameter_name, expected_value = wk_params[parameter_value]
         else:
@@ -1305,8 +1282,8 @@ class Decoder:
             decoded_charset = '*'
         else:
             charset_value = Decoder.decode_integer_value(byte_iter)
-            if charset_value in WSPEncodingAssignments.wkCharSets:
-                decoded_charset = WSPEncodingAssignments.wkCharSets[charset_value]
+            if charset_value in well_known_charsets:
+                decoded_charset = well_known_charsets[charset_value]
             else:
                 # This charset is not in our table... so just use the
                 # value (at least for now)
@@ -1331,7 +1308,7 @@ class Decoder:
         :rtype: tuple
         """
         field_value = Decoder.decode_short_integer(byte_iter)
-        hdr_fields = WSPEncodingAssignments.header_field_names()
+        hdr_fields = get_header_field_names()
         # TODO: *technically* this can fail, but then we have already
         # read a byte... should fix?
         if field_value not in range(len(hdr_fields)):
@@ -1343,7 +1320,6 @@ class Decoder:
         # decode_application_header also
         # Currently we decode most headers as text_strings, except
         # where we have a specific decoding algorithm implemented
-        header_field_encodings = WSPEncodingAssignments.hdrFieldEncodings
         if field_name in header_field_encodings:
             wap_value_type = header_field_encodings[field_name]
             try:
@@ -1622,10 +1598,10 @@ class Encoder:
                  values
         :rtype: list
         """
-        if content_type in WSPEncodingAssignments.wkContentTypes:
+        if content_type in well_known_content_types:
             # Short-integer encoding
             val = Encoder.encode_short_integer(
-                    WSPEncodingAssignments.wkContentTypes.index(content_type))
+                    well_known_content_types.index(content_type))
         else:
             val = Encoder.encode_text_string(content_type)
 
@@ -1664,7 +1640,7 @@ class Encoder:
                  byte values
         :rtype: list
         """
-        wk_params = WSPEncodingAssignments.wellKnownParameters(version)
+        wk_params = get_well_known_parameters(version)
         encoded_parameter = []
         # Try to encode the parameter using a "Typed-parameter" value
         wkParamNumbers = wk_params.keys()
@@ -1796,7 +1772,7 @@ class Encoder:
         """
         encoded_header = []
         # First try encoding the header name as a "well-known-header"...
-        wkHdrFields = WSPEncodingAssignments.header_field_names()
+        wkHdrFields = get_header_field_names()
         if field_name in wkHdrFields:
             header_field_value = Encoder.encode_short_integer(
                                     wkHdrFields.index(field_name))
@@ -1810,7 +1786,6 @@ class Encoder:
         # TODO: make this flow better (see also Decoder.decode_header)
         # most header values are encoded as text_strings, except where we
         # have a specific Wap-value encoding implementation
-        header_field_encodings = WSPEncodingAssignments.hdrFieldEncodings
         if field_name in header_field_encodings:
             wap_value_type = header_field_encodings[field_name]
             try:
@@ -1875,8 +1850,8 @@ class Encoder:
         :rtype: list
         """
         # See if this value is in the table of well-known content types
-        if media_type in WSPEncodingAssignments.wkContentTypes:
-            value = WSPEncodingAssignments.wkContentTypes.index(media_type)
+        if media_type in well_known_content_types:
+            value = well_known_content_types.index(media_type)
         else:
             value = media_type
 
