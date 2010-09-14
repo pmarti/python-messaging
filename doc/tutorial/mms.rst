@@ -127,3 +127,61 @@ need the path to the file and::
 
     print mms.headers['Message-Type']  # m-send-req
     print mms.headers['To']            # '+34231342234/TYPE=PLMN'
+
+
+Obtaining a MMS from a WAP push notification
+++++++++++++++++++++++++++++++++++++++++++++
+
+A WAP push notification conveys all the necessary information to retrieve
+the MMS from the MMSC. Once you have the different PDUs of the WAP push,
+you need to decode it and obtain the `Content-Location` value of the
+headers::
+
+    from messaging.sms import SmsDeliver
+    from messaging.sms.wap import extract_push_notification
+
+    pdus = [
+        "0791447758100650400E80885810000000810004016082415464408C0C08049F8E020105040B8423F00106226170706C69636174696F6E2F766E642E7761702E6D6D732D6D65737361676500AF848C82984E4F4B3543694B636F544D595347344D4253774141734B7631344655484141414141414141008D908919802B3434373738353334323734392F545950453D504C4D4E008A808E0274008805810301194083687474703A2F",
+        "0791447758100650440E8088581000000081000401608241547440440C08049F8E020205040B8423F02F70726F6D6D732F736572766C6574732F4E4F4B3543694B636F544D595347344D4253774141734B763134465548414141414141414100",
+    ]
+    data = ""
+
+    sms = SmsDeliver(pdus[0])
+    data += sms.text
+
+    sms = SmsDeliver(pdus[1])
+    data += sms.text
+
+    mms = extract_push_notification(data)
+    url = mms.headers['Content-Location']
+    print url
+
+
+Once you have the content location, you need to do a HTTP GET to retrieve
+the MMS payload::
+
+    import socket
+    from cStringIO import StringIO
+
+    from messaging.mms.message import MMSMessage
+
+    gw_host, gw_port = "212.11.23.23", 7899
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((gw_host, gw_port))
+    s.send("GET %s HTTP/1.0\r\n\r\n" % url)
+
+    buf = StringIO()
+
+    while True:
+        data = s.recv(4096)
+        if not data:
+            break
+
+        buf.write(data)
+
+    s.close()
+    data = buf.getvalue()
+    buf.close()
+
+    mms = MMSMessage.from_data(data)
+    print mms
