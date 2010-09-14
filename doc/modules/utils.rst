@@ -25,8 +25,6 @@ Functions
 
 .. autofunction:: clean_number
 
-.. autofunction:: decode_str
-
 .. autofunction:: encode_str
 
 .. autofunction:: swap_nibble

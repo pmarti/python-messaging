@@ -86,10 +86,6 @@ def clean_number(n):
     return n.strip().replace(' ', '')
 
 
-def decode_str(s):
-    return ''.join([chr(int(s[x:x + 2], 16)) for x in range(0, len(s), 2)])
-
-
 def encode_str(s):
     """Returns the hexadecimal representation of ``s``"""
     return ''.join(["%02x" % ord(n) for n in s])
