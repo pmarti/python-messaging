@@ -359,16 +359,13 @@ class MMSDecoder(wsp_pdu.Decoder):
         :return: The "From" address value
         :rtype: str
         """
-        from_value = ''
         value_length = wsp_pdu.Decoder.decode_value_length(byte_iter)
         # See what token we have
         byte = byte_iter.next()
         if byte == 129:  # Insert-address-token
-            from_value = '<not inserted>'
-        else:
-            from_value = MMSDecoder.decode_encoded_string_value(byte_iter)
+            return '<not inserted>'
 
-        return from_value
+        return MMSDecoder.decode_encoded_string_value(byte_iter)
 
     @staticmethod
     def decode_message_class_value(byte_iter):

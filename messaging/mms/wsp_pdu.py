@@ -1228,7 +1228,6 @@ class Decoder:
         :return: the decoded Accept-value (media/content type)
         :rtype: str
         """
-        accept_value = ''
         # Try to use Constrained-media encoding
         try:
             accept_value = Decoder.decode_constrained_media(byte_iter)
@@ -1278,14 +1277,13 @@ class Decoder:
         if byte == 0x80:  # No-cache
             byte_iter.next()
             # TODO: Not sure if this parameter name (or even usage) is correct
-            parameter_name = 'Cache-control'
-            parameter_value = 'No-cache'
+            name, value = 'Cache-control', 'No-cache'
         else:
             byte_iter.reset_preview()
             value_length = Decoder.decode_value_length(byte_iter)
-            parameter_name, parameter_value = Decoder.decode_parameter(byte_iter)
+            name, value = Decoder.decode_parameter(byte_iter)
 
-        return parameter_name, parameter_value
+        return name, value
 
     @staticmethod
     def decode_well_known_charset(byte_iter):
@@ -1299,7 +1297,6 @@ class Decoder:
 
         Equivalent to the special RFC2616 charset value "*"
         """
-        decoded_charset = ''
         # Look for the Any-charset value
         byte = byte_iter.preview()
         byte_iter.reset_preview()
