@@ -290,6 +290,9 @@ class SmsSubmit(SmsBase):
         pi, pe = 0, len_without_udh
 
         while pi < total_len:
+            if text[pi:pe][-1] == '\x1b':
+                pe -= 1
+
             msgs.append(text[pi:pe])
             pi = pe
             pe += len_without_udh

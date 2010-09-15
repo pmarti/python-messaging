@@ -273,20 +273,11 @@ class TestSubmitPduCounts(unittest.TestCase):
 
     def test_egsm_3(self):
         sms = SmsSubmit(self.DEST, self.EGSM_CHAR * 153)  # 306 septets
-        self.assertEqual(len(sms.to_pdu()), 2)
+        self.assertEqual(len(sms.to_pdu()), 3)
 
     def test_egsm_4(self):
         sms = SmsSubmit(self.DEST,
-                        self.EGSM_CHAR * 153 + self.GSM_CHAR)  # 307 septets
-        self.assertEqual(len(sms.to_pdu()), 3)
-
-    def test_egsm_5(self):
-        sms = SmsSubmit(self.DEST,
                           self.EGSM_CHAR * 229 + self.GSM_CHAR)  # 459 septets
-        self.assertEqual(len(sms.to_pdu()), 3)
-
-    def test_egsm_6(self):
-        sms = SmsSubmit(self.DEST, self.EGSM_CHAR * 230)  # 460 septets
         self.assertEqual(len(sms.to_pdu()), 4)
 
     def test_unicode_1(self):
