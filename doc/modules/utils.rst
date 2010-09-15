@@ -27,8 +27,6 @@ Functions
 
 .. autofunction:: encode_str
 
-.. autofunction:: swap_nibble
-
 .. autofunction:: pack_8bits_to_7bits
 
 .. autofunction:: pack_8bits_to_8bit

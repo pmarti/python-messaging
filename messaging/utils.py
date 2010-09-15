@@ -95,10 +95,6 @@ def encode_bytes(b):
     return ''.join(["%02x" % n for n in b])
 
 
-def swap_nibble(n):
-    return int(n[::-1], 16)
-
-
 def pack_8bits_to_7bits(message, udh=None):
     pdu = ""
     txt = bytes_to_str(message)
@@ -267,4 +263,5 @@ def datetime_to_absolute_validity(d, tzname='Unknown'):
         s = "%02x" % ((int(s[0]) << 4) | int(s[1]) | 0x80)
 
     n[-1] = s
-    return list(map(swap_nibble, n))
+
+    return [int(c[::-1], 16) for c in n]

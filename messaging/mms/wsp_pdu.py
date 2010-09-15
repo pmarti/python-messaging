@@ -1457,7 +1457,7 @@ class Encoder:
                      specified Text-string, as a list of byte values
         :rtype: list
         """
-        encoded_string = list(map(ord, string))
+        encoded_string = [ord(c) for c in string]
         encoded_string.append(0x00)
         return encoded_string
 
