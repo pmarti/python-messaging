@@ -132,15 +132,11 @@ class SmsDeliver(SmsBase):
         data = data[6:]
 
         # Get sender's offset from GMT (TS 23.040 TP-SCTS)
-        lo_hi = data.pop(0)
-        lo = lo_hi >> 4
-        hi = lo_hi & 0xF
+        tz = data.pop(0)
 
-        loval = lo
-        hival = (hi & 0x07) << 4
-        direction = -1 if (hi & 0x08) else 1
-
-        offset = (hival | loval) * 15 * direction
+        offset = ((tz & 0x07) * 10 + ((tz & 0xf0) >> 4)) * 15
+        if (tz & 0x08):
+            offset = offset * -1
 
         #  02/08/26 19:37:41
         datestr = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date)
