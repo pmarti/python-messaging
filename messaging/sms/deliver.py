@@ -19,6 +19,7 @@ class SmsDeliver(SmsBase):
         self._strict = strict
         self.date = None
         self.mtype = None
+        self.sr = None
 
         self.pdu = pdu
 
@@ -38,6 +39,7 @@ class SmsDeliver(SmsBase):
             'type': self.type,
             'date': self.date,
             'fmt': self.fmt,
+            'sr': self.sr,
         }
 
         if self.udh is not None:
@@ -88,10 +90,12 @@ class SmsDeliver(SmsBase):
         except TypeError:
             raise ValueError("Decoding this type of SMS is not supported yet")
 
-        if self.mtype & 0x03:
+        mtype = self.mtype & 0x03
+
+        if mtype == 0x02:
             return self._decode_status_report_pdu(data)
 
-        if self.mtype & 0x01:
+        if mtype == 0x01:
             raise ValueError("Cannot decode a SmsSubmit message")
 
         sndlen = data.pop(0)
@@ -199,51 +203,62 @@ class SmsDeliver(SmsBase):
 
         data = data[sndlen:]
 
-        scts_str = ''
+        date = swap(list(encode_bytes(data[:7])))
         try:
-            date = swap(list(encode_bytes(data[:7])))
             scts_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
-
             self.date = datetime.strptime(scts_str, "%y/%m/%d %H:%M:%S")
         except (ValueError, TypeError):
-            debug('Could not decode scts: %s' % scts_str)
+            scts_str = ''
+            debug('Could not decode scts: %s' % date)
 
         data = data[7:]
 
-        dt_str = ''
+        date = swap(list(encode_bytes(data[:7])))
         try:
-            date = swap(list(encode_bytes(data[:7])))
             dt_str = "%s%s/%s%s/%s%s %s%s:%s%s:%s%s" % tuple(date[0:12])
-        except TypeError:
-            debug('Could not decode date: %s' % dt_str)
+            dt = datetime.strptime(dt_str, "%y/%m/%d %H:%M:%S")
+        except (ValueError, TypeError):
+            dt_str = ''
+            dt = None
+            debug('Could not decode date: %s' % date)
 
         data = data[7:]
 
+        msg_l = [recipient, scts_str]
         try:
             status = data.pop(0)
         except IndexError:
             # Yes it is entirely possible that a status report comes
             # with no status at all! I'm faking for now the values and
             # set it to SR-UNKNOWN as that's all we can do
+            _status = None
             status = 0x1
             sender = 'SR-UNKNOWN'
-            msg = recipient + "|" + scts_str + "|" + dt_str
+            msg_l.append(dt_str)
         else:
-            msg = recipient + "|" + scts_str + "|" + dt_str
-            sender = ""
+            _status = status
+            if status == 0x00:
+                msg_l.append(dt_str)
+            else:
+                msg_l.append('')
             if status == 0x00:
                 sender = "SR-OK"
             elif status == 0x1:
                 sender = "SR-UNKNOWN"
-                msg = recipient + "|" + scts_str + "|"
             elif status == 0x30:
                 sender = "SR-STORED"
-                msg = recipient + "|" + scts_str + "|"
             else:
                 sender = "SR-UNKNOWN"
-                msg = recipient + "|" + scts_str + "|"
 
         self.number = sender
-        self.text = msg
+        self.text = "|".join(msg_l)
         self.fmt = 0x08   # UCS2
         self.type = 0x03  # status report
+
+        self.sr = {
+            'recipient': recipient,
+            'scts': self.date,
+            'dt': dt,
+            'status': _status
+        }
+
