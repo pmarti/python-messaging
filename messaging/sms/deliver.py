@@ -68,17 +68,17 @@ class SmsDeliver(SmsBase):
         data = to_array(self._pdu)
 
         # Service centre address
-        smscl = data.pop(0) - 1
+        smscl = data.pop(0)
+        if smscl > 0:
+            smscertype = data.pop(0)
+            smscl -= 1
+            self.csca = swap_number(encode_bytes(data[:smscl]))
+            if (smscertype >> 4) & 0x07 == consts.INTERNATIONAL:
+                self.csca = '+%s' % self.csca
+            data = data[smscl:]
+        else:
+            self.csca = None
 
-        smscertype = data.pop(0)
-        smscer = swap_number(encode_bytes(data[:smscl]))
-
-        data = data[smscl:]
-
-        if (smscertype >> 4) & 0x07 == consts.INTERNATIONAL:
-            smscer = '+%s' % smscer
-
-        self.csca = smscer
         # 1 byte(octet) == 2 char
         # Message type TP-MTI bits 0,1
         # More messages to send/deliver bit 2
