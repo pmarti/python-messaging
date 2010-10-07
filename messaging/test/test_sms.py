@@ -435,3 +435,34 @@ class TestSmsDeliver(unittest.TestCase):
 
         sms = SmsDeliver(pdu, strict=False)
         self.assertEqual(sms.text, text)
+
+    def test_decoding_delivery_status_report(self):
+        pdu = "0791538375000075061805810531F1019082416500400190824165004000"
+        sr = {
+            'status': 0,
+            'scts': datetime(2010, 9, 28, 14, 56),
+            'dt': datetime(2010, 9, 28, 14, 56),
+            'recipient': '50131'
+        }
+
+        sms = SmsDeliver(pdu)
+        self.assertEqual(sms.csca, "+353857000057")
+        data = sms.data
+        self.assertEqual(data['ref'], 24)
+        self.assertEqual(sms.sr, sr)
+
+    def test_decoding_delivery_status_report_without_smsc_address(self):
+        pdu = "00060505810531F1010150610000400101506100004000"
+        sr = {
+            'status': 0,
+            'scts': datetime(2010, 10, 5, 16, 0),
+            'dt': datetime(2010, 10, 5, 16, 0),
+            'recipient': '50131'
+        }
+
+        sms = SmsDeliver(pdu)
+        self.assertEqual(sms.csca, None)
+        data = sms.data
+        self.assertEqual(data['ref'], 5)
+        self.assertEqual(sms.sr, sr)
+
