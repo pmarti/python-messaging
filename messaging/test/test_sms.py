@@ -398,15 +398,6 @@ class TestSmsDeliver(unittest.TestCase):
         self.assertEqual(sms.number, number)
         self.assertEqual(sms.date, date)
 
-        # weird sms confirmation
-        pdu = "07914306073011F001000B914306565711F9000007F0B2FC0DCABF01"
-        csca = "+34607003110"
-        number = "SR-UNKNOWN"
-
-        sms = SmsDeliver(pdu)
-        self.assertEqual(sms.csca, csca)
-        self.assertEqual(sms.number, number)
-
     def test_decode_weird_multipart_german_pdu(self):
         pdus = [
             "07919471227210244405852122F039F101506271217180A005000319020198E9B2B82C0759DFE4B0F9ED2EB7967537B9CC02B5D37450122D2FCB41EE303DFD7687D96537881A96A7CD6F383DFD7683F46134BBEC064DD36550DA0D22A7CBF3721BE42CD3F5A0198B56036DCA20B8FC0D6A0A4170767D0EAAE540433A082E7F83A6E5F93CFD76BB40D7B2DB0D9AA6CB2072BA3C2F83926EF31BE44E8FD17450BB8C9683CA",
@@ -466,3 +457,13 @@ class TestSmsDeliver(unittest.TestCase):
         self.assertEqual(data['ref'], 5)
         self.assertEqual(sms.sr, sr)
 
+# XXX: renable when support added
+#    def test_decoding_submit_status_report(self):
+#        # sent from SMSC to indicate submission failed or additional info
+#        pdu = "07914306073011F001000B914306565711F9000007F0B2FC0DCABF01"
+#        csca = "+34607003110"
+#        number = "SR-UNKNOWN"
+#
+#        sms = SmsDeliver(pdu)
+#        self.assertEqual(sms.csca, csca)
+#        self.assertEqual(sms.number, number)

@@ -96,7 +96,7 @@ class SmsDeliver(SmsBase):
             return self._decode_status_report_pdu(data)
 
         if mtype == 0x01:
-            raise ValueError("Cannot decode a SmsSubmit message")
+            raise ValueError("Cannot decode a SmsSubmitReport message yet")
 
         sndlen = data.pop(0)
         if sndlen % 2:
