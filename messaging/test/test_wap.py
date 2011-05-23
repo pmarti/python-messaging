@@ -4,6 +4,7 @@ import unittest
 
 from messaging.sms import SmsDeliver
 from messaging.sms.wap import (is_a_wap_push_notification as is_push,
+                               is_mms_notification,
                                extract_push_notification)
 
 
@@ -58,6 +59,8 @@ class TestSmsWapPush(unittest.TestCase):
         data += sms.text
 
         mms = extract_push_notification(data)
+        self.assertEqual(is_mms_notification(mms), True)
+
         self.assertEqual(mms.headers['Message-Type'], 'm-notification-ind')
         self.assertEqual(mms.headers['Transaction-Id'],
                 'NOK5CiKcoTMYSG4MBSwAAsKv14FUHAAAAAAAA')
@@ -92,6 +95,8 @@ class TestSmsWapPush(unittest.TestCase):
         data += sms.text
 
         mms = extract_push_notification(data)
+        self.assertEqual(is_mms_notification(mms), True)
+
         self.assertEqual(mms.headers['Message-Type'], 'm-notification-ind')
         self.assertEqual(mms.headers['Transaction-Id'],
                 'NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')
@@ -102,3 +107,32 @@ class TestSmsWapPush(unittest.TestCase):
         self.assertEqual(mms.headers['Expiry'], 259199)
         self.assertEqual(mms.headers['Content-Location'],
                 'http://promms/servlets/NOK5A1ZdFTMYSG4O3VQAAsJv94GoNAAAAAAAA')
+
+    def test_decoding_generic_wap_push(self):
+        pdus = [
+            "0791947122725014440C8500947122921105F5112042519582408C0B05040B8423F0000396020101060B03AE81EAC3958D01A2B48403056A0A20566F6461666F6E650045C60C037761702E6D65696E63616C6C79612E64652F000801035A756D206B6F7374656E6C6F73656E20506F7274616C20224D65696E0083000322202D2065696E66616368206175662064656E20666F6C67656E64656E204C696E6B206B6C69636B656E",
+            "0791947122725014440C8500947122921105F5112042519592403C0B05040B8423F00003960202206F6465722064696520536569746520646972656B7420617566727566656E2E2049687200830003205465616D000101",
+        ]
+        number = "004917222911"
+        csca = "+491722270541"
+        data = ""
+
+        sms = SmsDeliver(pdus[0])
+        self.assertEqual(sms.udh.concat.ref, 150)
+        self.assertEqual(sms.udh.concat.cnt, 2)
+        self.assertEqual(sms.udh.concat.seq, 1)
+        self.assertEqual(sms.number, number)
+        self.assertEqual(sms.csca, csca)
+        data += sms.text
+
+        sms = SmsDeliver(pdus[1])
+        self.assertEqual(sms.udh.concat.ref, 150)
+        self.assertEqual(sms.udh.concat.cnt, 2)
+        self.assertEqual(sms.udh.concat.seq, 2)
+        self.assertEqual(sms.number, number)
+        data += sms.text
+
+        self.assertEqual(data, '\x01\x06\x0b\x03\xae\x81\xea\xc3\x95\x8d\x01\xa2\xb4\x84\x03\x05j\n Vodafone\x00E\xc6\x0c\x03wap.meincallya.de/\x00\x08\x01\x03Zum kostenlosen Portal "Mein\x00\x83\x00\x03" - einfach auf den folgenden Link klicken oder die Seite direkt aufrufen. Ihr\x00\x83\x00\x03 Team\x00\x01\x01')
+
+        push = extract_push_notification(data)
+        self.assertEqual(is_mms_notification(push), False)
