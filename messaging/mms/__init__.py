@@ -1,5 +1,13 @@
-# This library is free software, distributed under the terms of
-# the GNU Lesser General Public License Version 2.
+# This library is free software.
+#
+# It was originally distributed under the terms of the GNU Lesser
+# General Public License Version 2.
+#
+# python-messaging opts to apply the terms of the ordinary GNU
+# General Public License v2, as permitted by section 3 of the LGPL
+# v2.1. This re-licensing allows the entirety of python-messaging to
+# be distributed according to the terms of GPL-2.
+#
 # See the COPYING file included in this archive
 #
 # Copyright (C) 2007 Francois Aucamp <faucamp@csir.co.za>
@@ -32,7 +40,7 @@ presentation layout, and multimedia data parts such as JPEG, GIF, AMR, MIDI,
 
 @version: 0.2
 @author: Francois Aucamp C{<faucamp@csir.co.za>}
-@license: GNU Lesser General Public License, version 2.1
+@license: GNU General Public License, version 2
 @note: References used in the code and this document:
 
 .. [1] MMS Conformance Document version 2.0.0, 6 February 2002
