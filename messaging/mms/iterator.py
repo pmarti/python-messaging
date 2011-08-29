@@ -1,5 +1,13 @@
-# This library is free software, distributed under the terms of
-# the GNU Lesser General Public License Version 2.
+# This library is free software.
+#
+# It was originally distributed under the terms of the GNU Lesser
+# General Public License Version 2.
+#
+# python-messaging opts to apply the terms of the ordinary GNU
+# General Public License v2, as permitted by section 3 of the LGPL
+# v2.1. This re-licensing allows the entirety of python-messaging to
+# be distributed according to the terms of GPL-2.
+#
 # See the COPYING file included in this archive
 #
 # The docstrings in this module contain epytext markup; API documentation
