@@ -94,7 +94,8 @@ class TestMmsDecoding(unittest.TestCase):
         mms = MMSMessage.from_file(path)
         self.assertTrue(isinstance(mms, MMSMessage))
         headers = {
-            'From': 'allan@tomslot.com', 'Transaction-Id': '1234',
+            'From': '616c6c616e40746f6d736c6f742e636f6d'.decode('hex'),
+            'Transaction-Id': '1234',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
             'Date': datetime.datetime(2003, 2, 16, 3, 48, 33),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<tomslot.smil>', 'Type': 'application/smil'}),
@@ -124,7 +125,8 @@ class TestMmsDecoding(unittest.TestCase):
         headers = {
             'From': '<not inserted>', 'Read-Reply': False,
             'Transaction-Id': '2112410527', 'MMS-Version': '1.0',
-            'To': 'tdpt@ajajg.cdm', 'Delivery-Report': False,
+            'To': '7464707440616a616a672e63646d'.decode('hex'),
+            'Delivery-Report': False,
             'Message-Type': 'm-send-req',
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<SMIL.TXT>', 'Type': 'application/smil'}),
             'Subject': 'Picture3',
@@ -145,7 +147,8 @@ class TestMmsDecoding(unittest.TestCase):
         mms = MMSMessage.from_file(path)
         self.assertTrue(isinstance(mms, MMSMessage))
         headers = {
-            'From': '+16505550000/TYPE=PLMN', 'Message-Class': 'Personal',
+            'From': '2b31363530353535303030302f545950453d504c4d4e'.decode('hex'),
+            'Message-Class': 'Personal',
             'Transaction-Id': '1067263672', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': '112/TYPE=PLMN',
             'Delivery-Report': False, 'Message-Type': 'm-send-req',
@@ -197,7 +200,8 @@ class TestMmsDecoding(unittest.TestCase):
         mms = MMSMessage.from_file(path)
         self.assertTrue(isinstance(mms, MMSMessage))
         headers = {
-            'From': '+16505550000/TYPE=PLMN', 'Message-Class': 'Personal',
+            'From': '2b31363530353535303030302f545950453d504c4d4e'.decode('hex'),
+            'Message-Class': 'Personal',
             'Transaction-Id': '1118775337', 'MMS-Version': '1.0',
             'Priority': 'Normal', 'To': 'Jg', 'Delivery-Report': False,
             'Message-Type': 'm-send-req',
@@ -252,7 +256,8 @@ class TestMmsDecoding(unittest.TestCase):
         mms = MMSMessage.from_file(path)
         self.assertTrue(isinstance(mms, MMSMessage))
         headers = {
-            'From': 'goldpost@hotmail.com', 'Transaction-Id': '0000000001',
+            'From': '676f6c64706f737440686f746d61696c2e636f6d'.decode('hex'),
+            'Transaction-Id': '0000000001',
             'MMS-Version': '1.0', 'Message-Type': 'm-retrieve-conf',
             'Date': datetime.datetime(2002, 8, 9, 13, 8, 2),
             'Content-Type': ('application/vnd.wap.multipart.related', {'Start': '<A0>', 'Type': 'application/smil'}),
@@ -344,7 +349,8 @@ class TestMmsDecoding(unittest.TestCase):
             'Sender-Visibility': 'Show', 'From': '<not inserted>',
             'Read-Reply': False, 'Message-Class': 'Personal',
             'Transaction-Id': '31887', 'MMS-Version': '1.0',
-            'To': '0738345664/TYPE=PLMN', 'Delivery-Report': False,
+            'To': '303733383334353636342f545950453d504c4d4e'.decode('hex'),
+            'Delivery-Report': False,
             'Message-Type': 'm-send-req', 'Subject': 'IL',
             'Content-Type': ('application/vnd.wap.multipart.mixed', {}),
         }

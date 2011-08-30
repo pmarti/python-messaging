@@ -44,7 +44,7 @@ class TestSmsSubmit(unittest.TestCase):
 
     def test_encoding_validity(self):
         # no validity
-        number = "+34616585119"
+        number = '2b3334363136353835313139'.decode('hex')
         text = "hola"
         expected = "0001000B914316565811F9000004E8373B0C"
 
@@ -55,7 +55,7 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertEqual(pdu.pdu, expected)
 
         # absolute validity
-        number = "+34616585119"
+        number = '2b3334363136353835313139'.decode('hex')
         text = "hola"
         expected = "0019000B914316565811F900000170520251930004E8373B0C"
 
@@ -67,7 +67,7 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertEqual(pdu.pdu, expected)
 
         # relative validity
-        number = "+34616585119"
+        number = '2b3334363136353835313139'.decode('hex')
         text = "hola"
         expected = "0011000B914316565811F90000AA04E8373B0C"
         expected_len = 18
@@ -81,7 +81,7 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertEqual(pdu.length, expected_len)
 
     def test_encoding_csca(self):
-        number = "+34616585119"
+        number = '2b3334363136353835313139'.decode('hex')
         text = "hola"
         csca = "+34646456456"
         expected = "07914346466554F601000B914316565811F9000004E8373B0C"
@@ -98,7 +98,7 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertEqual(pdu.seq, 1)
 
     def test_encoding_class(self):
-        number = "+34654123456"
+        number = '2b3334363534313233343536'.decode('hex')
         text = "hey yo"
         expected_0 = "0001000B914356143254F6001006E8721E947F03"
         expected_1 = "0001000B914356143254F6001106E8721E947F03"
@@ -126,7 +126,7 @@ class TestSmsSubmit(unittest.TestCase):
 
     def test_encoding_request_status(self):
         # tested with pduspy.exe and http://www.rednaxela.net/pdu.php
-        number = "+34654123456"
+        number = '2b3334363534313233343536'.decode('hex')
         text = "hey yo"
         expected = "0021000B914356143254F6000006E8721E947F03"
 
@@ -139,7 +139,7 @@ class TestSmsSubmit(unittest.TestCase):
 
     def test_encoding_message_with_latin1_chars(self):
         # tested with pduspy.exe
-        number = "+34654123456"
+        number = '2b3334363534313233343536'.decode('hex')
         text = u"Hölä"
         expected = "0011000B914356143254F60000AA04483E7B0F"
 
@@ -151,7 +151,7 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertEqual(pdu.pdu, expected)
 
         # tested with pduspy.exe
-        number = "+34654123456"
+        number = '2b3334363534313233343536'.decode('hex')
         text = u"BÄRÇA äñ@"
         expected = "0001000B914356143254F6000009C2AD341104EDFB00"
 
@@ -176,7 +176,7 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertEqual(pdu.pdu, expected)
 
     def test_encoding_ucs2_message(self):
-        number = "+34616585119"
+        number = '2b3334363136353835313139'.decode('hex')
         text = u'あ叶葉'
         csca = '+34646456456'
         expected = "07914346466554F601000B914316565811F9000806304253F68449"
@@ -189,7 +189,7 @@ class TestSmsSubmit(unittest.TestCase):
         self.assertEqual(pdu.pdu, expected)
 
         text = u"Русский"
-        number = "655345678"
+        number = '363535333435363738'.decode('hex')
         expected = "001100098156355476F80008AA0E0420044304410441043A04380439"
 
         sms = SmsSubmit(number, text)
@@ -202,7 +202,7 @@ class TestSmsSubmit(unittest.TestCase):
     def test_encoding_multipart_7bit(self):
         # text encoded with umts-tools
         text = "Or walk with Kings - nor lose the common touch, if neither foes nor loving friends can hurt you, If all men count with you, but none too much; If you can fill the unforgiving minute With sixty seconds' worth of distance run, Yours is the Earth and everything thats in it, And - which is more - you will be a Man, my son"
-        number = "655345678"
+        number = '363535333435363738'.decode('hex')
         expected = [
             "005100098156355476F80000AAA00500038803019E72D03DCC5E83EE693A1AB44CBBCF73500BE47ECB41ECF7BC0CA2A3CBA0F1BBDD7EBB41F4777D8C6681D26690BB9CA6A3CB7290F95D9E83DC6F3988FDB6A7DD6790599E2EBBC973D038EC06A1EB723A28FFAEB340493328CC6683DA653768FCAEBBE9A07B9A8E06E5DF7516485CA783DC6F7719447FBF41EDFA18BD0325CDA0FCBB0E1A87DD",
             "005100098156355476F80000AAA005000388030240E6349B0DA2A3CBA0BADBFC969FD3F6B4FB0C6AA7DD757A19744DD3D1A0791A4FCF83E6E5F1DB4D9E9F40F7B79C8E06BDCD20727A4E0FBBC76590BCEE6681B2EFBA7C0E4ACF41747419540CCBE96850D84D0695ED65799E8E4EBBCF203A3A4C9F83D26E509ACE0205DD64500B7447A7C768507A0E6ABFE565500B947FD741F7349B0D129741",
@@ -311,7 +311,7 @@ class TestSmsDeliver(unittest.TestCase):
         pdu = "07911326040000F0040B911346610089F60000208062917314080CC8F71D14969741F977FD07"
         text = "How are you?"
         csca = "+31624000000"
-        number = "+31641600986"
+        number = '2b3331363431363030393836'.decode('hex')
 
         sms = SmsDeliver(pdu)
         self.assertEqual(sms.text, text)
@@ -322,7 +322,7 @@ class TestSmsDeliver(unittest.TestCase):
         pdu = "07914306073011F0040B914316709807F2000880604290224080084E2D5174901A8BAF"
         text = u"中兴通讯"
         csca = "+34607003110"
-        number = "+34610789702"
+        number = '2b3334363130373839373032'.decode('hex')
 
         sms = SmsDeliver(pdu)
         self.assertEqual(sms.text, text)
@@ -333,7 +333,7 @@ class TestSmsDeliver(unittest.TestCase):
         pdu = "07911326040000F0040B911346610089F60000208062917314080CC8F71D14969741F977FD07"
         text = "How are you?"
         csca = "+31624000000"
-        number = "+31641600986"
+        number = '2b3331363431363030393836'.decode('hex')
 
         data = SmsDeliver(pdu).data
         self.assertEqual(data['text'], text)
@@ -346,7 +346,7 @@ class TestSmsDeliver(unittest.TestCase):
     def test_decoding_datetime_gmtplusone(self):
         pdu = "0791447758100650040C914497716247010000909010711423400A2050EC468B81C4733A"
         text = "  1741 bst"
-        number = "+447917267410"
+        number = '2b343437393137323637343130'.decode('hex')
         date = datetime(2009, 9, 1, 16, 41, 32)
 
         sms = SmsDeliver(pdu)
