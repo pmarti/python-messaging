@@ -40,5 +40,8 @@ Pure python SMS encoder/decoder library
 
 %changelog
 
+* Tue 30 Aug 2011 - Andrew Bird <ajb@spheresystems.co.uk> - 0.5.11
+- New release
+
 * Mon Jun 06 2011 - Andrew Bird <ajb@spheresystems.co.uk> - 0.5.10
 - Initial release - Spec file tested on Fedora 14 / 15 and OpenSUSE 11.4
