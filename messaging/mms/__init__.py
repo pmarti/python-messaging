@@ -10,7 +10,7 @@
 #
 # See the COPYING file included in this archive
 #
-# Copyright (C) 2007 Francois Aucamp <faucamp@csir.co.za>
+# Copyright (C) 2007 Francois Aucamp <francois.aucamp@gmail.com>
 #
 """
 Multimedia Messaging Service (MMS) library
@@ -39,7 +39,7 @@ presentation layout, and multimedia data parts such as JPEG, GIF, AMR, MIDI,
 3GP, etc. It also allows the decoding and unpacking of received MMS messages.
 
 @version: 0.2
-@author: Francois Aucamp C{<faucamp@csir.co.za>}
+@author: Francois Aucamp C{<francois.aucamp@gmail.com>}
 @license: GNU General Public License, version 2
 @note: References used in the code and this document:
 

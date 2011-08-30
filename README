@@ -8,10 +8,16 @@ History
 
 Originally written by Paul Hardwick with some bits from Dave Berkeley's
 pysms. It was imported in the Wader and MobileManager projects and quickly
-became clear that a joint effort would be more benefitial for everyone.
+became clear that a joint effort would be more beneficial for everyone.
 
 In 2010, the superb python-mms package by Francois Aucamp was merged into
 python-messaging to provide a complete SMS/MMS encoder/decoder.
+
+In 2011, as part of a license clarification, Francis Aucamp was contacted
+and asked if it were possible to relicence his MMS portions as GPLv2, he
+responded:
+"feel free to re-license the parts of the python-mms code you are using in
+your python-messaging project to GPL v2; you have my full consent."
 
 SMS Features
 ============
