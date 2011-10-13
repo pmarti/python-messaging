@@ -5,7 +5,7 @@ SOURCES := $(shell rpmbuild --eval '%{_topdir}' 2>/dev/null)/SOURCES
 PMV := python-messaging-$(VERSION)
 
 all:
-	@echo Usage: make deb\|rpm
+	@echo Usage: make deb \[TARGET=ubuntu-lucid\] \| rpm
 
 rpm:
 	@if [ ! -d $(SOURCES) ] ;\
@@ -24,10 +24,18 @@ deb:
 		exit 1;\
 	fi
 
+	@if [ -d packaging/debian/$(TARGET)/debian ] ;\
+	then\
+		PKGSOURCE=$(TARGET);\
+	else\
+		PKGSOURCE=generic;\
+	fi;\
+	tar -C packaging/debian/$$PKGSOURCE -cf - debian | tar -xf -
+
 	@if ! head -1 debian/changelog | grep -q $(VERSION) ;\
 	then\
 		echo Changelog and package version are different;\
 		exit 1;\
 	fi
 
-	dpkg-buildpackage -rfakeroot;
+	dpkg-buildpackage -rfakeroot
