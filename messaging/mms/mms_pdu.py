@@ -39,7 +39,7 @@ mms_field_names = {
     0x04: ('Content-Type', 'content_type_value'),
     0x05: ('Date', 'date_value'),
     0x06: ('Delivery-Report', 'boolean_value'),
-    0x07: ('Delivery-Time', None),
+    0x07: ('Delivery-Time', 'delivery_time_value'),
     0x08: ('Expiry', 'expiry_value'),
     0x09: ('From', 'from_value'),
     0x0a: ('Message-Class', 'message_class_value'),
@@ -352,6 +352,17 @@ class MMSDecoder(wsp_pdu.Decoder):
                                       'for byte: %s' % hex(byte))
         byte = byte_iter.next()
         return byte == 128
+
+    @staticmethod
+    def decode_delivery_time_value(byte_iter):
+        value_length = wsp_pdu.Decoder.decode_value_length(byte_iter)
+        token = byte_iter.next()
+        value = wsp_pdu.Decoder.decode_long_integer(byte_iter)
+        if token == 128:
+            token_type = 'absolute'
+        elif token == 129:
+            token_type = 'relative'
+        return (token_type, value)
 
     @staticmethod
     def decode_from_value(byte_iter):
