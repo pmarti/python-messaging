@@ -175,14 +175,14 @@ class MMSDecoder(wsp_pdu.Decoder):
         # <length of data>,
         # <content-type + other possible headers>,
         # <data>
-        for part_num in range(num_entries):
+        for part_num in xrange(num_entries):
             #print '\nPart %d:\n------' % part_num
             headers_len = self.decode_uint_var(data_iter)
             data_len = self.decode_uint_var(data_iter)
 
             # Prepare to read content-type + other possible headers
             ct_field_bytes = []
-            for i in range(headers_len):
+            for i in xrange(headers_len):
                 ct_field_bytes.append(data_iter.next())
 
             ct_iter = PreviewIterator(ct_field_bytes)
@@ -201,7 +201,7 @@ class MMSDecoder(wsp_pdu.Decoder):
 
             # Data (note: this is not null-terminated)
             data = array.array('B')
-            for i in range(data_len):
+            for i in xrange(data_len):
                 data.append(data_iter.next())
 
             part = message.DataPart()

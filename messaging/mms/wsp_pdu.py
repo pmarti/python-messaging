@@ -447,7 +447,7 @@ class Decoder:
 
         longInt = 0
         # Decode the Multi-octect-integer
-        for i in range(shortLength):
+        for i in xrange(shortLength):
             longInt = longInt << 8
             longInt |= byte_iter.next()
 
@@ -843,7 +843,7 @@ class Decoder:
 
         # Read parameters, etc, until <value_length> is reached
         ct_field_bytes = array.array('B')
-        for i in range(value_length):
+        for i in xrange(value_length):
             ct_field_bytes.append(byte_iter.next())
 
         ct_iter = PreviewIterator(ct_field_bytes)
@@ -1319,7 +1319,7 @@ class Decoder:
         hdr_fields = get_header_field_names()
         # TODO: *technically* this can fail, but then we have already
         # read a byte... should fix?
-        if field_value not in range(len(hdr_fields)):
+        if field_value not in xrange(len(hdr_fields)):
             raise DecodeError('Invalid Header Field value: %d' % field_value)
 
         field_name = hdr_fields[field_value]
