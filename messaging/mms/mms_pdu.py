@@ -363,7 +363,7 @@ class MMSDecoder(wsp_pdu.Decoder):
         elif token == 129:
             token_type = 'relative'
         else:
-            raise Exception('Delivery-Time type token value is undefined'
+            raise wsp_pdu.DecodeError('Delivery-Time type token value is undefined'
                 ' (%s), should be either 128 or 129' % token)
         return (token_type, value)
 
