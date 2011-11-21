@@ -40,7 +40,7 @@ Pure python SMS encoder/decoder library
 
 %changelog
 
-* Tue 30 Aug 2011 - Andrew Bird <ajb@spheresystems.co.uk> - 0.5.11
+* Tue Aug 30 2011 - Andrew Bird <ajb@spheresystems.co.uk> - 0.5.11
 - New release
 
 * Mon Jun 06 2011 - Andrew Bird <ajb@spheresystems.co.uk> - 0.5.10
