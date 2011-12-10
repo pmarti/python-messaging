@@ -242,9 +242,9 @@ def decode(input_, errors='strict'):
             if index < len(input_):
                 c = input_[index]
                 index += 1
-                result.append(escape_decode_dict.get(c, '\xa0'))
+                result.append(escape_decode_dict.get(c, u'\xa0'))
             else:
-                result.append('\xa0')
+                result.append(u'\xa0')
         else:
             try:
                 result.append(regular_decode_dict[c])
