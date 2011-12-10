@@ -120,12 +120,12 @@ mapping = [
     ('\x54', u'\u0054'),  # LATIN CAPITAL LETTER T
     ('\x54', u'\u03A4'),  # GREEK CAPITAL LETTER TAU
     ('\x55', u'\u0055'),  # LATIN CAPITAL LETTER U
-    ('\x55', u'\u03A5'),  # GREEK CAPITAL LETTER UPSILON
     ('\x56', u'\u0056'),  # LATIN CAPITAL LETTER V
     ('\x57', u'\u0057'),  # LATIN CAPITAL LETTER W
     ('\x58', u'\u0058'),  # LATIN CAPITAL LETTER X
     ('\x58', u'\u03A7'),  # GREEK CAPITAL LETTER CHI
     ('\x59', u'\u0059'),  # LATIN CAPITAL LETTER Y
+    ('\x59', u'\u03A5'),  # GREEK CAPITAL LETTER UPSILON
     ('\x5A', u'\u005A'),  # LATIN CAPITAL LETTER Z
     ('\x5A', u'\u0396'),  # GREEK CAPITAL LETTER ZETA
     ('\x5B', u'\u00C4'),  # LATIN CAPITAL LETTER A WITH DIAERESIS
