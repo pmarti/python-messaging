@@ -32,7 +32,7 @@ MAP = {
     u'ù': (0x00f9, 0x06),
     u'ì': (0x00ec, 0x07),
     u'ò': (0x00f2, 0x08),
-    u'ç': (0x00e7, 0x09),
+    u'Ç': (0x00c7, 0x09),  #   LATIN CAPITAL LETTER C WITH CEDILLA
     unichr(0x000a): (0x000a, 0x0a),  # Linefeed
     u'Ø': (0x00d8, 0x0b),
     u'ø': (0x00f8, 0x0c),
@@ -183,7 +183,7 @@ GREEK_MAP = {  # Note: these might look like Latin uppercase, but they aren't
 }
 
 QUIRK_MAP = {
-    u'Ç': (0x00c7, 0x09),  #   LATIN CAPITAL LETTER C WITH CEDILLA
+    u'ç': (0x00e7, 0x09),
 }
 
 BAD = -1
@@ -214,8 +214,8 @@ class TestEncodingFunctions(unittest.TestCase):
         # Note: Conversion is one way, hence no corresponding decode test
 
         for key in GREEK_MAP.keys():
-            # Use 'ignore' so that we see the code tested, not an exception
-            s_gsm = key.encode('gsm0338', 'ignore')
+            # Use 'replace' so that we trigger the mapping
+            s_gsm = key.encode('gsm0338', 'replace')
 
             if len(s_gsm) == 1:
                 i_gsm = ord(s_gsm)
@@ -228,8 +228,8 @@ class TestEncodingFunctions(unittest.TestCase):
         # Note: Conversion is one way, hence no corresponding decode test
 
         for key in QUIRK_MAP.keys():
-            # Use 'ignore' so that we see the code tested, not an exception
-            s_gsm = key.encode('gsm0338', 'ignore')
+            # Use 'replace' so that we trigger the mapping
+            s_gsm = key.encode('gsm0338', 'replace')
 
             if len(s_gsm) == 1:
                 i_gsm = ord(s_gsm)
@@ -251,21 +251,17 @@ class TestEncodingFunctions(unittest.TestCase):
             self.assertEqual(MAP[key][0], ord(s_unicode))
 
     def test_is_gsm_text_true(self):
-        _MAP = dict(MAP.items() + GREEK_MAP.items() + QUIRK_MAP.items())
-
-        for key in _MAP.keys():
+        for key in MAP.keys():
             if key == unichr(0x00a0):
                 continue
             self.assertEqual(messaging.sms.gsm0338.is_gsm_text(key), True)
 
     def test_is_gsm_text_false(self):
-        _MAP = dict(MAP.items() + GREEK_MAP.items() + QUIRK_MAP.items())
-
         self.assertEqual(
             messaging.sms.gsm0338.is_gsm_text(unichr(0x00a0)), False)
 
         for i in xrange(1, 0xffff + 1):
-            if unichr(i) not in _MAP:
+            if unichr(i) not in MAP:
                 # Note: it's a little odd, but on error we want to see values
                 if messaging.sms.gsm0338.is_gsm_text(unichr(i)) is not False:
                     self.assertEqual(BAD, i)
