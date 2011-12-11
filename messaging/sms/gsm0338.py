@@ -16,14 +16,12 @@ import codecs
 import sys
 import traceback
 
-QUESTION_MARK = chr(0x3f)
-
 # data from
 # http://snoops.roy202.org/testerman/browser/trunk/plugins/codecs/gsm0338.py
 
-mapping = [
+def_regular_mapping = [
     ('\x00', u'\u0040'),  # COMMERCIAL AT
-    ('\x00', u'\u0000'),  # NULL (see note above)
+#    ('\x00', u'\u0000'),  # NULL (see note above)
     ('\x01', u'\u00A3'),  # POUND SIGN
     ('\x02', u'\u0024'),  # DOLLAR SIGN
     ('\x03', u'\u00A5'),  # YEN SIGN
@@ -32,8 +30,11 @@ mapping = [
     ('\x06', u'\u00F9'),  # LATIN SMALL LETTER U WITH GRAVE
     ('\x07', u'\u00EC'),  # LATIN SMALL LETTER I WITH GRAVE
     ('\x08', u'\u00F2'),  # LATIN SMALL LETTER O WITH GRAVE
-    ('\x09', u'\u00E7'),  # LATIN SMALL LETTER C WITH CEDILLA
     ('\x09', u'\u00C7'),  # LATIN CAPITAL LETTER C WITH CEDILLA
+                          # The Unicode page suggests this is a mistake, but
+                          # it's still in the latest version of the spec and
+                          # our implementation has to be exact.
+
     ('\x0A', u'\u000A'),  # LINE FEED
     ('\x0B', u'\u00D8'),  # LATIN CAPITAL LETTER O WITH STROKE
     ('\x0C', u'\u00F8'),  # LATIN SMALL LETTER O WITH STROKE
@@ -89,45 +90,31 @@ mapping = [
     ('\x3F', u'\u003F'),  # QUESTION MARK
     ('\x40', u'\u00A1'),  # INVERTED EXCLAMATION MARK
     ('\x41', u'\u0041'),  # LATIN CAPITAL LETTER A
-    ('\x41', u'\u0391'),  # GREEK CAPITAL LETTER ALPHA
     ('\x42', u'\u0042'),  # LATIN CAPITAL LETTER B
-    ('\x42', u'\u0392'),  # GREEK CAPITAL LETTER BETA
     ('\x43', u'\u0043'),  # LATIN CAPITAL LETTER C
     ('\x44', u'\u0044'),  # LATIN CAPITAL LETTER D
     ('\x45', u'\u0045'),  # LATIN CAPITAL LETTER E
-    ('\x45', u'\u0395'),  # GREEK CAPITAL LETTER EPSILON
     ('\x46', u'\u0046'),  # LATIN CAPITAL LETTER F
     ('\x47', u'\u0047'),  # LATIN CAPITAL LETTER G
     ('\x48', u'\u0048'),  # LATIN CAPITAL LETTER H
-    ('\x48', u'\u0397'),  # GREEK CAPITAL LETTER ETA
     ('\x49', u'\u0049'),  # LATIN CAPITAL LETTER I
-    ('\x49', u'\u0399'),  # GREEK CAPITAL LETTER IOTA
     ('\x4A', u'\u004A'),  # LATIN CAPITAL LETTER J
     ('\x4B', u'\u004B'),  # LATIN CAPITAL LETTER K
-    ('\x4B', u'\u039A'),  # GREEK CAPITAL LETTER KAPPA
     ('\x4C', u'\u004C'),  # LATIN CAPITAL LETTER L
     ('\x4D', u'\u004D'),  # LATIN CAPITAL LETTER M
-    ('\x4D', u'\u039C'),  # GREEK CAPITAL LETTER MU
     ('\x4E', u'\u004E'),  # LATIN CAPITAL LETTER N
-    ('\x4E', u'\u039D'),  # GREEK CAPITAL LETTER NU
     ('\x4F', u'\u004F'),  # LATIN CAPITAL LETTER O
-    ('\x4F', u'\u039F'),  # GREEK CAPITAL LETTER OMICRON
     ('\x50', u'\u0050'),  # LATIN CAPITAL LETTER P
-    ('\x50', u'\u03A1'),  # GREEK CAPITAL LETTER RHO
     ('\x51', u'\u0051'),  # LATIN CAPITAL LETTER Q
     ('\x52', u'\u0052'),  # LATIN CAPITAL LETTER R
     ('\x53', u'\u0053'),  # LATIN CAPITAL LETTER S
     ('\x54', u'\u0054'),  # LATIN CAPITAL LETTER T
-    ('\x54', u'\u03A4'),  # GREEK CAPITAL LETTER TAU
     ('\x55', u'\u0055'),  # LATIN CAPITAL LETTER U
     ('\x56', u'\u0056'),  # LATIN CAPITAL LETTER V
     ('\x57', u'\u0057'),  # LATIN CAPITAL LETTER W
     ('\x58', u'\u0058'),  # LATIN CAPITAL LETTER X
-    ('\x58', u'\u03A7'),  # GREEK CAPITAL LETTER CHI
     ('\x59', u'\u0059'),  # LATIN CAPITAL LETTER Y
-    ('\x59', u'\u03A5'),  # GREEK CAPITAL LETTER UPSILON
     ('\x5A', u'\u005A'),  # LATIN CAPITAL LETTER Z
-    ('\x5A', u'\u0396'),  # GREEK CAPITAL LETTER ZETA
     ('\x5B', u'\u00C4'),  # LATIN CAPITAL LETTER A WITH DIAERESIS
     ('\x5C', u'\u00D6'),  # LATIN CAPITAL LETTER O WITH DIAERESIS
     ('\x5D', u'\u00D1'),  # LATIN CAPITAL LETTER N WITH TILDE
@@ -168,7 +155,7 @@ mapping = [
 ]
 
 # Escaped characters
-escaped_mapping = [
+def_escaped_mapping = [
     ('\x0A', u'\u000C'),  # FORM FEED
     ('\x14', u'\u005E'),  # CIRCUMFLEX ACCENT
     ('\x28', u'\u007B'),  # LEFT CURLY BRACKET
@@ -181,21 +168,44 @@ escaped_mapping = [
     ('\x65', u'\u20AC'),  # EURO SIGN
 ]
 
-# unicode -> GSM 03.38
-regular_encode_dict = dict([(u, g) for g, u in mapping])
+# Replacement characters, default is question mark. Used when it is not too
+# important to ensure exact UTF-8 -> GSM -> UTF-8 equivilence, such as when
+# humans read and write SMS. But for USSD and other M2M applications it's
+# important to ensure the conversion is exact.
+def_replace_mapping = [
+    ('\x09', u'\u00E7'),  # LATIN SMALL LETTER C WITH CEDILLA
 
-# unicode -> escaped GSM 03.38 characters
-escape_encode_dict = dict([(u, g) for g, u in escaped_mapping])
+    ('\x41', u'\u0391'),  # GREEK CAPITAL LETTER ALPHA
+    ('\x42', u'\u0392'),  # GREEK CAPITAL LETTER BETA
+    ('\x45', u'\u0395'),  # GREEK CAPITAL LETTER EPSILON
+    ('\x48', u'\u0397'),  # GREEK CAPITAL LETTER ETA
+    ('\x49', u'\u0399'),  # GREEK CAPITAL LETTER IOTA
+    ('\x4B', u'\u039A'),  # GREEK CAPITAL LETTER KAPPA
+    ('\x4D', u'\u039C'),  # GREEK CAPITAL LETTER MU
+    ('\x4E', u'\u039D'),  # GREEK CAPITAL LETTER NU
+    ('\x4F', u'\u039F'),  # GREEK CAPITAL LETTER OMICRON
+    ('\x50', u'\u03A1'),  # GREEK CAPITAL LETTER RHO
+    ('\x54', u'\u03A4'),  # GREEK CAPITAL LETTER TAU
+    ('\x58', u'\u03A7'),  # GREEK CAPITAL LETTER CHI
+    ('\x59', u'\u03A5'),  # GREEK CAPITAL LETTER UPSILON
+    ('\x5A', u'\u0396'),  # GREEK CAPITAL LETTER ZETA
+]
 
-# GSM 03.38 -> unicode
-# Only first corresponding unicode character is
-# taken into account (see 0x41, etc)
-regular_decode_dict = {}
-for g, u in mapping:
-    if g not in regular_decode_dict:
-        regular_decode_dict[g] = u
+QUESTION_MARK = chr(0x3f)
 
-escape_decode_dict = dict([(g, u) for g, u in escaped_mapping])
+# unicode -> default GSM 03.38
+def_regular_encode_dict = dict([(u, g) for g, u in def_regular_mapping])
+
+# unicode -> default escaped GSM 03.38 characters
+def_escape_encode_dict = dict([(u, g) for g, u in def_escaped_mapping])
+
+# unicode -> default replacement characters
+def_replace_encode_dict = dict([(u, g) for g, u in def_replace_mapping])
+
+# default GSM 03.38 -> unicode
+# Note: We've removed the duplicates to be strict TS23.038 compliant
+def_regular_decode_dict = dict([(g, u) for g, u in def_regular_mapping])
+def_escape_decode_dict = dict([(g, u) for g, u in def_escaped_mapping])
 
 
 def encode(input_, errors='strict'):
@@ -207,17 +217,18 @@ def encode(input_, errors='strict'):
     result = []
     for c in input_:
         try:
-            result.append(regular_encode_dict[c])
+            result.append(def_regular_encode_dict[c])
         except KeyError:
-            if c in escape_encode_dict:
+            if c in def_escape_encode_dict:
                 # OK, let's encode it as an escaped characters
                 result.append('\x1b')
-                result.append(escape_encode_dict[c])
+                result.append(def_escape_encode_dict[c])
             else:
                 if errors == 'strict':
-                    raise UnicodeError("Invalid SMS character")
+                    raise UnicodeError("Invalid GSM character")
                 elif errors == 'replace':
-                    result.append(QUESTION_MARK)
+                    result.append(
+                                def_replace_encode_dict.get(c, QUESTION_MARK))
                 elif errors == 'ignore':
                     pass
                 else:
@@ -242,16 +253,16 @@ def decode(input_, errors='strict'):
             if index < len(input_):
                 c = input_[index]
                 index += 1
-                result.append(escape_decode_dict.get(c, u'\xa0'))
+                result.append(def_escape_decode_dict.get(c, u'\xa0'))
             else:
                 result.append(u'\xa0')
         else:
             try:
-                result.append(regular_decode_dict[c])
+                result.append(def_regular_decode_dict[c])
             except KeyError:
                 # error handling: unassigned byte, must be > 0x7f
                 if errors == 'strict':
-                    raise UnicodeError("Unrecognized SMS character")
+                    raise UnicodeError("Unrecognized GSM character")
                 elif errors == 'replace':
                     result.append('?')
                 elif errors == 'ignore':
