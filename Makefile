@@ -7,6 +7,9 @@ PMV := python-messaging-$(VERSION)
 all:
 	@echo Usage: make deb \[TARGET=ubuntu-lucid\] \| rpm
 
+test:
+	nosetests -v -w . messaging/test
+
 rpm:
 	@if [ ! -d $(SOURCES) ] ;\
 	then\
