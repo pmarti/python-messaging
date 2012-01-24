@@ -2,13 +2,14 @@ from distribute_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
 import sys
+from messaging import VERSION
 
 extra = {}
 if sys.version_info >= (3,):
     extra['use_2to3'] = True
 
 setup(name="python-messaging",
-      version='0.5.10',
+      version='%s.%s.%s' % VERSION,
       description='SMS/MMS encoder/decoder',
       license=open('COPYING').read(),
       packages=find_packages(),
