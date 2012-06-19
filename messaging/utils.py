@@ -237,17 +237,17 @@ def timedelta_to_relative_validity(t):
         raise ValueError("Max validity is 63 weeks")
 
     if t <= timedelta(hours=12):
-        return floor(t.seconds / (60 * 5)) - 1
+        return int(floor(t.seconds / (60 * 5))) - 1
 
     if t <= timedelta(hours=24):
         t -= timedelta(hours=12)
-        return floor(t.seconds / (60 * 30)) + 143
+        return int(floor(t.seconds / (60 * 30))) + 143
 
     if t <= timedelta(days=30):
         return t.days + 166
 
     if t <= timedelta(weeks=63):
-        return floor(t.days / 7) + 192
+        return int(floor(t.days / 7)) + 192
 
 
 def datetime_to_absolute_validity(d, tzname='Unknown'):

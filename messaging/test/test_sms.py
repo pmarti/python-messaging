@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-import unittest
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from messaging.sms import SmsSubmit, SmsDeliver
 from messaging.utils import (timedelta_to_relative_validity as to_relative,
@@ -11,6 +15,14 @@ from messaging.utils import (timedelta_to_relative_validity as to_relative,
 class TestEncodingFunctions(unittest.TestCase):
 
     def test_converting_timedelta_to_validity(self):
+        self.assertRaises(ValueError, to_relative, timedelta(minutes=4))
+        self.assertRaises(ValueError, to_relative, timedelta(weeks=64))
+
+        self.assertIsInstance(to_relative(timedelta(hours=6)), int)
+        self.assertIsInstance(to_relative(timedelta(hours=18)), int)
+        self.assertIsInstance(to_relative(timedelta(days=15)), int)
+        self.assertIsInstance(to_relative(timedelta(weeks=31)), int)
+
         self.assertEqual(to_relative(timedelta(minutes=5)), 0)
         self.assertEqual(to_relative(timedelta(minutes=6)), 0)
         self.assertEqual(to_relative(timedelta(minutes=10)), 1)
