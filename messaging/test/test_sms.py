@@ -18,10 +18,10 @@ class TestEncodingFunctions(unittest.TestCase):
         self.assertRaises(ValueError, to_relative, timedelta(minutes=4))
         self.assertRaises(ValueError, to_relative, timedelta(weeks=64))
 
-        self.assertIsInstance(to_relative(timedelta(hours=6)), int)
-        self.assertIsInstance(to_relative(timedelta(hours=18)), int)
-        self.assertIsInstance(to_relative(timedelta(days=15)), int)
-        self.assertIsInstance(to_relative(timedelta(weeks=31)), int)
+        self.assertTrue(isinstance(to_relative(timedelta(hours=6)), int))
+        self.assertTrue(isinstance(to_relative(timedelta(hours=18)), int))
+        self.assertTrue(isinstance(to_relative(timedelta(days=15)), int))
+        self.assertTrue(isinstance(to_relative(timedelta(weeks=31)), int))
 
         self.assertEqual(to_relative(timedelta(minutes=5)), 0)
         self.assertEqual(to_relative(timedelta(minutes=6)), 0)
